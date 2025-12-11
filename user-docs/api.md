@@ -9,6 +9,7 @@ Import from the package root using standard ES module syntax:
 ```ts
 import {
   getServiceHealth,
+  initializeTemplateProject,
   initializeTemplateProjectWithGit,
   type GitInitResult,
 } from '@voder-ai/create-fastify-ts';
@@ -17,7 +18,11 @@ import {
 or in JavaScript:
 
 ```js
-import { getServiceHealth, initializeTemplateProjectWithGit } from '@voder-ai/create-fastify-ts';
+import {
+  getServiceHealth,
+  initializeTemplateProject,
+  initializeTemplateProjectWithGit,
+} from '@voder-ai/create-fastify-ts';
 ```
 
 ## Functions
@@ -39,9 +44,58 @@ if (getServiceHealth() === 'ok') {
 }
 ```
 
+### `initializeTemplateProject(projectName: string): Promise<string>`
+
+Creates a new Fastify TypeScript template project on disk without attempting to initialize a Git repository.
+
+- **Parameters**:
+  - `projectName` (`string`): The intended name of the project. This is typically used to determine the directory name for the new project (for example, `my-fastify-service`), subject to any internal normalization rules.
+
+- **Returns**: a `Promise` that resolves to:
+  - `string`: Absolute path to the created project directory on disk.
+
+- **Errors**:
+  - The Promise may reject for:
+    - Invalid or unsupported `projectName` values.
+    - File system or template-creation errors (e.g., insufficient permissions, target directory already exists in a non-overwritable way, or other I/O errors).
+
+Example (TypeScript):
+
+```ts
+import { initializeTemplateProject } from '@voder-ai/create-fastify-ts';
+
+async function main() {
+  const projectDir = await initializeTemplateProject('my-fastify-service');
+  console.log('Project created at:', projectDir);
+}
+
+main().catch(error => {
+  console.error(error);
+  process.exit(1);
+});
+```
+
+Example (JavaScript):
+
+```js
+import { initializeTemplateProject } from '@voder-ai/create-fastify-ts';
+
+async function main() {
+  const projectDir = await initializeTemplateProject('my-fastify-service');
+  console.log('Project created at:', projectDir);
+}
+
+main().catch(error => {
+  console.error(error);
+  process.exit(1);
+});
+```
+
 ### `initializeTemplateProjectWithGit(projectName: string): Promise<{ projectDir: string; git: GitInitResult }>`
 
 Creates a new Fastify TypeScript template project on disk and attempts to initialize a Git repository in the created project directory.
+
+This function reuses the same project scaffolding logic as `initializeTemplateProject` to create the project, and then performs a best-effort Git initialization step. It never rejects solely because Git is unavailable or Git initialization fails; those conditions are reported via the returned `GitInitResult`.
 
 - **Parameters**:
   - `projectName` (`string`): The intended name of the project. This is typically used to determine the directory name for the new project (for example, `my-fastify-service`), subject to any internal normalization rules.
@@ -51,13 +105,13 @@ Creates a new Fastify TypeScript template project on disk and attempts to initia
   - `git` (`GitInitResult`): Object describing the result of the Git initialization attempt.
 
 - **Behavior when Git is not available**:
-  - The project directory and template files are still created successfully.
+  - The project directory and template files are still created successfully using the same scaffolding as `initializeTemplateProject`.
   - Git initialization is skipped or fails gracefully.
   - The returned `git.initialized` is `false`.
-  - The returned `git.errorMessage` is populated with a human‑readable explanation (for example, that `git` could not be found or failed to run).
+  - The returned `git.errorMessage` is populated with a human-readable explanation (for example, that `git` could not be found or failed to run).
 
 - **Errors**:
-  - The Promise may reject for file system or template‑creation errors (e.g., insufficient permissions, target directory already exists in a non‑overwritable way, or other I/O errors).
+  - The Promise may reject for file system or template-creation errors (e.g., insufficient permissions, target directory already exists in a non-overwritable way, or other I/O errors).
   - It is not rejected solely because Git is unavailable; that case is reported via the `GitInitResult` in the resolved value.
 
 Example (TypeScript):
@@ -117,25 +171,45 @@ Shape:
 ```ts
 type GitInitResult = {
   /**
+   * Absolute path to the project directory where Git initialization was attempted.
+   */
+  projectDir: string;
+
+  /**
    * Whether a Git repository was successfully initialized.
    */
   initialized: boolean;
 
   /**
-   * A human-readable error message if Git initialization did not succeed.
-   * This is `null` (or possibly `undefined`) when `initialized` is `true`.
+   * Standard output from the Git initialization command, if available.
    */
-  errorMessage: string | null;
+  stdout?: string;
+
+  /**
+   * Standard error output from the Git initialization command, if available.
+   */
+  stderr?: string;
+
+  /**
+   * A human-readable error message if Git initialization did not succeed.
+   */
+  errorMessage?: string;
 };
 ```
 
 - When Git is available and initialization succeeds:
+  - `projectDir` is always populated with the absolute project directory path.
   - `initialized` is `true`.
-  - `errorMessage` is `null` (or otherwise empty).
+  - `stdout` may contain the standard output from `git init` (or similar), or be `undefined` if not captured.
+  - `stderr` is typically `undefined` (or empty) unless Git wrote to standard error.
+  - `errorMessage` is `undefined`.
 
 - When Git is not available or initialization fails:
+  - `projectDir` is always populated with the absolute project directory path.
   - `initialized` is `false`.
-  - `errorMessage` contains a brief explanation (e.g., `git not found in PATH` or the underlying error message).
+  - `stdout` may be present with any captured standard output, or `undefined`.
+  - `stderr` may be present with any captured standard error details, or `undefined`.
+  - `errorMessage` is present and contains a brief explanation (e.g., `git not found in PATH` or the underlying error message).
   - The project is still created and usable at the returned `projectDir` path.
 
 ## Attribution

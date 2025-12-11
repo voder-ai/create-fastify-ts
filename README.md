@@ -1,6 +1,6 @@
 # Fastify TypeScript Template
 
-A production-ready TypeScript + Fastify template for building REST APIs and microservices. Currently includes a basic Fastify server with a health check endpoint. Additional production features (security headers, structured logging, and more) are planned as future enhancements.
+A production-ready TypeScript + Fastify template for building REST APIs and microservices. The CLI scaffolds a minimal Fastify app that responds with a Hello World JSON payload on `GET /` in the generated project. Additional production features (security headers, structured logging, and more) are planned as future enhancements.
 
 ## Quick Start
 
@@ -10,8 +10,11 @@ Create a new project from this template:
 npm init @voder-ai/fastify-ts my-api
 cd my-api
 npm install
-npm run dev
 ```
+
+The generated `package.json` includes `dev`, `build`, and `start` scripts as placeholders. Each currently prints a TODO message and exits with a non-zero status; real development, build, and start workflows will be implemented in future stories/versions of this template.
+
+In the generated project, when `src/index.ts` is compiled and run, it starts a Fastify server that listens on port `3000` (or the value of the `PORT` environment variable if set) and serves a Hello World JSON response on `GET /`.
 
 When Git is available on your system, the new project is automatically initialized as its own Git repository. If Git is not installed or not on your PATH, the project will still be created successfully, but you may need to run `git init` manually inside the new project directory.
 
@@ -25,7 +28,7 @@ Requires Node.js 22 or newer (LTS recommended).
 - **Fastify**: Fast, low-overhead web framework
 - **Vitest**: Lightning-fast test framework
 - **ESLint + Prettier**: Code quality and formatting
-- **Health Check**: `/health` endpoint for monitoring
+- **Hello World endpoint**: `GET /` returns a simple JSON payload in the generated project
 
 ### Planned Enhancements
 
@@ -57,13 +60,13 @@ npm run format
 npm run build
 ```
 
-### Health Endpoint
+### Generated project endpoint
 
-The template includes a basic health check endpoint:
+A freshly generated project exposes a single primary endpoint at this stage:
 
-- `GET /health` → `{"status": "ok"}`
+- `GET /` → `{ "message": "Hello World from Fastify + TypeScript!" }`
 
-Use this for liveness probes, smoke tests, and deployment verification.
+This Hello World JSON response is the main endpoint in the generated template and serves as a starting point for building out your API.
 
 ## Releases and Versioning
 
@@ -80,11 +83,15 @@ For template releases, see:
 - GitHub Releases: https://github.com/voder-ai/create-fastify-ts/releases
 - npm registry: https://www.npmjs.com/package/@voder-ai/create-fastify-ts
 
+## API Reference
+
+For details on the programmatic API (including `getServiceHealth`, `initializeTemplateProject`, and `initializeTemplateProjectWithGit`), see the [API Reference](user-docs/api.md).
+
 ## Security
 
 Currently implemented:
 
-- Basic Fastify server with a health endpoint
+- Basic Fastify server with a Hello World endpoint
 
 Planned security-related enhancements (not yet implemented):
 

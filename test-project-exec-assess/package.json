@@ -2,6 +2,7 @@
   "name": "test-project-exec-assess",
   "version": "0.0.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "echo 'TODO: implement dev server in story 003.0-DEVELOPER-DEV-SERVER' && exit 1",

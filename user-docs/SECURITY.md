@@ -6,9 +6,14 @@ This document provides a high-level view of the current security characteristics
 
 ## Current Capabilities and Limitations
 
-At this early stage, the service exposes only a simple health endpoint:
+At this early stage, there are two distinct contexts to consider:
 
-- `GET /health` – returns a JSON payload such as `{ "status": "ok" }`.
+- The **internal stub server** used by this package (for smoke tests and health checks) exposes:
+  - `GET /health` – returns a JSON payload such as `{ "status": "ok" }`.
+- A **freshly generated project** created via `npm init @voder-ai/fastify-ts` instead exposes:
+  - `GET /` – returns a Hello World JSON payload such as `{ "message": "Hello World from Fastify + TypeScript!" }`.
+
+In a freshly generated project, the `GET /` Hello World endpoint is currently the only application endpoint.
 
 There are currently **no** authenticated endpoints, no image-upload functionality, and no persistent storage. As a result:
 
@@ -23,7 +28,12 @@ These limitations are expected for an early bootstrap; future versions will intr
 
 ## Data Handling
 
-Because the only implemented endpoint is `/health` and it does not accept user input beyond the HTTP request itself:
+Because the only implemented endpoints at this stage are:
+
+- `GET /health` on the **internal stub server** (returning a simple status JSON), and
+- `GET /` on a **freshly generated project** (returning a static Hello World JSON message),
+
+and they do not accept user input beyond the HTTP request itself:
 
 - No request bodies or files are processed.
 - No user data is written to databases, disks, or external services.
