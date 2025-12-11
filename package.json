@@ -52,6 +52,9 @@
   },
   "homepage": "https://github.com/voder-ai/create-fastify-ts#readme",
   "description": "",
+  "overrides": {
+    "semver-diff": "4.0.0"
+  },
   "devDependencies": {
     "@eslint/js": "9.39.1",
     "@semantic-release/exec": "^7.1.0",
