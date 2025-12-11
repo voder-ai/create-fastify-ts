@@ -6,6 +6,7 @@
  * requirements from the template-init story.
  *
  * @supports docs/stories/001.0-DEVELOPER-TEMPLATE-INIT.story.md REQ-INIT-DIRECTORY REQ-INIT-FILES-MINIMAL REQ-INIT-ESMODULES REQ-INIT-TYPESCRIPT REQ-INIT-GIT-CLEAN
+ * @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-START-FAST REQ-DEV-PORT-AUTO REQ-DEV-PORT-STRICT REQ-DEV-CLEAN-LOGS
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'node:fs/promises';
@@ -94,6 +95,10 @@ describe('Template initializer (Story 001.0)', () => {
       // [REQ-INIT-TYPESCRIPT]
       expect(pkg.dependencies.fastify).toBeDefined();
       expect(pkg.devDependencies.typescript).toBeDefined();
+
+      // Dev server script is wired up for story 003.0 (dev server).
+      // [REQ-DEV-START-FAST]
+      expect(pkg.scripts.dev).toBe('node dev-server.mjs');
     });
 
     it('creates tsconfig.json with basic TypeScript configuration', async () => {
@@ -151,9 +156,9 @@ describe('Template initializer (Story 001.0)', () => {
 
       const contents = await fs.readFile(indexPath, 'utf8');
 
-      expect(contents).toMatch(/from ['"]fastify['"]/);
-      expect(contents).toMatch(/fastify\.get\(['"`]\/['"`]/);
-      expect(contents).toMatch(/Hello World/i);
+      expect(contents).toContain("from 'fastify'");
+      expect(contents).toMatch(/fastify\.get\(['"`]\//);
+      expect(contents.toLowerCase()).toContain('hello world');
     });
   });
 

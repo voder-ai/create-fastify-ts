@@ -10,6 +10,10 @@ export default [
         ...(js.configs.recommended.languageOptions?.globals || {}),
         process: 'readonly',
         console: 'readonly',
+        setTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly',
+        URL: 'readonly',
       },
     },
   },
@@ -29,6 +33,6 @@ export default [
     },
   },
   {
-    ignores: ['dist/**', 'node_modules/**', '**/*.d.ts'],
+    ignores: ['dist/**', 'node_modules/**', '**/*.d.ts', 'vitest.config.mts'],
   },
 ];

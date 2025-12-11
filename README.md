@@ -12,7 +12,7 @@ cd my-api
 npm install
 ```
 
-The generated `package.json` includes `dev`, `build`, and `start` scripts as placeholders. Each currently prints a TODO message and exits with a non-zero status; real development, build, and start workflows will be implemented in future stories/versions of this template.
+The generated `package.json` includes a working `dev` script that starts the development server, while the `build` and `start` scripts remain placeholders that currently print TODO messages and exit with a non-zero status; real build and start workflows will be implemented in future stories/versions of this template.
 
 In the generated project, when `src/index.ts` is compiled and run, it starts a Fastify server that listens on port `3000` (or the value of the `PORT` environment variable if set) and serves a Hello World JSON response on `GET /`.
 

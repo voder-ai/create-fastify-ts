@@ -74,7 +74,7 @@ function createTemplatePackageJson(projectName: string): TemplatePackageJson {
     type: 'module',
     // Placeholder scripts: these will be fully wired up in later stories.
     scripts: {
-      dev: "echo 'TODO: implement dev server in story 003.0-DEVELOPER-DEV-SERVER' && exit 1",
+      dev: 'node dev-server.mjs',
       build: "echo 'TODO: implement build pipeline in story 006.0-DEVELOPER-BUILD' && exit 1",
       start:
         "echo 'TODO: implement production start in story 003.0-DEVELOPER-DEV-SERVER' && exit 1",
