@@ -6,17 +6,17 @@
  *
  * @supports docs/stories/001.0-DEVELOPER-TEMPLATE-INIT.story.md REQ-INIT-FASTIFY-HELLO
  */
-import fastify from 'fastify';
+import Fastify from 'fastify';
 
-const app = fastify({ logger: true });
+const fastify = Fastify({ logger: true });
 
-app.get('/', async () => {
+fastify.get('/', async () => {
   return { message: 'Hello World from Fastify + TypeScript!' } as const;
 });
 
 const port = Number(process.env.PORT ?? 3000);
 
-app
+fastify
   .listen({ port, host: '0.0.0.0' })
   .then(() => {
     // eslint-disable-next-line no-console -- Simple startup log for generated project
