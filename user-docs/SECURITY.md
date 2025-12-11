@@ -15,6 +15,9 @@ There are currently **no** authenticated endpoints, no image-upload functionalit
 - The service does **not** store user data.
 - The service does **not** perform user authentication or authorization.
 - The service does **not** provide rate-limiting or abuse protection on public endpoints yet.
+- The service does **not** configure CORS (no custom CORS policy is in place).
+- The service does **not** apply additional security headers (for example, via `@fastify/helmet`).
+- The service does **not** perform validation or strict checking of environment variables at startup.
 
 These limitations are expected for an early bootstrap; future versions will introduce additional endpoints and stronger security features.
 
@@ -42,5 +45,8 @@ Planned areas of improvement include, but are not limited to:
 - Request validation and file-type checking for image upload endpoints.
 - Rate limiting or other controls to mitigate abuse.
 - Additional automated security checks in the CI/CD pipeline.
+- Explicit CORS configuration appropriate to your deployment environment.
+- Security headers using Fastify plugins such as `@fastify/helmet` (or equivalent).
+- More robust environment-variable validation and configuration checks at startup.
 
 Until these features are implemented and documented, you should treat the service as a minimal building block and place it behind your own security controls appropriate to your environment.

@@ -1,6 +1,6 @@
 /**
  * Tests for the initial TypeScript + ESM project wiring.
- * @supports docs/decisions/001-typescript-esm.accepted.md REQ-TSC-BOOTSTRAP
+ * @supports docs/decisions/0001-typescript-esm.accepted.md REQ-TSC-BOOTSTRAP
  */
 import { describe, it, expect } from 'vitest';
 import { getServiceHealth } from '../src/index.js';

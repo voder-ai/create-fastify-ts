@@ -61,6 +61,8 @@ Builds the Fastify server and starts listening on the specified port.
 - **Parameters**:
   - `port` (optional, `number`): TCP port to listen on. Defaults to `3000`.
 - **Returns**: a Promise that resolves to the Fastify instance once the server is listening.
+- **Host binding**: the server listens on all interfaces, binding to host `0.0.0.0`.
+- **Errors**: the returned Promise may reject if the server fails to start (for example, when given an invalid port or when the port is already in use), matching the behavior tested in `src/server.test.ts`.
 
 Example (TypeScript):
 

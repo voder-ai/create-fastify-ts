@@ -1,6 +1,6 @@
 /**
  * Tests for the Fastify server stub.
- * @supports docs/decisions/002-fastify-web-framework.accepted.md REQ-FASTIFY-SERVER-STUB
+ * @supports docs/decisions/0002-fastify-web-framework.accepted.md REQ-FASTIFY-SERVER-STUB
  */
 import { describe, it, expect } from 'vitest';
 import { buildServer, startServer } from '../src/server.js';

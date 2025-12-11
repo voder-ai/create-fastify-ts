@@ -1,6 +1,6 @@
 # Fastify TypeScript Template
 
-A production-ready TypeScript + Fastify template for building REST APIs and microservices. Includes health check endpoint, testing framework, code quality tools, security headers, structured logging, and automated release workflow.
+A production-ready TypeScript + Fastify template for building REST APIs and microservices. Currently includes a basic Fastify server with a health check endpoint. Additional production features (security headers, structured logging, and more) are planned as future enhancements.
 
 ## Quick Start
 
@@ -17,14 +17,23 @@ Requires Node.js 22 or newer (LTS recommended).
 
 ## What's Included
 
+### Implemented
+
 - **TypeScript + ESM**: Modern TypeScript with ES Modules
 - **Fastify**: Fast, low-overhead web framework
 - **Vitest**: Lightning-fast test framework
 - **ESLint + Prettier**: Code quality and formatting
+- **Health Check**: `/health` endpoint for monitoring
+
+### Planned Enhancements
+
+These features are planned and not yet implemented in the current template:
+
 - **Security Headers**: Production-ready security via @fastify/helmet
 - **Structured Logging**: Pino for JSON logs
+- **Environment Variable Validation**: Strict runtime configuration validation
+- **CORS Configuration**: Opt-in, configurable CORS for APIs
 - **Automated Releases**: Semantic-release with trunk-based development
-- **Health Check**: `/health` endpoint for monitoring
 
 ## Development
 
@@ -56,9 +65,9 @@ Use this for liveness probes, smoke tests, and deployment verification.
 
 ## Releases and Versioning
 
-This template uses **semantic-release** for automated versioning. Projects created from this template inherit this CI/CD setup.
+This template is designed to use **semantic-release** for automated versioning, but the automated release workflow is a planned enhancement and may not be fully wired up in the current state of the template.
 
-Version numbers are derived from Conventional Commit messages:
+Intended versioning behavior (planned):
 
 - `feat:` → minor version bump
 - `fix:` → patch version bump
@@ -71,14 +80,18 @@ For template releases, see:
 
 ## Security
 
-The template includes security best practices:
+Currently implemented:
+
+- Basic Fastify server with a health endpoint
+
+Planned security-related enhancements (not yet implemented):
 
 - Security headers via @fastify/helmet
 - Environment variable validation
-- CORS opt-in configuration (see docs)
-- No sensitive data in logs
+- CORS opt-in configuration
+- Structured logging with Pino (ensuring no sensitive data in logs)
 
-See `user-docs/SECURITY.md` for detailed security guidance.
+See [Security Overview](user-docs/SECURITY.md) for detailed security guidance and planned practices.
 
 ## Attribution
 
