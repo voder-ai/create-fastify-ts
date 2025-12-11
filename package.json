@@ -17,7 +17,7 @@
     "doc": "user-docs"
   },
   "scripts": {
-    "preinstall": "node -e \"const pkg=require('./package.json'); if (pkg.name==='@voder-ai/create-fastify-ts') require('./scripts/check-node-version.mjs');\"",
+    "preinstall": "node -e \"const fs=require('fs'); if (fs.existsSync('./scripts/check-node-version.mjs')) require('./scripts/check-node-version.mjs');\"",
     "build": "tsc -p tsconfig.json && node ./scripts/copy-template-files.mjs",
     "test": "vitest run",
     "lint": "eslint .",
