@@ -1,0 +1,29 @@
+/**
+ * Minimal Fastify "Hello World" server for initialized projects.
+ *
+ * This file is copied into new projects as src/index.ts during
+ * template initialization.
+ *
+ * @supports docs/stories/001.0-DEVELOPER-TEMPLATE-INIT.story.md REQ-INIT-FASTIFY-HELLO
+ */
+import fastify from 'fastify';
+
+const app = fastify({ logger: true });
+
+app.get('/', async () => {
+  return { message: 'Hello World from Fastify + TypeScript!' } as const;
+});
+
+const port = Number(process.env.PORT ?? 3000);
+
+app
+  .listen({ port, host: '0.0.0.0' })
+  .then(() => {
+    // eslint-disable-next-line no-console -- Simple startup log for generated project
+    console.log(`Server listening on http://localhost:${port}`);
+  })
+  .catch((err) => {
+    // eslint-disable-next-line no-console -- Error logging for generated project
+    console.error('Failed to start server', err);
+    process.exit(1);
+  });
