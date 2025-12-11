@@ -7,3 +7,9 @@
 export function getServiceHealth(): string {
   return 'ok';
 }
+
+/**
+ * Re-export the template project initializer for external consumers.
+ * @supports docs/stories/001.0-DEVELOPER-TEMPLATE-INIT.story.md REQ-INIT-NPM-TEMPLATE
+ */
+export { initializeTemplateProject } from './initializer.js';

@@ -10,6 +10,7 @@
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 /**
  * Shape of the generated package.json file for a new project.
@@ -43,7 +44,8 @@ function createTemplatePackageJson(projectName: string): TemplatePackageJson {
     scripts: {
       dev: "echo 'TODO: implement dev server in story 003.0-DEVELOPER-DEV-SERVER' && exit 1",
       build: "echo 'TODO: implement build pipeline in story 006.0-DEVELOPER-BUILD' && exit 1",
-      start: "echo 'TODO: implement production start in story 003.0-DEVELOPER-DEV-SERVER' && exit 1",
+      start:
+        "echo 'TODO: implement production start in story 003.0-DEVELOPER-DEV-SERVER' && exit 1",
     },
     // Minimal runtime dependency required by the template-init story.
     dependencies: {
@@ -54,6 +56,64 @@ function createTemplatePackageJson(projectName: string): TemplatePackageJson {
       typescript: '^5.9.3',
     },
   };
+}
+
+/**
+ * Resolve the absolute path to the directory containing template files.
+ *
+ * Supports both source (e.g. src/template-files/*) and compiled output
+ * layouts (e.g. dist/template-files/*) by inspecting this module's path.
+ */
+function getTemplateFilesDir(): string {
+  const thisFilePath = fileURLToPath(import.meta.url);
+  const dir = path.dirname(thisFilePath);
+
+  const segments = dir.split(path.sep);
+  const distIndex = segments.lastIndexOf('dist');
+  const srcIndex = segments.lastIndexOf('src');
+
+  if (distIndex !== -1) {
+    // .../dist/** -> .../dist/template-files
+    const baseDir = segments.slice(0, distIndex + 1).join(path.sep);
+    return path.resolve(baseDir, 'template-files');
+  }
+
+  if (srcIndex !== -1) {
+    // .../src/** -> .../src/template-files
+    const baseDir = segments.slice(0, srcIndex + 1).join(path.sep);
+    return path.resolve(baseDir, 'template-files');
+  }
+
+  // Fallback: assume template-files is a sibling of the current directory.
+  return path.resolve(dir, 'template-files');
+}
+
+/**
+ * Copy a text template file into the target project directory.
+ *
+ * Optionally performs placeholder substitution before writing.
+ *
+ * @supports docs/stories/001.0-DEVELOPER-TEMPLATE-INIT.story.md REQ-INIT-FILES-MINIMAL
+ * @param templateDir - Absolute path to the directory containing template assets.
+ * @param templateRelativePath - Path to the template file, relative to templateDir.
+ * @param targetFilePath - Absolute path where the processed file should be written.
+ * @param replacements - Optional map of placeholder -> replacement string.
+ */
+async function copyTextTemplate(
+  templateDir: string,
+  templateRelativePath: string,
+  targetFilePath: string,
+  replacements?: Record<string, string>,
+): Promise<void> {
+  const templatePath = path.join(templateDir, templateRelativePath);
+  const raw = await fs.readFile(templatePath, 'utf8');
+
+  const processed =
+    replacements && Object.keys(replacements).length > 0
+      ? Object.entries(replacements).reduce((acc, [key, value]) => acc.replaceAll(key, value), raw)
+      : raw;
+
+  await fs.writeFile(targetFilePath, processed, 'utf8');
 }
 
 /**
@@ -86,6 +146,35 @@ export async function initializeTemplateProject(projectName: string): Promise<st
   // Write package.json with a trailing newline for POSIX friendliness.
   const fileContents = `${JSON.stringify(pkgJson, null, 2)}\n`;
   await fs.writeFile(pkgJsonPath, fileContents, 'utf8');
+
+  // Copy additional minimal project files from template assets.
+  const templateDir = getTemplateFilesDir();
+
+  // Ensure src directory exists before writing src/index.ts.
+  const srcDir = path.join(projectDir, 'src');
+  await fs.mkdir(srcDir, { recursive: true });
+
+  // src/index.ts
+  await copyTextTemplate(
+    templateDir,
+    path.join('src', 'index.ts.template'),
+    path.join(srcDir, 'index.ts'),
+  );
+
+  // tsconfig.json
+  await copyTextTemplate(
+    templateDir,
+    'tsconfig.json.template',
+    path.join(projectDir, 'tsconfig.json'),
+  );
+
+  // README.md with project name substitution.
+  await copyTextTemplate(templateDir, 'README.md.template', path.join(projectDir, 'README.md'), {
+    '{{PROJECT_NAME}}': trimmedName,
+  });
+
+  // .gitignore
+  await copyTextTemplate(templateDir, '.gitignore.template', path.join(projectDir, '.gitignore'));
 
   return projectDir;
 }

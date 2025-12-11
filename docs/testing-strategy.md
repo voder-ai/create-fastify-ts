@@ -53,6 +53,79 @@ Guidelines:
 - Prefer a small number of stable E2E tests over a large, slow suite.
 - Reuse helpers like `startServer()` to keep setup consistent.
 
+### Initializer Tests
+
+Since this project is distributed as an npm initializer (`npm init @voder-ai/fastify-ts`), it's critical to test the actual initialization and project creation process.
+
+Add or update initializer tests when:
+
+- You modify the template structure or file generation logic.
+- You change the initialization script or its dependencies.
+- You add or remove files from the template package.
+- You update package.json generation or dependency installation logic.
+
+Guidelines:
+
+- Create automated tests that run the full initialization process:
+  ```bash
+  npm init @voder-ai/fastify-ts test-project
+  cd test-project
+  npm install
+  npm run lint
+  npm test
+  npm run build
+  ```
+- Test both successful creation and error cases (existing directory, invalid project names, etc.).
+- Verify the generated project structure matches expectations (required files exist, correct content).
+- Run the generated project's own test suite to ensure the template is functional.
+- Test with different options/templates if your initializer supports them.
+- Clean up test projects after test completion to avoid filesystem clutter.
+- Consider using a temporary directory for each test run to ensure isolation.
+
+Example test structure:
+
+````ts
+describe('npm init @voder-ai/fastify-ts', () => {
+  const tmpDir = path.join(__dirname, '../tmp-init-tests');
+
+  beforeEach(() => {
+    fs.ensureDirSync(tmpDir);
+  });
+
+  afterEach(() => {
+    fs.removeSync(tmpDir);
+  });
+
+  it('creates a working project with all required files', () => {
+    // Run initializer
+    execSync('npm init @voder-ai/fastify-ts test-app', { cwd: tmpDir });
+
+    const projectDir = path.join(tmpDir, 'test-app');
+
+    // Verify structure
+    expect(fs.existsSync(path.join(projectDir, 'package.json'))).toBe(true);
+    expect(fs.existsSync(path.join(projectDir, 'tsconfig.json'))).toBe(true);
+    expect(fs.existsSync(path.join(projectDir, 'src/index.ts'))).toBe(true);
+
+    // Install and test
+    execSync('npm install', { cwd: projectDir, stdio: 'inherit' });
+    execSync('npm test', { cwd: projectDir, stdio: 'inherit' });
+    execSync('npm run build', { cwd: projectDir, stdio: 'inherit' });
+
+    // Verify build output
+    expect(fs.existsSync(path.join(projectDir, 'dist'))).toBe(true);
+  });
+
+  it('fails gracefully when directory already exists', () => {
+    const projectDir = path.join(tmpDir, 'existing-app');
+    fs.ensureDirSync(projectDir);
+
+    expect(() => {
+      execSync('npm init @voder-ai/fastify-ts existing-app', { cwd: tmpDir });
+    }).toThrow();
+  });
+});
+
 ## Traceability and Test Organization
 
 To keep a clear link between requirements, design, and verification:
@@ -64,7 +137,7 @@ To keep a clear link between requirements, design, and verification:
    * Tests for the Fastify server stub.
    * @supports docs/decisions/002-fastify-web-framework.accepted.md REQ-FASTIFY-SERVER-STUB
    */
-  ```
+````
 
 - In `describe` blocks and test names, include requirement identifiers from the corresponding story or ADR when they exist. For example:
 

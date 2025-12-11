@@ -90,6 +90,66 @@ describe('Template initializer (Story 001.0)', () => {
       expect(pkg.dependencies.fastify).toBeDefined();
       expect(pkg.devDependencies.typescript).toBeDefined();
     });
+
+    it('creates tsconfig.json with basic TypeScript configuration', async () => {
+      const projectName = 'my-api';
+      const projectDir = await initializeTemplateProject(projectName);
+      const tsconfigPath = path.join(projectDir, 'tsconfig.json');
+
+      expect(await fileExists(tsconfigPath)).toBe(true);
+
+      const contents = await fs.readFile(tsconfigPath, 'utf8');
+      const tsconfig = JSON.parse(contents);
+
+      expect(tsconfig.compilerOptions).toBeDefined();
+      expect(tsconfig.compilerOptions.module).toBeDefined();
+      expect(tsconfig.compilerOptions.moduleResolution).toBeDefined();
+      expect(tsconfig.compilerOptions.target).toBeDefined();
+      expect(tsconfig.include).toBeInstanceOf(Array);
+    });
+
+    it('creates README.md with a Next Steps section and npm install command', async () => {
+      const projectName = 'my-api';
+      const projectDir = await initializeTemplateProject(projectName);
+      const readmePath = path.join(projectDir, 'README.md');
+
+      expect(await fileExists(readmePath)).toBe(true);
+
+      const contents = await fs.readFile(readmePath, 'utf8');
+      expect(contents).toMatch(/Next Steps/i);
+      expect(contents).toMatch(/npm install/);
+    });
+
+    it('creates .gitignore with node_modules, dist, and .env entries', async () => {
+      const projectName = 'my-api';
+      const projectDir = await initializeTemplateProject(projectName);
+      const gitignorePath = path.join(projectDir, '.gitignore');
+
+      expect(await fileExists(gitignorePath)).toBe(true);
+
+      const contents = await fs.readFile(gitignorePath, 'utf8');
+      expect(contents).toMatch(/node_modules\/?/);
+      expect(contents).toMatch(/dist\/?/);
+      expect(contents).toMatch(/\.env/);
+    });
+  });
+
+  describe('[REQ-INIT-FASTIFY-HELLO] creates Fastify Hello World entrypoint', () => {
+    it('creates src/index.ts with Fastify import and GET / route', async () => {
+      const projectName = 'my-api';
+      const projectDir = await initializeTemplateProject(projectName);
+      const srcDir = path.join(projectDir, 'src');
+      const indexPath = path.join(srcDir, 'index.ts');
+
+      expect(await directoryExists(srcDir)).toBe(true);
+      expect(await fileExists(indexPath)).toBe(true);
+
+      const contents = await fs.readFile(indexPath, 'utf8');
+
+      expect(contents).toMatch(/from ['"]fastify['"]/);
+      expect(contents).toMatch(/fastify\.get\(['"`]\/['"`]/);
+      expect(contents).toMatch(/Hello World/i);
+    });
   });
 
   describe('[REQ-INIT-DIRECTORY] validates project name input', () => {
