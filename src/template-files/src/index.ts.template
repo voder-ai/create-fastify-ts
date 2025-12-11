@@ -7,10 +7,17 @@
  * @supports docs/stories/001.0-DEVELOPER-TEMPLATE-INIT.story.md REQ-INIT-FASTIFY-HELLO
  * @supports docs/stories/002.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-START-FAST
  * @supports docs/stories/002.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-CLEAN-LOGS
+ * @supports docs/stories/005.0-DEVELOPER-SECURITY-HEADERS.story.md REQ-SEC-HELMET-DEFAULT
+ * @supports docs/stories/005.0-DEVELOPER-SECURITY-HEADERS.story.md REQ-SEC-HEADERS-PRESENT
  */
 import Fastify from 'fastify';
+import helmet from '@fastify/helmet';
 
 const fastify = Fastify({ logger: true });
+
+// @supports docs/stories/005.0-DEVELOPER-SECURITY-HEADERS.story.md REQ-SEC-HELMET-DEFAULT
+// @supports docs/stories/005.0-DEVELOPER-SECURITY-HEADERS.story.md REQ-SEC-HEADERS-PRESENT
+await fastify.register(helmet);
 
 fastify.get('/', async () => {
   return { message: 'Hello World from Fastify + TypeScript!' } as const;

@@ -60,7 +60,7 @@ export interface GitInitResult {
 /**
  * Create the in-memory representation of package.json for a new project.
  *
- * @supports docs/stories/001.0-DEVELOPER-TEMPLATE-INIT.story.md REQ-INIT-FILES-MINIMAL REQ-INIT-ESMODULES REQ-INIT-TYPESCRIPT
+ * @supports docs/stories/001.0-DEVELOPER-TEMPLATE-INIT.story.md REQ-INIT-FILES-MINIMAL REQ-INIT-ESMODULES REQ-INIT-TYPESCRIPT docs/stories/005.0-DEVELOPER-SECURITY-HEADERS.story.md REQ-SEC-HELMET-DEFAULT
  * @param projectName - The npm package name for the new project.
  * @returns A plain object ready to be stringified to package.json.
  */
@@ -82,6 +82,7 @@ function createTemplatePackageJson(projectName: string): TemplatePackageJson {
     // Minimal runtime dependency required by the template-init story.
     dependencies: {
       fastify: '^5.6.2',
+      '@fastify/helmet': '^13.0.2',
     },
     // TypeScript is required for the initialized project.
     devDependencies: {

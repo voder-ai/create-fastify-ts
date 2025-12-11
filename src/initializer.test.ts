@@ -52,6 +52,33 @@ async function expectBasicScaffold(projectDir: string): Promise<void> {
   expect(await fileExists(gitignorePath)).toBe(true);
 }
 
+function assertBasicPackageJsonShape(pkg: any, projectName: string): void {
+  // Basic identity fields.
+  expect(pkg.name).toBe(projectName);
+  expect(pkg.version).toBe('0.0.0');
+  expect(pkg.private).toBe(true);
+
+  // ES modules configuration.
+  // [REQ-INIT-ESMODULES]
+  expect(pkg.type).toBe('module');
+
+  // Placeholder scripts that will be implemented in later stories.
+  // [REQ-INIT-NO-SCRIPTS-YET]
+  expect(typeof pkg.scripts.dev).toBe('string');
+  expect(typeof pkg.scripts.build).toBe('string');
+  expect(typeof pkg.scripts.start).toBe('string');
+
+  // Fastify runtime dependency and TypeScript dev dependency.
+  // [REQ-INIT-TYPESCRIPT]
+  expect(pkg.dependencies.fastify).toBeDefined();
+  expect(pkg.dependencies['@fastify/helmet']).toBeDefined();
+  expect(pkg.devDependencies.typescript).toBeDefined();
+
+  // Dev server script is wired up for story 003.0 (dev server).
+  // [REQ-DEV-START-FAST]
+  expect(pkg.scripts.dev).toBe('node dev-server.mjs');
+}
+
 beforeEach(async () => {
   originalCwd = process.cwd();
   tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'fastify-ts-init-'));
@@ -86,29 +113,8 @@ describe('Template initializer (Story 001.0) [REQ-INIT-FILES-MINIMAL]', () => {
     const contents = await fs.readFile(packageJsonPath, 'utf8');
     const pkg = JSON.parse(contents);
 
-    // Basic identity fields.
-    expect(pkg.name).toBe(projectName);
-    expect(pkg.version).toBe('0.0.0');
-    expect(pkg.private).toBe(true);
+    assertBasicPackageJsonShape(pkg, projectName);
 
-    // ES modules configuration.
-    // [REQ-INIT-ESMODULES]
-    expect(pkg.type).toBe('module');
-
-    // Placeholder scripts that will be implemented in later stories.
-    // [REQ-INIT-NO-SCRIPTS-YET]
-    expect(typeof pkg.scripts.dev).toBe('string');
-    expect(typeof pkg.scripts.build).toBe('string');
-    expect(typeof pkg.scripts.start).toBe('string');
-
-    // Fastify runtime dependency and TypeScript dev dependency.
-    // [REQ-INIT-TYPESCRIPT]
-    expect(pkg.dependencies.fastify).toBeDefined();
-    expect(pkg.devDependencies.typescript).toBeDefined();
-
-    // Dev server script is wired up for story 003.0 (dev server).
-    // [REQ-DEV-START-FAST]
-    expect(pkg.scripts.dev).toBe('node dev-server.mjs');
     // Dev server entrypoint file exists in the scaffolded project (Story 003.0, REQ-DEV-START-FAST)
     expect(await fileExists(path.join(projectDir, 'dev-server.mjs'))).toBe(true);
   });

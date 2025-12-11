@@ -133,3 +133,25 @@ describe('Fastify server stub (REQ-FASTIFY-SERVER-STUB) [startServer helper]', (
     await expect(startServer(-1 as number)).rejects.toBeInstanceOf(Error);
   });
 });
+
+describe('Fastify server stub security headers (REQ-SEC-HEADERS-TEST, REQ-SEC-HEADERS-PRESENT)' /**
+ * @supports docs/stories/005.0-DEVELOPER-SECURITY-HEADERS.story.md REQ-SEC-HEADERS-TEST REQ-SEC-HEADERS-PRESENT
+ */, () => {
+  it('[REQ-SEC-HEADERS-TEST][REQ-SEC-HEADERS-PRESENT] sets expected security headers on /health', async () => {
+    const app = buildServer();
+    const response = await app.inject({
+      method: 'GET',
+      url: '/health',
+    });
+
+    expect(response.statusCode).toBe(200);
+
+    const headers = response.headers;
+
+    expect(headers['content-security-policy']).toBeDefined();
+    expect(headers['x-frame-options']).toBeDefined();
+    expect(headers['strict-transport-security']).toBeDefined();
+    expect(headers['x-content-type-options']).toBeDefined();
+    expect(headers['referrer-policy']).toBeDefined();
+  });
+});
