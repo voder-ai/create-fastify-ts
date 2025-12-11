@@ -38,10 +38,11 @@ describe('CLI initializer (Story 001.0)', () => {
 
   it('creates a new project directory when invoked with a project name', async () => {
     const projectName = 'cli-api';
+    const cliPath = path.resolve(originalCwd, 'dist', 'cli.js');
 
     await new Promise<void>((resolve, reject) => {
-      const child = spawn('node', ['dist/cli.js', projectName], {
-        cwd: originalCwd,
+      const child = spawn('node', [cliPath, projectName], {
+        cwd: tempDir,
         stdio: 'ignore',
       });
 
