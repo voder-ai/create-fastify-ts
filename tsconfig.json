@@ -17,7 +17,7 @@
   "exclude": [
     "dist",
     "node_modules",
-    // Deliberate exclusion for Story 003.0 dev-server tests that import a JS-only module
     "src/dev-server.test.ts"
+    // NOTE: dev-server tests are excluded from type checking due to the JS-only module import
   ]
 }
