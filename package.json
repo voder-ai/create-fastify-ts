@@ -27,6 +27,9 @@
     "type": "git",
     "url": "git+https://github.com/voder-ai/create-fastify-ts.git"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "keywords": [
     "voder",
     "micro-services",
