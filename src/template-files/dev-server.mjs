@@ -249,19 +249,50 @@ async function main() {
 
   console.log('dev-server: starting TypeScript compiler in watch mode...');
 
-  const tscProcess = startTypeScriptWatch(projectRoot);
+  /** @type {import('node:child_process').ChildProcess | undefined} */
+  let tscProcess;
+  /** @type {import('node:child_process').ChildProcess | undefined} */
+  let serverProcess;
+  /** @type {NodeJS.Timeout | undefined} */
+  let serverStartTimeout;
+
+  tscProcess = startTypeScriptWatch(projectRoot);
 
   // Give tsc a short head start before launching the server. This does not
   // guarantee compilation has completed but keeps behavior simple for now.
-  setTimeout(() => {
+  serverStartTimeout = setTimeout(() => {
     console.log('dev-server: launching Fastify server from dist/src/index.js...');
-    startCompiledServer(projectRoot, env, resolvedPort, mode);
+    serverProcess = startCompiledServer(projectRoot, env, resolvedPort, mode);
   }, 1000);
 
+  /**
+   * Handle shutdown signals and terminate child processes gracefully.
+   *
+   * @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-GRACEFUL-STOP
+   */
   function handleSignal(signal) {
     console.log(`dev-server: received ${signal}, shutting down...`);
 
-    tscProcess.kill('SIGINT');
+    if (serverStartTimeout) {
+      globalThis.clearTimeout(serverStartTimeout);
+      serverStartTimeout = undefined;
+    }
+
+    if (tscProcess && !tscProcess.killed) {
+      try {
+        tscProcess.kill('SIGINT');
+      } catch {
+        // ignore errors during shutdown
+      }
+    }
+
+    if (serverProcess && !serverProcess.killed) {
+      try {
+        serverProcess.kill('SIGINT');
+      } catch {
+        // ignore errors during shutdown
+      }
+    }
 
     process.exit(0);
   }
