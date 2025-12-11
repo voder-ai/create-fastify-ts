@@ -2,7 +2,17 @@ import js from '@eslint/js';
 import typescriptParser from '@typescript-eslint/parser';
 
 export default [
-  js.configs.recommended,
+  {
+    ...js.configs.recommended,
+    languageOptions: {
+      ...js.configs.recommended.languageOptions,
+      globals: {
+        ...(js.configs.recommended.languageOptions?.globals || {}),
+        process: 'readonly',
+        console: 'readonly',
+      },
+    },
+  },
   {
     files: ['**/*.ts'],
     languageOptions: {
@@ -10,10 +20,6 @@ export default [
       parserOptions: {
         ecmaVersion: 2024,
         sourceType: 'module',
-      },
-      globals: {
-        process: 'readonly',
-        console: 'readonly',
       },
     },
     rules: {},
