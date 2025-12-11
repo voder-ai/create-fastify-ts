@@ -14,5 +14,10 @@
     "declarationMap": false
   },
   "include": ["src"],
-  "exclude": ["dist", "node_modules"]
+  "exclude": [
+    "dist",
+    "node_modules",
+    // Deliberate exclusion for Story 003.0 dev-server tests that import a JS-only module
+    "src/dev-server.test.ts"
+  ]
 }

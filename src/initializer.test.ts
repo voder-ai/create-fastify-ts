@@ -99,6 +99,8 @@ describe('Template initializer (Story 001.0)', () => {
       // Dev server script is wired up for story 003.0 (dev server).
       // [REQ-DEV-START-FAST]
       expect(pkg.scripts.dev).toBe('node dev-server.mjs');
+      // Dev server entrypoint file exists in the scaffolded project (Story 003.0, REQ-DEV-START-FAST)
+      expect(await fileExists(path.join(projectDir, 'dev-server.mjs'))).toBe(true);
     });
 
     it('creates tsconfig.json with basic TypeScript configuration', async () => {

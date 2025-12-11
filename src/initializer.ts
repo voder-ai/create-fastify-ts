@@ -184,6 +184,9 @@ async function scaffoldProject(trimmedName: string): Promise<string> {
   // .gitignore
   await copyTextTemplate(templateDir, '.gitignore.template', path.join(projectDir, '.gitignore'));
 
+  // dev-server.mjs @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-START-FAST
+  await copyTextTemplate(templateDir, 'dev-server.mjs', path.join(projectDir, 'dev-server.mjs'));
+
   return projectDir;
 }
 

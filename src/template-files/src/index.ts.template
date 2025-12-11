@@ -5,6 +5,8 @@
  * template initialization.
  *
  * @supports docs/stories/001.0-DEVELOPER-TEMPLATE-INIT.story.md REQ-INIT-FASTIFY-HELLO
+ * @supports docs/stories/002.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-START-FAST
+ * @supports docs/stories/002.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-CLEAN-LOGS
  */
 import Fastify from 'fastify';
 
@@ -14,12 +16,17 @@ fastify.get('/', async () => {
   return { message: 'Hello World from Fastify + TypeScript!' } as const;
 });
 
+fastify.get('/health', async () => {
+  return { status: 'ok' } as const;
+});
+
 const port = Number(process.env.PORT ?? 3000);
 
 fastify
   .listen({ port, host: '0.0.0.0' })
-  .then(() => {
-    console.log(`Server listening on http://localhost:${port}`);
+  .then((address) => {
+    // address is a string like "http://127.0.0.1:3000"
+    console.log(`Server listening at ${address}`);
   })
   .catch((err) => {
     console.error('Failed to start server', err);

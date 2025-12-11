@@ -15,11 +15,27 @@
  */
 import { spawn } from 'node:child_process';
 import fs from 'node:fs/promises';
+import net from 'node:net';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const DEFAULT_PORT = 3000;
 const HOST = '0.0.0.0';
+
+/**
+ * Structured error type for dev server failures.
+ *
+ * @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-PORT-AUTO REQ-DEV-PORT-STRICT REQ-DEV-CLEAN-LOGS
+ */
+export class DevServerError extends Error {
+  /**
+   * @param {string} message
+   */
+  constructor(message) {
+    super(message);
+    this.name = 'DevServerError';
+  }
+}
 
 /**
  * Resolve the project root directory for the initialized project.
@@ -48,6 +64,100 @@ async function assertPackageJsonExists(projectRoot) {
     process.exitCode = 1;
     process.exit(1);
   }
+}
+
+/**
+ * Check if a given port is available on HOST.
+ *
+ * @param {number} port
+ * @returns {Promise<boolean>}
+ *
+ * @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-PORT-AUTO REQ-DEV-PORT-STRICT
+ */
+async function isPortAvailable(port) {
+  return new Promise(resolve => {
+    const server = net.createServer();
+
+    server.once('error', () => {
+      resolve(false);
+    });
+
+    server.once('listening', () => {
+      server.close(() => {
+        resolve(true);
+      });
+    });
+
+    server.listen(port, HOST);
+  });
+}
+
+/**
+ * Find the first available port starting at DEFAULT_PORT.
+ *
+ * @param {number} startPort
+ * @returns {Promise<number>}
+ *
+ * @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-PORT-AUTO
+ */
+async function findAvailablePort(startPort) {
+  let port = startPort;
+  // Upper bound is arbitrary but generous for dev usage.
+  const maxPort = 65535;
+
+  while (port <= maxPort) {
+    const available = await isPortAvailable(port);
+    if (available) {
+      return port;
+    }
+    port += 1;
+  }
+
+  throw new DevServerError(
+    `No available ports found in range ${startPort}-${maxPort} on host ${HOST}`,
+  );
+}
+
+/**
+ * Resolve the dev server port, applying strict PORT semantics and auto-discovery.
+ *
+ * - If env.PORT is set: validate integer range, ensure availability on HOST.
+ *   Throw DevServerError if invalid or unavailable.
+ * - If env.PORT is not set: find a free port starting at DEFAULT_PORT, set env.PORT.
+ *
+ * @param {NodeJS.ProcessEnv} env
+ * @returns {Promise<{ port: number; mode: 'auto' | 'strict' }>}
+ *
+ * @throws {DevServerError}
+ *
+ * @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-PORT-AUTO REQ-DEV-PORT-STRICT REQ-DEV-CLEAN-LOGS
+ */
+export async function resolveDevServerPort(env) {
+  const rawPort = env.PORT;
+
+  if (rawPort != null && rawPort !== '') {
+    const port = Number.parseInt(rawPort, 10);
+
+    if (!Number.isInteger(port) || port <= 0 || port > 65535) {
+      throw new DevServerError(
+        `Invalid PORT value "${rawPort}". PORT must be an integer between 1 and 65535.`,
+      );
+    }
+
+    const available = await isPortAvailable(port);
+    if (!available) {
+      throw new DevServerError(
+        `Requested PORT ${port} is already in use on host ${HOST}. Set PORT to a free port or unset it to enable auto-discovery.`,
+      );
+    }
+
+    env.PORT = String(port);
+    return { port, mode: 'strict' };
+  }
+
+  const port = await findAvailablePort(DEFAULT_PORT);
+  env.PORT = String(port);
+  return { port, mode: 'auto' };
 }
 
 /**
@@ -80,20 +190,21 @@ function startTypeScriptWatch(projectRoot) {
  * launcher ensures the relevant environment variables are set and logs the
  * effective port for clarity.
  *
+ * @param {string} projectRoot
+ * @param {NodeJS.ProcessEnv} env
+ * @param {number} port
+ * @param {'auto' | 'strict'} mode
+ *
  * @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-START-FAST REQ-DEV-PORT-AUTO REQ-DEV-PORT-STRICT REQ-DEV-CLEAN-LOGS
  */
-function startCompiledServer(projectRoot) {
+function startCompiledServer(projectRoot, env, port, mode) {
   const distEntry = path.join(projectRoot, 'dist', 'src', 'index.js');
 
-  const env = { ...process.env };
-  const strictPort = process.env.PORT;
-
-  if (!strictPort) {
-    env.PORT = String(DEFAULT_PORT);
-  }
+  const modeLabel =
+    mode === 'auto' ? '(auto-discovered from DEFAULT_PORT)' : '(from PORT environment variable)';
 
   console.log(
-    `dev-server: starting Fastify server on http://localhost:${env.PORT ?? strictPort} (host ${HOST})`,
+    `dev-server: starting Fastify server on http://localhost:${port} (host ${HOST}) ${modeLabel}`,
   );
 
   const node = spawn('node', [distEntry], {
@@ -109,9 +220,32 @@ function startCompiledServer(projectRoot) {
   return node;
 }
 
+/**
+ * Main dev-server workflow.
+ *
+ * @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-START-FAST REQ-DEV-PORT-AUTO REQ-DEV-PORT-STRICT REQ-DEV-TYPESCRIPT-WATCH
+ */
 async function main() {
   const projectRoot = getProjectRoot();
   await assertPackageJsonExists(projectRoot);
+
+  const env = { ...process.env };
+
+  let resolvedPort;
+  let mode;
+  try {
+    const result = await resolveDevServerPort(env);
+    resolvedPort = result.port;
+    mode = result.mode;
+  } catch (error) {
+    if (error instanceof DevServerError) {
+      console.error(`dev-server: ${error.message}`);
+      process.exit(1);
+    } else {
+      console.error('dev-server: unexpected error while resolving port:', error);
+      process.exit(1);
+    }
+  }
 
   console.log('dev-server: starting TypeScript compiler in watch mode...');
 
@@ -121,7 +255,7 @@ async function main() {
   // guarantee compilation has completed but keeps behavior simple for now.
   setTimeout(() => {
     console.log('dev-server: launching Fastify server from dist/src/index.js...');
-    startCompiledServer(projectRoot);
+    startCompiledServer(projectRoot, env, resolvedPort, mode);
   }, 1000);
 
   function handleSignal(signal) {
@@ -136,7 +270,11 @@ async function main() {
   process.on('SIGTERM', () => handleSignal('SIGTERM'));
 }
 
-main().catch(error => {
-  console.error('dev-server: unexpected error:', error);
-  process.exit(1);
-});
+// ESM-safe entrypoint guard: run main() only when executed directly.
+const thisFilePath = fileURLToPath(import.meta.url);
+if (process.argv[1] && path.resolve(process.argv[1]) === thisFilePath) {
+  main().catch(error => {
+    console.error('dev-server: unexpected error:', error);
+    process.exit(1);
+  });
+}
