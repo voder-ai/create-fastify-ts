@@ -11,6 +11,11 @@
 
 import { initializeTemplateProject } from './initializer.js';
 
+/**
+ * Parse CLI arguments and delegate to the template initializer.
+ *
+ * @supports docs/stories/001.0-DEVELOPER-TEMPLATE-INIT.story.md REQ-INIT-NPM-TEMPLATE REQ-INIT-DIRECTORY REQ-INIT-FILES-MINIMAL
+ */
 async function run(): Promise<void> {
   const [, , projectName] = process.argv;
 

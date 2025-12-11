@@ -35,6 +35,7 @@ async function fileExists(filePath: string): Promise<boolean> {
   }
 }
 
+// eslint-disable-next-line max-lines-per-function -- Template initializer tests intentionally grouped in a single block for readability
 describe('Template initializer (Story 001.0)', () => {
   beforeEach(async () => {
     originalCwd = process.cwd();

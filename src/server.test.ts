@@ -14,6 +14,7 @@ async function withStartedServer(port: number, callback: any): Promise<void> {
   }
 }
 
+// eslint-disable-next-line max-lines-per-function -- Server stub tests intentionally grouped in a single block for readability
 describe('Fastify server stub (REQ-FASTIFY-SERVER-STUB)', () => {
   describe('[REQ-FASTIFY-SERVER-STUB] /health endpoint', () => {
     it('[REQ-FASTIFY-SERVER-STUB] responds with ok status on /health', async () => {

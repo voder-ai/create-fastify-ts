@@ -22,7 +22,11 @@ export default [
         sourceType: 'module',
       },
     },
-    rules: {},
+    rules: {
+      complexity: ['error', { max: 20 }],
+      'max-lines-per-function': ['error', { max: 100 }],
+      'max-lines': ['error', { max: 300 }],
+    },
   },
   {
     ignores: ['dist/**', 'node_modules/**'],

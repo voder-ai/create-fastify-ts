@@ -63,6 +63,7 @@ function createTemplatePackageJson(projectName: string): TemplatePackageJson {
  *
  * The template-files directory is always resolved as a sibling of this
  * module's directory, regardless of whether it is running from src or dist.
+ * @supports docs/stories/001.0-DEVELOPER-TEMPLATE-INIT.story.md REQ-INIT-FILES-MINIMAL
  */
 function getTemplateFilesDir(): string {
   const thisFilePath = fileURLToPath(import.meta.url);
