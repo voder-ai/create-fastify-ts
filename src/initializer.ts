@@ -9,7 +9,6 @@
  * @supports docs/stories/001.0-DEVELOPER-TEMPLATE-INIT.story.md REQ-INIT-DIRECTORY REQ-INIT-FILES-MINIMAL REQ-INIT-ESMODULES REQ-INIT-TYPESCRIPT REQ-INIT-NPM-TEMPLATE
  */
 import fs from 'node:fs/promises';
-import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -62,44 +61,12 @@ function createTemplatePackageJson(projectName: string): TemplatePackageJson {
 /**
  * Resolve the absolute path to the directory containing template files.
  *
- * Supports both source (e.g. src/template-files/*) and compiled output
- * layouts (e.g. dist/template-files/*) by inspecting this module's path.
+ * The template-files directory is always resolved as a sibling of this
+ * module's directory, regardless of whether it is running from src or dist.
  */
 function getTemplateFilesDir(): string {
   const thisFilePath = fileURLToPath(import.meta.url);
-  const dir = path.dirname(thisFilePath);
-
-  const segments = dir.split(path.sep);
-  const distIndex = segments.lastIndexOf('dist');
-  const srcIndex = segments.lastIndexOf('src');
-
-  if (distIndex !== -1) {
-    const baseDir = segments.slice(0, distIndex + 1).join(path.sep);
-    const distTemplateDir = path.resolve(baseDir, 'template-files');
-
-    if (existsSync(distTemplateDir)) {
-      return distTemplateDir;
-    }
-
-    const projectRoot = path.dirname(baseDir);
-    const srcTemplateDir = path.resolve(projectRoot, 'src', 'template-files');
-
-    if (existsSync(srcTemplateDir)) {
-      return srcTemplateDir;
-    }
-
-    // Last-resort: prefer the dist template path even if it does not exist.
-    return distTemplateDir;
-  }
-
-  if (srcIndex !== -1) {
-    // .../src/** -> .../src/template-files
-    const baseDir = segments.slice(0, srcIndex + 1).join(path.sep);
-    return path.resolve(baseDir, 'template-files');
-  }
-
-  // Fallback: assume template-files is a sibling of the current directory.
-  return path.resolve(dir, 'template-files');
+  return path.resolve(path.dirname(thisFilePath), 'template-files');
 }
 
 /**

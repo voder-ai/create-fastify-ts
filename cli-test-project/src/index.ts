@@ -22,7 +22,7 @@ fastify
     // eslint-disable-next-line no-console -- Simple startup log for generated project
     console.log(`Server listening on http://localhost:${port}`);
   })
-  .catch(err => {
+  .catch((err) => {
     // eslint-disable-next-line no-console -- Error logging for generated project
     console.error('Failed to start server', err);
     process.exit(1);
