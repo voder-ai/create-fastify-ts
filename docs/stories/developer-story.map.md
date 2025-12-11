@@ -22,8 +22,8 @@
 | ------------------------------- | ----------------------------- | ------------------------------------ | -------------------------------- | ---------------------- | -------------------------------- |
 | **Working Server**              | 001.0-DEVELOPER-TEMPLATE-INIT | 002.0-DEVELOPER-DEPENDENCIES-INSTALL | 003.0-DEVELOPER-DEV-SERVER       | -                      | 006.0-DEVELOPER-PRODUCTION-BUILD |
 |                                 | -                             | -                                    | 004.0-DEVELOPER-TESTS-RUN        | -                      | 008.0-DEVELOPER-LOGS-MONITOR     |
-| **Code Quality**                | -                             | -                                    | 007.0-DEVELOPER-LINT-FORMAT      | -                      | -                                |
 | **Security & Observability**    | -                             | -                                    | 005.0-DEVELOPER-SECURITY-HEADERS | -                      | -                                |
+| **Code Quality**                | -                             | -                                    | 007.0-DEVELOPER-LINT-FORMAT      | -                      | -                                |
 
 | **Developer Experience**     | **Initialize Project** | **Install Dependencies** | **Verify Setup** | **Add Business Logic**           | **Deploy to Production**       |
 | ---------------------------- | ---------------------- | ------------------------ | ---------------- | -------------------------------- | ------------------------------ |
