@@ -13,6 +13,8 @@ npm install
 npm run dev
 ```
 
+When Git is available on your system, the new project is automatically initialized as its own Git repository. If Git is not installed or not on your PATH, the project will still be created successfully, but you may need to run `git init` manually inside the new project directory.
+
 Requires Node.js 22 or newer (LTS recommended).
 
 ## What's Included

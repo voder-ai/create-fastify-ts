@@ -7,13 +7,17 @@ This document describes the public API surface of the `@voder-ai/create-fastify-
 Import from the package root using standard ES module syntax:
 
 ```ts
-import { getServiceHealth } from '@voder-ai/create-fastify-ts';
+import {
+  getServiceHealth,
+  initializeTemplateProjectWithGit,
+  type GitInitResult,
+} from '@voder-ai/create-fastify-ts';
 ```
 
 or in JavaScript:
 
 ```js
-import { getServiceHealth } from '@voder-ai/create-fastify-ts';
+import { getServiceHealth, initializeTemplateProjectWithGit } from '@voder-ai/create-fastify-ts';
 ```
 
 ## Functions
@@ -35,47 +39,42 @@ if (getServiceHealth() === 'ok') {
 }
 ```
 
-### `buildServer()`
+### `initializeTemplateProjectWithGit(projectName: string): Promise<{ projectDir: string; git: GitInitResult }>`
 
-Creates and configures a Fastify application instance with a single health endpoint.
-
-- **Returns**: a Fastify instance with the following route registered:
-  - `GET /health` → responds with HTTP 200 and JSON body `{ status: 'ok' }`.
-
-This function does **not** start listening on a network port; it just builds the in-memory server. This is useful for tests and advanced integration scenarios where you manage the HTTP listener separately.
-
-Example (TypeScript):
-
-```ts
-import { buildServer } from '@voder-ai/create-fastify-ts';
-
-const app = buildServer();
-
-// Use app.inject(...) in tests, or call app.listen(...) manually if needed.
-```
-
-### `startServer(port?: number)`
-
-Builds the Fastify server and starts listening on the specified port.
+Creates a new Fastify TypeScript template project on disk and attempts to initialize a Git repository in the created project directory.
 
 - **Parameters**:
-  - `port` (optional, `number`): TCP port to listen on. Defaults to `3000`.
-- **Returns**: a Promise that resolves to the Fastify instance once the server is listening.
-- **Host binding**: the server listens on all interfaces, binding to host `0.0.0.0`.
-- **Errors**: the returned Promise may reject if the server fails to start (for example, when given an invalid port or when the port is already in use), matching the behavior tested in `src/server.test.ts`.
+  - `projectName` (`string`): The intended name of the project. This is typically used to determine the directory name for the new project (for example, `my-fastify-service`), subject to any internal normalization rules.
+
+- **Returns**: a `Promise` that resolves to an object of the shape:
+  - `projectDir` (`string`): Absolute path to the created project directory on disk.
+  - `git` (`GitInitResult`): Object describing the result of the Git initialization attempt.
+
+- **Behavior when Git is not available**:
+  - The project directory and template files are still created successfully.
+  - Git initialization is skipped or fails gracefully.
+  - The returned `git.initialized` is `false`.
+  - The returned `git.errorMessage` is populated with a human‑readable explanation (for example, that `git` could not be found or failed to run).
+
+- **Errors**:
+  - The Promise may reject for file system or template‑creation errors (e.g., insufficient permissions, target directory already exists in a non‑overwritable way, or other I/O errors).
+  - It is not rejected solely because Git is unavailable; that case is reported via the `GitInitResult` in the resolved value.
 
 Example (TypeScript):
 
 ```ts
-import { startServer } from '@voder-ai/create-fastify-ts';
+import { initializeTemplateProjectWithGit, type GitInitResult } from '@voder-ai/create-fastify-ts';
 
 async function main() {
-  const port = Number(process.env.PORT ?? 3000);
-  const app = await startServer(port);
-  console.log(`Health endpoint listening on http://localhost:${port}/health`);
+  const { projectDir, git } = await initializeTemplateProjectWithGit('my-fastify-service');
 
-  // To stop the server later:
-  // await app.close();
+  console.log('Project created at:', projectDir);
+
+  if (git.initialized) {
+    console.log('Git repository initialized.');
+  } else {
+    console.warn('Git was not initialized:', git.errorMessage);
+  }
 }
 
 main().catch(error => {
@@ -87,15 +86,18 @@ main().catch(error => {
 Example (JavaScript):
 
 ```js
-import { startServer } from '@voder-ai/create-fastify-ts';
+import { initializeTemplateProjectWithGit } from '@voder-ai/create-fastify-ts';
 
 async function main() {
-  const port = Number(process.env.PORT ?? 3000);
-  const app = await startServer(port);
-  console.log(`Health endpoint listening on http://localhost:${port}/health`);
+  const { projectDir, git } = await initializeTemplateProjectWithGit('my-fastify-service');
 
-  // To stop the server later:
-  // await app.close();
+  console.log('Project created at:', projectDir);
+
+  if (git.initialized) {
+    console.log('Git repository initialized.');
+  } else {
+    console.warn('Git was not initialized:', git.errorMessage);
+  }
 }
 
 main().catch(error => {
@@ -104,15 +106,37 @@ main().catch(error => {
 });
 ```
 
-## HTTP interface
+## Types
 
-When `startServer` is used, the service exposes the following HTTP behavior:
+### `GitInitResult`
 
-- `GET /health`
-  - **Status**: `200 OK`
-  - **Response body**: JSON object `{ "status": "ok" }`.
+Represents the outcome of attempting to initialize a Git repository in the newly created project directory.
 
-No other routes or HTTP methods are currently implemented. There is no authentication, authorization, image upload, or persistence at this stage.
+Shape:
+
+```ts
+type GitInitResult = {
+  /**
+   * Whether a Git repository was successfully initialized.
+   */
+  initialized: boolean;
+
+  /**
+   * A human-readable error message if Git initialization did not succeed.
+   * This is `null` (or possibly `undefined`) when `initialized` is `true`.
+   */
+  errorMessage: string | null;
+};
+```
+
+- When Git is available and initialization succeeds:
+  - `initialized` is `true`.
+  - `errorMessage` is `null` (or otherwise empty).
+
+- When Git is not available or initialization fails:
+  - `initialized` is `false`.
+  - `errorMessage` contains a brief explanation (e.g., `git not found in PATH` or the underlying error message).
+  - The project is still created and usable at the returned `projectDir` path.
 
 ## Attribution
 

@@ -6,15 +6,23 @@
  * advanced options; it simply expects a single project name argument and
  * initializes the template in a directory with that name.
  *
- * @supports docs/stories/001.0-DEVELOPER-TEMPLATE-INIT.story.md REQ-INIT-NPM-TEMPLATE REQ-INIT-DIRECTORY REQ-INIT-FILES-MINIMAL
+ * When Git is available, the initializer also sets up a clean, independent Git
+ * repository for the new project, satisfying the Project Independence
+ * acceptance criterion.
+ *
+ * @supports docs/stories/001.0-DEVELOPER-TEMPLATE-INIT.story.md REQ-INIT-NPM-TEMPLATE REQ-INIT-DIRECTORY REQ-INIT-FILES-MINIMAL REQ-INIT-GIT-CLEAN
  */
 
-import { initializeTemplateProject } from './initializer.js';
+import { initializeTemplateProjectWithGit } from './initializer.js';
 
 /**
  * Parse CLI arguments and delegate to the template initializer.
  *
- * @supports docs/stories/001.0-DEVELOPER-TEMPLATE-INIT.story.md REQ-INIT-NPM-TEMPLATE REQ-INIT-DIRECTORY REQ-INIT-FILES-MINIMAL
+ * When Git is available, this will also initialize a fresh repository for the
+ * new project, satisfying the Project Independence acceptance criterion while
+ * keeping the template repository separate.
+ *
+ * @supports docs/stories/001.0-DEVELOPER-TEMPLATE-INIT.story.md REQ-INIT-NPM-TEMPLATE REQ-INIT-DIRECTORY REQ-INIT-FILES-MINIMAL REQ-INIT-GIT-CLEAN
  */
 async function run(): Promise<void> {
   const [, , projectName] = process.argv;
@@ -29,9 +37,21 @@ async function run(): Promise<void> {
   }
 
   try {
-    const projectDir = await initializeTemplateProject(projectName);
+    const result = await initializeTemplateProjectWithGit(projectName);
+    const { projectDir, git } = result;
+
     // User-facing CLI success message.
     console.log(`Initialized Fastify TypeScript project in: ${projectDir}`);
+
+    if (git.initialized) {
+      console.log('A new Git repository was created and initialized for this project.');
+    } else {
+      console.warn(
+        'Warning: Git repository initialization failed. You may need to run `git init` manually.',
+      );
+    }
+
+    process.exitCode = 0;
   } catch (error) {
     // User-facing CLI error message.
     console.error('Failed to initialize project:', error);

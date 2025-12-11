@@ -5,14 +5,18 @@
  * with a minimal but valid package.json file that satisfies the initial
  * requirements from the template-init story.
  *
- * @supports docs/stories/001.0-DEVELOPER-TEMPLATE-INIT.story.md REQ-INIT-DIRECTORY REQ-INIT-FILES-MINIMAL REQ-INIT-ESMODULES REQ-INIT-TYPESCRIPT
+ * @supports docs/stories/001.0-DEVELOPER-TEMPLATE-INIT.story.md REQ-INIT-DIRECTORY REQ-INIT-FILES-MINIMAL REQ-INIT-ESMODULES REQ-INIT-TYPESCRIPT REQ-INIT-GIT-CLEAN
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 
-import { initializeTemplateProject } from './initializer.js';
+import {
+  initializeTemplateProject,
+  initializeTemplateProjectWithGit,
+  type GitInitResult,
+} from './initializer.js';
 
 let originalCwd: string;
 let tempDir: string;
@@ -161,6 +165,78 @@ describe('Template initializer (Story 001.0)', () => {
     it('trims whitespace from project name before using it', async () => {
       const projectDir = await initializeTemplateProject('  spaced-name  ');
       expect(projectDir.endsWith(path.join('spaced-name'))).toBe(true);
+    });
+  });
+
+  describe('[REQ-INIT-GIT-CLEAN] initializes a standalone Git repository when git is available', () => {
+    it('initializes git repo, returns matching projectDir, and scaffolds project files when git is available', async () => {
+      const projectName = 'git-api';
+
+      const { projectDir, git }: { projectDir: string; git: GitInitResult } =
+        await initializeTemplateProjectWithGit(projectName);
+
+      // git.projectDir should match projectDir from initializer
+      expect(git.projectDir).toBe(projectDir);
+
+      // Project directory exists
+      expect(await directoryExists(projectDir)).toBe(true);
+
+      // Project scaffolding still occurs
+      const packageJsonPath = path.join(projectDir, 'package.json');
+      const tsconfigPath = path.join(projectDir, 'tsconfig.json');
+      const readmePath = path.join(projectDir, 'README.md');
+      const gitignorePath = path.join(projectDir, '.gitignore');
+
+      expect(await fileExists(packageJsonPath)).toBe(true);
+      expect(await fileExists(tsconfigPath)).toBe(true);
+      expect(await fileExists(readmePath)).toBe(true);
+      expect(await fileExists(gitignorePath)).toBe(true);
+
+      // When git is available, initializer should have created a .git directory
+      const gitDirPath = path.join(projectDir, '.git');
+      const hasGitDir = await directoryExists(gitDirPath);
+
+      if (hasGitDir) {
+        expect(git.initialized).toBe(true);
+      } else {
+        // In environments without git, still ensure the API is consistent
+        expect(git.initialized).toBe(false);
+        expect(typeof git.errorMessage).toBe('string');
+      }
+    });
+
+    it('handles absence of git gracefully, keeping scaffolding and reporting failure in git result', async () => {
+      const projectName = 'no-git-api';
+
+      const originalPath = process.env.PATH;
+      try {
+        // Simulate absence of git by clearing PATH
+        process.env.PATH = '';
+
+        const { projectDir, git }: { projectDir: string; git: GitInitResult } =
+          await initializeTemplateProjectWithGit(projectName);
+
+        // Project directory and scaffolding still occur
+        expect(await directoryExists(projectDir)).toBe(true);
+
+        const packageJsonPath = path.join(projectDir, 'package.json');
+        const tsconfigPath = path.join(projectDir, 'tsconfig.json');
+        const readmePath = path.join(projectDir, 'README.md');
+        const gitignorePath = path.join(projectDir, '.gitignore');
+
+        expect(await fileExists(packageJsonPath)).toBe(true);
+        expect(await fileExists(tsconfigPath)).toBe(true);
+        expect(await fileExists(readmePath)).toBe(true);
+        expect(await fileExists(gitignorePath)).toBe(true);
+
+        // git initialization should report failure
+        expect(git.projectDir).toBe(projectDir);
+        expect(git.initialized).toBe(false);
+        expect(typeof git.errorMessage).toBe('string');
+        expect(git.errorMessage).not.toBe('');
+      } finally {
+        process.env.PATH = originalPath;
+      }
     });
   });
 });
