@@ -18,6 +18,64 @@ This document describes the initial project structure and tooling.
 - **ESLint 9 (flat config)** – basic linting configured in `eslint.config.js` with TypeScript parser enabled.
 - **Prettier** – code formatter configured via `.prettierrc.json`.
 
+## Code Quality and Traceability
+
+ESLint 9 (flat config) and Prettier together define the single, authoritative code-quality configuration for this project. Their configuration must not be duplicated or redefined elsewhere (for example, no additional `.eslintrc.*`, `.prettierrc.*`, or editor-specific overrides that conflict with the central setup).
+
+The relevant configuration files are:
+
+- `eslint.config.js` – ESLint flat configuration (rules, parser, plugins).
+- `.prettierrc.json` – Prettier formatting rules.
+- `.prettierignore` – Paths and files excluded from Prettier formatting.
+
+In addition to linting and formatting, this project treats traceability annotations as a first-class part of code quality. These annotations are **required** for all new production code and tests, not optional, and are enforced as part of the project’s standards.
+
+### Traceability for Production Code
+
+All new production code (e.g., functions, classes, modules under `src/`) must include traceability annotations using the `@supports` JSDoc tag. Each `@supports` tag should reference:
+
+- The relevant story or ADR file path (for example, `docs/decisions/001-typescript-esm.accepted.md`).
+- The specific requirement ID (for example, `REQ-TSC-BOOTSTRAP`).
+
+A typical function-level annotation in TypeScript:
+
+```ts
+/**
+ * @supports docs/decisions/001-typescript-esm.accepted.md REQ-TSC-BOOTSTRAP
+ */
+export function getServiceHealth(): string {
+  return 'ok';
+}
+```
+
+If a function satisfies multiple requirements, use multiple `@supports` lines in the same JSDoc block.
+
+### Traceability for Tests
+
+All new test files must:
+
+1. Include a **file-level** comment with `@supports` indicating the story or ADR whose requirements are being verified.
+2. Embed the relevant requirement IDs directly in test names and/or `describe` blocks so the linkage is visible in test output.
+
+Example test file header and describe block in a Vitest test:
+
+```ts
+/**
+ * @supports docs/decisions/001-typescript-esm.accepted.md REQ-TSC-BOOTSTRAP
+ */
+
+import { describe, it, expect } from 'vitest';
+import { getServiceHealth } from './index.js';
+
+describe('getServiceHealth – REQ-TSC-BOOTSTRAP', () => {
+  it("returns 'ok' for service bootstrap – REQ-TSC-BOOTSTRAP", () => {
+    expect(getServiceHealth()).toBe('ok');
+  });
+});
+```
+
+These traceability annotations are mandatory for all new code and tests. Pull requests that add or modify behavior are expected to include appropriate `@supports` tags and requirement IDs as part of meeting the project’s code-quality bar.
+
 ## Prerequisites
 
 - **Node.js**: Use Node.js 22.x (same as CI) or a compatible LTS version.
