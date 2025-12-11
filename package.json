@@ -1,0 +1,61 @@
+{
+  "name": "@voder-ai/create-fastify-ts",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "directories": {
+    "doc": "user-docs"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky",
+    "release": "semantic-release"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/voder-ai/create-fastify-ts.git"
+  },
+  "keywords": [
+    "voder",
+    "micro-services",
+    "template",
+    "fastify",
+    "typescript"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "bugs": {
+    "url": "https://github.com/voder-ai/create-fastify-ts/issues"
+  },
+  "homepage": "https://github.com/voder-ai/create-fastify-ts#readme",
+  "description": "",
+  "devDependencies": {
+    "@eslint/js": "9.39.1",
+    "@types/node": "24.10.2",
+    "@typescript-eslint/parser": "8.49.0",
+    "eslint": "9.39.1",
+    "husky": "9.1.7",
+    "prettier": "3.7.4",
+    "semantic-release": "25.0.2",
+    "typescript": "5.9.3",
+    "vitest": "4.0.15"
+  },
+  "dependencies": {
+    "fastify": "5.6.2"
+  }
+}
