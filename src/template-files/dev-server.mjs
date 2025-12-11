@@ -14,6 +14,7 @@
  * @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-START-FAST REQ-DEV-PORT-AUTO REQ-DEV-PORT-STRICT REQ-DEV-CLEAN-LOGS
  */
 import { spawn } from 'node:child_process';
+import { watch } from 'node:fs';
 import fs from 'node:fs/promises';
 import net from 'node:net';
 import path from 'node:path';
@@ -221,6 +222,104 @@ function startCompiledServer(projectRoot, env, port, mode) {
 }
 
 /**
+ * Start a watcher that hot-reloads the compiled server when dist/src/index.js changes.
+ *
+ * @param {string} projectRoot
+ * @param {NodeJS.ProcessEnv} env
+ * @param {number} port
+ * @param {'auto' | 'strict'} mode
+ * @param {() => import('node:child_process').ChildProcess | undefined} getServerProcess
+ * @param {(newServer: import('node:child_process').ChildProcess) => void} setServerProcess
+ * @returns {() => void} Function to stop the watcher.
+ *
+ * @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-HOT-RELOAD REQ-DEV-CLEAN-LOGS
+ */
+function startHotReloadWatcher(projectRoot, env, port, mode, getServerProcess, setServerProcess) {
+  const distSrcDir = path.join(projectRoot, 'dist', 'src');
+  const targetFile = 'index.js';
+
+  /** @type {import('node:fs').FSWatcher | undefined} */
+  let watcher;
+  let stopped = false;
+  let restarting = false;
+  let pendingChange = false;
+
+  const restartServer = () => {
+    if (restarting) {
+      pendingChange = true;
+      return;
+    }
+    restarting = true;
+    pendingChange = false;
+
+    const current = getServerProcess();
+    const doStart = () => {
+      const newServer = startCompiledServer(projectRoot, env, port, mode);
+      setServerProcess(newServer);
+      restarting = false;
+      if (pendingChange && !stopped) {
+        pendingChange = false;
+        restartServer();
+      }
+    };
+
+    console.log('dev-server: detected change in compiled output, restarting server...');
+
+    if (current && !current.killed) {
+      current.once('exit', () => {
+        if (stopped) {
+          restarting = false;
+          pendingChange = false;
+          return;
+        }
+        doStart();
+      });
+      try {
+        current.kill('SIGINT');
+      } catch {
+        doStart();
+      }
+    } else {
+      doStart();
+    }
+  };
+
+  fs.mkdir(distSrcDir, { recursive: true })
+    .catch(() => {})
+    .finally(() => {
+      try {
+        watcher = watch(
+          distSrcDir,
+          {
+            persistent: true,
+          },
+          (eventType, filename) => {
+            if (stopped) return;
+            if (!filename) return;
+            if (filename !== targetFile) return;
+            if (eventType !== 'change' && eventType !== 'rename') return;
+            restartServer();
+          },
+        );
+      } catch {
+        // If the watcher cannot be started, skip hot reload silently.
+      }
+    });
+
+  return () => {
+    stopped = true;
+    if (watcher) {
+      try {
+        watcher.close();
+      } catch {
+        // ignore
+      }
+      watcher = undefined;
+    }
+  };
+}
+
+/**
  * Main dev-server workflow.
  *
  * @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-START-FAST REQ-DEV-PORT-AUTO REQ-DEV-PORT-STRICT REQ-DEV-TYPESCRIPT-WATCH
@@ -247,7 +346,15 @@ async function main() {
     }
   }
 
-  console.log('dev-server: starting TypeScript compiler in watch mode...');
+  const skipTscWatch = env.DEV_SERVER_SKIP_TSC_WATCH === '1';
+
+  if (skipTscWatch) {
+    console.log(
+      'dev-server: DEV_SERVER_SKIP_TSC_WATCH=1, skipping TypeScript watcher (test mode).',
+    );
+  } else {
+    console.log('dev-server: starting TypeScript compiler in watch mode...');
+  }
 
   /** @type {import('node:child_process').ChildProcess | undefined} */
   let tscProcess;
@@ -255,14 +362,28 @@ async function main() {
   let serverProcess;
   /** @type {NodeJS.Timeout | undefined} */
   let serverStartTimeout;
+  /** @type {(() => void) | undefined} */
+  let stopHotReload;
 
-  tscProcess = startTypeScriptWatch(projectRoot);
+  if (!skipTscWatch) {
+    tscProcess = startTypeScriptWatch(projectRoot);
+  }
 
   // Give tsc a short head start before launching the server. This does not
   // guarantee compilation has completed but keeps behavior simple for now.
   serverStartTimeout = setTimeout(() => {
     console.log('dev-server: launching Fastify server from dist/src/index.js...');
     serverProcess = startCompiledServer(projectRoot, env, resolvedPort, mode);
+    stopHotReload = startHotReloadWatcher(
+      projectRoot,
+      env,
+      resolvedPort,
+      mode,
+      () => serverProcess,
+      newServer => {
+        serverProcess = newServer;
+      },
+    );
   }, 1000);
 
   /**
@@ -276,6 +397,15 @@ async function main() {
     if (serverStartTimeout) {
       globalThis.clearTimeout(serverStartTimeout);
       serverStartTimeout = undefined;
+    }
+
+    if (stopHotReload) {
+      try {
+        stopHotReload();
+      } catch {
+        // ignore errors during shutdown
+      }
+      stopHotReload = undefined;
     }
 
     if (tscProcess && !tscProcess.killed) {
@@ -303,7 +433,13 @@ async function main() {
 
 // ESM-safe entrypoint guard: run main() only when executed directly.
 const thisFilePath = fileURLToPath(import.meta.url);
-if (process.argv[1] && path.resolve(process.argv[1]) === thisFilePath) {
+
+// When executed directly via `node dev-server.mjs` (or an absolute path
+// to this file), process.argv[1] will point at this script. We avoid
+// strict path equality here because some platforms (e.g. macOS) may use
+// different but equivalent paths (/var vs /private/var). A suffix check
+// is sufficient to distinguish direct execution from module import.
+if (process.argv[1] && process.argv[1].endsWith(path.basename(thisFilePath))) {
   main().catch(error => {
     console.error('dev-server: unexpected error:', error);
     process.exit(1);
