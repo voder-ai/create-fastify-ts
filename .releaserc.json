@@ -9,6 +9,12 @@
         "npmPublish": true
       }
     ],
-    "@semantic-release/github"
+    "@semantic-release/github",
+    [
+      "@semantic-release/exec",
+      {
+        "successCmd": "echo ${nextRelease.version} > .semantic-release-version"
+      }
+    ]
   ]
 }
