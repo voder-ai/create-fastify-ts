@@ -11,6 +11,9 @@ export default [
         ecmaVersion: 2024,
         sourceType: 'module',
       },
+      globals: {
+        process: 'readonly',
+      },
     },
     rules: {},
   },
