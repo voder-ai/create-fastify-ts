@@ -1,4 +1,3 @@
-/* eslint-disable max-lines-per-function -- CLI integration tests intentionally group many steps for readability */
 /**
  * Tests for the CLI entrypoint that wires the package as an npm init template.
  *
@@ -12,7 +11,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
-import { spawn } from 'node:child_process';
+import { spawn, type ChildProcess } from 'node:child_process';
 import http from 'node:http';
 
 type Env = Record<string, string | undefined>;
@@ -52,6 +51,150 @@ function runCli(
     child.on('exit', code => {
       resolve({ code, stdout, stderr });
     });
+  });
+}
+
+interface NpmRunResult {
+  code: number | null;
+  stdout: string;
+  stderr: string;
+}
+
+function runNpm(npmArgs: string[], options: { cwd: string; env?: Env }): Promise<NpmRunResult> {
+  return new Promise<NpmRunResult>((resolve, reject) => {
+    const child = spawn('npm', npmArgs, {
+      cwd: options.cwd,
+      env: options.env ?? process.env,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout?.on('data', chunk => {
+      stdout += chunk.toString();
+    });
+
+    child.stderr?.on('data', chunk => {
+      stderr += chunk.toString();
+    });
+
+    child.on('error', reject);
+    child.on('exit', code => {
+      resolve({ code, stdout, stderr });
+    });
+  });
+}
+
+async function initializeProjectWithCli(projectName: string, cwd: string): Promise<string> {
+  const result = await runCli([projectName], { cwd });
+
+  expect(result.code).not.toBeNull();
+
+  return path.join(cwd, projectName);
+}
+
+async function installDependencies(projectDir: string): Promise<void> {
+  const installResult = await runNpm(['install'], { cwd: projectDir });
+
+  expect(installResult.code).toBe(0);
+}
+
+interface DevServerProcess {
+  devProcess: ChildProcess;
+  serverUrl: string;
+  logs: {
+    stdout: string;
+    stderr: string;
+  };
+}
+
+async function startDevServerAndWaitForUrl(projectDir: string): Promise<DevServerProcess> {
+  const env: Env = {
+    ...process.env,
+    PORT: '0',
+    NODE_ENV: 'development',
+  };
+
+  const devProcess = spawn('npm', ['run', 'dev'], {
+    cwd: projectDir,
+    env,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+
+  let devStdout = '';
+  let devStderr = '';
+
+  devProcess.stdout?.on('data', chunk => {
+    devStdout += chunk.toString();
+  });
+
+  devProcess.stderr?.on('data', chunk => {
+    devStderr += chunk.toString();
+  });
+
+  const serverUrl = await waitForServerUrl(
+    () => devStdout,
+    () => devStderr,
+  );
+
+  return {
+    devProcess,
+    serverUrl,
+    logs: {
+      stdout: devStdout,
+      stderr: devStderr,
+    },
+  };
+}
+
+async function waitForServerUrl(
+  getStdout: () => string,
+  getStderr: () => string,
+  timeoutMs = 60_000,
+  pollIntervalMs = 1_000,
+): Promise<string> {
+  const startedAt = Date.now();
+
+  return new Promise<string>((resolve, reject) => {
+    const timer = setInterval(() => {
+      const stdout = getStdout();
+
+      const urlMatch = stdout.match(/(http:\/\/localhost:\d+|http:\/\/127\.0\.0\.1:\d+)/);
+      if (urlMatch) {
+        clearInterval(timer);
+        resolve(urlMatch[1]);
+        return;
+      }
+
+      if (Date.now() - startedAt > timeoutMs) {
+        clearInterval(timer);
+        reject(
+          new Error(
+            `Dev server did not start in time. stdout:\n${stdout}\n\nstderr:\n${getStderr()}`,
+          ),
+        );
+      }
+    }, pollIntervalMs);
+  });
+}
+
+async function fetchHealth(healthUrl: URL): Promise<{ statusCode: number; body: string }> {
+  return new Promise<{ statusCode: number; body: string }>((resolve, reject) => {
+    const req = http.get(healthUrl, res => {
+      let body = '';
+      res.on('data', chunk => {
+        body += chunk.toString();
+      });
+      res.on('end', () => {
+        resolve({
+          statusCode: res.statusCode ?? 0,
+          body,
+        });
+      });
+    });
+
+    req.on('error', reject);
   });
 }
 
@@ -95,123 +238,22 @@ describe('CLI initializer (Story 001.0)', () => {
   it.skip('initializes a project and runs the dev server with a healthy /health endpoint (skipped: requires npm in PATH)', async () => {
     const projectName = 'cli-api-dev';
 
-    const initResult = await runCli([projectName], { cwd: tempDir });
-    expect(initResult.code).not.toBeNull();
+    const projectDir = await initializeProjectWithCli(projectName, tempDir);
 
-    const projectDir = path.join(tempDir, projectName);
+    await installDependencies(projectDir);
 
-    const runNpm = (
-      npmArgs: string[],
-      options: { cwd: string; env?: Env },
-    ): Promise<{ code: number | null; stdout: string; stderr: string }> =>
-      new Promise((resolve, reject) => {
-        const child = spawn('npm', npmArgs, {
-          cwd: options.cwd,
-          env: options.env ?? process.env,
-          stdio: ['ignore', 'pipe', 'pipe'],
-        });
+    const { devProcess, serverUrl } = await startDevServerAndWaitForUrl(projectDir);
 
-        let stdout = '';
-        let stderr = '';
+    try {
+      const healthUrl = new URL('/health', serverUrl);
+      const healthResponse = await fetchHealth(healthUrl);
 
-        child.stdout?.on('data', chunk => {
-          stdout += chunk.toString();
-        });
-
-        child.stderr?.on('data', chunk => {
-          stderr += chunk.toString();
-        });
-
-        child.on('error', reject);
-        child.on('exit', code => {
-          resolve({ code, stdout, stderr });
-        });
-      });
-
-    const installResult = await runNpm(['install'], { cwd: projectDir });
-    expect(installResult.code).toBe(0);
-
-    const env: Env = {
-      ...process.env,
-      PORT: '0',
-      NODE_ENV: 'development',
-    };
-
-    const devProcess = spawn('npm', ['run', 'dev'], {
-      cwd: projectDir,
-      env,
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
-
-    let devStdout = '';
-    let devStderr = '';
-
-    devProcess.stdout?.on('data', chunk => {
-      devStdout += chunk.toString();
-    });
-    devProcess.stderr?.on('data', chunk => {
-      devStderr += chunk.toString();
-    });
-
-    let serverUrl: string | null = null;
-
-    await new Promise<void>((resolve, reject) => {
-      const timeoutMs = 60_000;
-      const pollIntervalMs = 1_000;
-      const startedAt = Date.now();
-
-      const timer = setInterval(() => {
-        if (!serverUrl) {
-          const urlMatch = devStdout.match(/(http:\/\/localhost:\d+|http:\/\/127\.0\.0\.1:\d+)/);
-          if (urlMatch) {
-            serverUrl = urlMatch[1];
-          }
-        }
-
-        if (Date.now() - startedAt > timeoutMs) {
-          clearInterval(timer);
-          reject(
-            new Error(
-              `Dev server did not start in time. stdout:\n${devStdout}\n\nstderr:\n${devStderr}`,
-            ),
-          );
-        }
-
-        if (serverUrl) {
-          clearInterval(timer);
-          resolve();
-        }
-      }, pollIntervalMs);
-    });
-
-    expect(serverUrl).not.toBeNull();
-
-    const healthUrl = new URL('/health', serverUrl!);
-
-    const healthResponse = await new Promise<{ statusCode: number; body: string }>(
-      (resolve, reject) => {
-        const req = http.get(healthUrl, res => {
-          let body = '';
-          res.on('data', chunk => {
-            body += chunk.toString();
-          });
-          res.on('end', () => {
-            resolve({
-              statusCode: res.statusCode ?? 0,
-              body,
-            });
-          });
-        });
-
-        req.on('error', reject);
-      },
-    );
-
-    expect(healthResponse.statusCode).toBe(200);
-    expect(() => JSON.parse(healthResponse.body)).not.toThrow();
-    const healthJson = JSON.parse(healthResponse.body);
-    expect(healthJson).toEqual({ status: 'ok' });
-
-    devProcess.kill();
+      expect(healthResponse.statusCode).toBe(200);
+      expect(() => JSON.parse(healthResponse.body)).not.toThrow();
+      const healthJson = JSON.parse(healthResponse.body);
+      expect(healthJson).toEqual({ status: 'ok' });
+    } finally {
+      devProcess.kill();
+    }
   });
 });
