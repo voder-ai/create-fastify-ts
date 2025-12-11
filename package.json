@@ -17,6 +17,7 @@
     "doc": "user-docs"
   },
   "scripts": {
+    "preinstall": "node ./scripts/check-node-version.mjs",
     "build": "tsc -p tsconfig.json && node ./scripts/copy-template-files.mjs",
     "test": "vitest run",
     "lint": "eslint .",

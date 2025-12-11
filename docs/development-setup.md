@@ -78,7 +78,7 @@ These traceability annotations are mandatory for all new code and tests. Pull re
 
 ## Prerequisites
 
-- **Node.js**: Use Node.js 22.x (same as CI) or a compatible LTS version.
+- **Node.js**: Node.js 22 or newer is required. Installs on older Node.js versions will fail with a clear error message due to a preinstall check implemented by the `scripts/check-node-version.mjs` preinstall hook (REQ-INSTALL-NODE-VERSION from `docs/stories/002.0-DEVELOPER-DEPENDENCIES-INSTALL.story.md`).
 - **npm**: npm 10+ is recommended.
 
 From a clean checkout, install dependencies with:

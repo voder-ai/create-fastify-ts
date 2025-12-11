@@ -18,7 +18,7 @@ In the generated project, when `src/index.ts` is compiled and run, it starts a F
 
 When Git is available on your system, the new project is automatically initialized as its own Git repository. If Git is not installed or not on your PATH, the project will still be created successfully, but you may need to run `git init` manually inside the new project directory.
 
-Requires Node.js 22 or newer (LTS recommended).
+Requires Node.js 22 or newer (LTS recommended); attempting to install dependencies with an older Node.js version will fail fast with a clear error message due to the enforced minimum Node.js version from story 002.0 (REQ-INSTALL-NODE-VERSION).
 
 ## What's Included
 
