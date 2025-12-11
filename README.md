@@ -60,6 +60,15 @@ npm run format
 npm run build
 ```
 
+### Testing
+
+- `npm test` runs the Vitest test suite once.
+- `npm test -- --watch` runs the suite in watch mode and is intended for local development only (not CI).
+- `npm run test:coverage` runs the suite with coverage reporting enabled and enforces global coverage thresholds.
+- `npm run type-check` runs TypeScript in `noEmit` mode and also validates `.test.d.ts` type-level tests.
+
+The template includes example `.test.ts`, `.test.js`, and `.test.d.ts` files so you can see patterns for both behavior-focused tests and type-level tests. For more details, see the [Testing Guide](user-docs/testing.md).
+
 ### Generated project endpoint
 
 A freshly generated project exposes a single primary endpoint at this stage:
