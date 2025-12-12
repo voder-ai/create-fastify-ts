@@ -14,5 +14,9 @@
     "declarationMap": false
   },
   "include": ["src"],
-  "exclude": ["dist", "node_modules"]
+  "exclude": [
+    "dist",
+    "node_modules",
+    "src/dev-server.test.ts" // This file uses `--test` mode of Node	.RUN_TESTS=1 node --test ./dist/dev-server.test.js
+  ]
 }
