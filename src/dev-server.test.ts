@@ -15,7 +15,7 @@ import {
   sendSigintAndWait,
   createMinimalProjectDir,
   createFakeProjectForHotReload,
-} from './dev-server.test-helpers';
+} from './dev-server.test-helpers.js';
 
 describe('Dev server port resolution (Story 003.0)', () => {
   it('auto-discovers a free port starting at the default when PORT is not set [REQ-DEV-PORT-AUTO]', async () => {

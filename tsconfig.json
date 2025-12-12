@@ -16,8 +16,6 @@
   "include": ["src"],
   "exclude": [
     "dist",
-    "node_modules",
-    "src/dev-server.test.ts"
-    // NOTE: dev-server tests are excluded from type checking due to the JS-only module import
+    "node_modules"
   ]
 }
