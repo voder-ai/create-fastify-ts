@@ -25,6 +25,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "duplication": "jscpd --threshold 20 src scripts",
+    "quality:lint-format-smoke": "node ./scripts/lint-format-smoke.mjs",
     "type-check": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

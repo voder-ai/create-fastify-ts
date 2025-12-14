@@ -43,6 +43,9 @@ jobs:
       - name: Check formatting
         run: npm run format:check
 
+      - name: Lint/format auto-fix smoke test
+        run: npm run quality:lint-format-smoke
+
       - name: Dependency freshness report (non-blocking)
         continue-on-error: true
         run: npx dry-aged-deps --format=table
