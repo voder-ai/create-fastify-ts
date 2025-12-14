@@ -1,15 +1,15 @@
 ## NOW
 
-- [ ] Update the main README and the user security and API documentation so that descriptions of security headers and logging behavior for newly generated projects exactly match the current implementation, explicitly distinguishing any stub-only features and removing or rewording claims that generated projects already use Helmet or environment-driven log levels when they do not.
+- [ ] Create a new `src/index.test.d.ts` type-level test file that exercises the exported API types from `src/index.ts` (for example, validating the `GitInitResult` shape via conditional-type assertions) and includes a JSDoc `@supports` header referencing story `docs/stories/004.0-DEVELOPER-TESTS-RUN.story.md` and the REQ-TEST-EXAMPLES / multiple-format requirements.
 
 ## NEXT
 
-- [ ] Align the generated project README template with the updated central documentation by adjusting its sections on endpoints, logging, and security so that a freshly scaffolded project’s README is fully consistent with its actual behavior.
-- [ ] Refine the Node version enforcement error messages in the version-check script to replace internal repository path references with user-friendly text that points to the public documentation rather than to non-existent local files in npm installs.
-- [ ] Introduce a concise user-facing configuration guide in the user documentation that summarizes supported environment variables (such as port and log level) and their effects on both the stub server and generated projects, ensuring the guide is consistent with current code behavior.
+- [ ] Ensure the TypeScript configuration includes `src/index.test.d.ts` in the files checked by the existing type-check script so that breaking the public API types will cause type-check to fail.
+- [ ] Run the existing test and type-check commands to confirm that the new `.test.d.ts` file compiles successfully and that the overall test suite and build still pass.
+- [ ] Verify that the examples and claims in the Testing Guide and README that mention `src/index.test.d.ts` now correspond to the actual file contents and adjust the wording only if needed to match what the new type-level tests cover.
 
 ## LATER
 
-- [ ] Once the documentation and template README are fully aligned with current behavior, extend the generated project server implementation to use Helmet and environment-driven logging and then update the docs again to describe the new capabilities accurately.
-- [ ] Add example .env.example files for both the template repository and generated projects and document their usage in the user configuration guide, focusing on safe patterns for environment-based configuration.
-- [ ] Establish a lightweight documentation change checklist in the internal development docs that explicitly calls out which user-facing files must be updated when security, logging, or CLI behavior changes, to keep future documentation in sync with the implementation.
+- [ ] Add additional type-level assertions in `src/index.test.d.ts` for any new public exports added in future stories to keep type contracts continuously validated.
+- [ ] Extend documentation in the Testing Guide with a short explanatory subsection that walks through how the `Expect` helper in the `.test.d.ts` file works, to help users create their own type-level tests.
+- [ ] Consider adding a separate npm script dedicated to running only type-level tests (by narrowing TypeScript’s `include` set) if the project grows and you want a very fast feedback loop for API type changes.
