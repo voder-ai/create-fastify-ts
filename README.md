@@ -1,6 +1,6 @@
 # Fastify TypeScript Template
 
-A production-ready TypeScript + Fastify template for building REST APIs and microservices. The CLI scaffolds a minimal Fastify app that responds with a Hello World JSON payload on `GET /` in the generated project, with security headers and structured logging configured by default.
+A production-ready TypeScript + Fastify template for building REST APIs and microservices. The CLI scaffolds a minimal Fastify app that responds with a Hello World JSON payload on `GET /` and exposes a simple JSON health check on `GET /health` in the generated project, with security headers and structured logging configured by default.
 
 ## Quick Start
 
@@ -36,7 +36,7 @@ Requires Node.js 22 or newer (LTS recommended); attempting to install dependenci
 - **Dev server**: `npm run dev` starts a TypeScript-aware dev server with hot reload
 - **Production build & start**: `npm run build` + `npm start` run the compiled server from `dist/`
 - **Security Headers**: @fastify/helmet registered by default in both the internal stub server and generated projects
-- **Structured Logging**: Fastify's integrated Pino logger with environment-driven log levels
+- **Structured Logging**: Fastify's integrated Pino logger with environment-driven log levels for both the internal stub server and generated projects, plus a dev server (`npm run dev`) that pipes logs through `pino-pretty` for human-readable local output while production (`npm start`) keeps JSON log lines.
 
 ### Planned Enhancements
 
@@ -75,13 +75,16 @@ npm run build
 
 The template includes example `.test.ts`, `.test.js`, and `.test.d.ts` files so you can see patterns for both behavior-focused tests and type-level tests. For more details, see the [Testing Guide](user-docs/testing.md).
 
-### Generated project endpoint
+### Generated project endpoints
 
-A freshly generated project exposes a single primary endpoint at this stage:
+A freshly generated project exposes two HTTP endpoints by default:
 
 - `GET /` → `{ "message": "Hello World from Fastify + TypeScript!" }`
+- `GET /health` → `{ "status": "ok" }`
 
-This Hello World JSON response is the main endpoint in the generated template and serves as a starting point for building out your API.
+These routes live in the generated project's `src/index.ts`. The root route provides a simple starting point for your API, and the `/health` route is a lightweight health check that is safe to call from your deployment environment or uptime monitors.
+
+Inside this template repository there is also a small internal Fastify **stub server** (`src/server.ts`) used only for wiring and security tests. That stub server exposes a single `GET /health` endpoint and is not copied into generated projects.
 
 ## Releases and Versioning
 
@@ -107,7 +110,7 @@ For details on the programmatic API (including `getServiceHealth`, `initializeTe
 Currently implemented:
 
 - Security headers via @fastify/helmet in both the stub server and generated projects
-- Structured JSON logging via Fastify's default Pino integration
+- Structured JSON logging via Fastify's default Pino integration when you run the compiled server directly or with `npm start`; `npm run dev` uses the same structured logs but formats them via `pino-pretty` for easier local reading.
 
 Planned security-related enhancements (not yet implemented):
 

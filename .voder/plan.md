@@ -1,16 +1,16 @@
 ## NOW
 
-- [ ] Create a shared test helper module that encapsulates the repeated generated-project flow of creating a temp project, linking dependencies, running the TypeScript build, starting the compiled server, waiting for the health endpoint to respond, and shutting the server down, and update the existing generated-project production and logging test files to use this helper for their common setup instead of duplicating that logic inline.
+- [ ] Update the user-facing documentation (README.md and user-docs/api.md) so that they explicitly describe the HTTP endpoints provided by a freshly generated project (including both the Hello World root route and the /health route) and clearly distinguish these from the internal stub server’s /health-only API, ensuring the documented endpoints and server roles exactly match the current template implementation and tests.
 
 ## NEXT
 
-- [ ] Extract additional smaller helpers from the generated-project tests to handle common assertions such as verifying that runtime logs do not reference source files and that log level configuration behaves correctly, and update the tests to call these helpers instead of repeating assertion code blocks.
-- [ ] Refactor the dev-server integration tests to move their repeated process-start, readiness-wait, and shutdown logic into a dedicated helper module, and update the tests to use these helpers to further reduce duplication and improve readability.
-- [ ] Expand TypeScript type-checking coverage to include the dev-server integration test file by removing it from the type-check exclusion list and adjusting its code or supporting type definitions so that strict type-checking passes cleanly.
-- [ ] Simplify the ESLint complexity rule configuration by switching from an explicit numeric max to the default error-only form once the codebase is confirmed to comply, keeping behavior unchanged while making the configuration clearer.
+- [ ] Add a JSDoc block with an appropriate @supports annotation to the main function in scripts/copy-template-files.mjs so that this build script complies with the project’s traceability requirements and references the relevant production-build story and requirements.
+- [ ] Adjust the security documentation in user-docs/SECURITY.md, if needed, to align its wording with the current generated project implementation by confirming that helmet and security headers are documented only where they are actually enabled in code and tests, without implying any unimplemented behavior.
+- [ ] Extend the developer-facing documentation (for example in docs/development-setup.md or docs/testing-strategy.md) with a short section describing the new generated-project and dev-server shared test helpers, including when to use them and examples, so contributors avoid reintroducing duplicated test logic.
+- [ ] Ensure that any references to logging behavior in README.md and user-docs/api.md clearly tie env-driven log levels and JSON vs pretty logging to the current generated project and dev-server implementations, updating phrasing where necessary to match the exact behavior covered by the logging tests.
 
 ## LATER
 
-- [ ] Gradually tighten the maximum allowed lines per function threshold in the lint configuration by first identifying larger functions and refactoring them into smaller, well-named helpers, then lowering the configured limit once violations are resolved.
-- [ ] Introduce brief developer documentation describing the new shared test helpers for generated projects and the dev server so contributors know how to use them and avoid reintroducing duplicated patterns in future tests.
-- [ ] Periodically revisit jscpd duplication reports after new features are added and, when new clusters of duplication appear, apply the same helper-extraction strategy to keep duplication levels low without compromising test clarity.
+- [ ] Introduce a concise “API surface of the template” page under user-docs/ that consolidates the documented public CLI, initialization functions, and generated project behavior into a single reference, improving discoverability without duplicating existing content.
+- [ ] Standardize a brief documentation style guide in docs/ (covering how to reference stories/requirements, how to describe endpoints, and how to document environment variables) to keep future docs consistent with the current structure.
+- [ ] Periodically refine story and ADR documents to cross-link more explicitly to the corresponding user docs (for example, adding a short “user docs” pointer section in each completed story) so it is easy to trace from requirements through implementation to user-facing documentation.

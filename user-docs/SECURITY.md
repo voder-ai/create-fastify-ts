@@ -21,7 +21,7 @@ There are currently **no** authenticated endpoints, no image-upload functionalit
 - The service does **not** perform user authentication or authorization.
 - The service does **not** provide rate-limiting or abuse protection on public endpoints yet.
 - The service does **not** configure CORS (no custom CORS policy is in place).
-- The service **does** apply additional security headers via `@fastify/helmet`, using the plugin's default configuration for both the internal stub server and freshly generated projects. This default configuration is intended as a sensible baseline and can be customized or hardened further in your own application code.
+- The service **does** apply additional security headers via `@fastify/helmet`, using the plugin's default configuration in both the internal stub server and freshly generated projects. In both cases, Helmet is registered once at application bootstrap so that all HTTP responses benefit from the same baseline headers. You can customize or harden this configuration further in your own application code.
 - The service does **not** perform validation or strict checking of environment variables at startup.
 
 These limitations are expected for an early bootstrap; future versions will introduce additional endpoints and stronger security features.
@@ -66,7 +66,7 @@ Until these features are implemented and documented, you should treat the servic
 
 ## HTTP Security Headers (REQ-SEC-HEADER-DOCS, REQ-SEC-HELMET-DEFAULT, REQ-SEC-OWASP)
 
-This template uses `@fastify/helmet` by default in both the internal stub server and freshly generated projects. This is the recommended way to configure common HTTP security headers in line with [OWASP Secure Headers Best Practices](https://owasp.org/www-project-secure-headers/).
+This template uses `@fastify/helmet` by default in both the internal stub server and in the Fastify server that is generated into `src/index.ts` for new projects. This is the recommended way to configure common HTTP security headers in line with [OWASP Secure Headers Best Practices](https://owasp.org/www-project-secure-headers/).
 
 > Important: A freshly generated project registers `@fastify/helmet` with its default settings. You are expected to review and, if needed, **customize** this configuration (for example, CSP directives) in your application bootstrap (for example, in `app.ts` or `server.ts`).
 

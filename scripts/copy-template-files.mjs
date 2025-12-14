@@ -3,6 +3,17 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
+/**
+ * Copy template assets from src/template-files into the built dist/ tree.
+ *
+ * This script is invoked as part of the `npm run build` process to ensure
+ * that the packaged initializer includes the template files alongside the
+ * compiled TypeScript output. It mirrors the expectations in the production
+ * build story that the published package can scaffold projects entirely from
+ * the contents of dist/.
+ *
+ * @supports docs/stories/006.0-DEVELOPER-PRODUCTION-BUILD.story.md REQ-BUILD-OUTPUT-DIST REQ-BUILD-ESM
+ */
 async function main() {
   const projectRoot = process.cwd();
   const srcTemplatesDir = path.resolve(projectRoot, 'src', 'template-files');

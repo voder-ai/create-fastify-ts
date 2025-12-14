@@ -212,26 +212,50 @@ type GitInitResult = {
   - `errorMessage` is present and contains a brief explanation (e.g., `git not found in PATH` or the underlying error message).
   - The project is still created and usable at the returned `projectDir` path.
 
+## Generated project HTTP endpoints
+
+When you run `initializeTemplateProject()` (or `initializeTemplateProjectWithGit()` and then run the generated server), the new project starts a Fastify application from `src/index.ts` that exposes two HTTP endpoints by default:
+
+- `GET /` → `{ "message": "Hello World from Fastify + TypeScript!" }`
+- `GET /health` → `{ "status": "ok" }`
+
+These endpoints are part of the generated project, not the `@voder-ai/create-fastify-ts` library itself. The Hello World root route is intended as a starting point for your own API routes, and the `/health` route is a simple JSON health check that you can use from deployment platforms and uptime monitors.
+
+Inside this template repository there is also an internal Fastify **stub server** (`src/server.ts`) used only for wiring and security tests. That stub server exposes a single `GET /health` endpoint and is not copied into generated projects; it exists solely to support the library's own tests and examples.
+
 ## Logging and Log Levels
 
-Generated projects use Fastify's integrated Pino logger with sensible defaults:
+Both the internal Fastify stub server used by this library and the servers in freshly generated projects use Fastify's integrated Pino logger with sensible, environment-driven defaults.
 
-- In non-production environments (`NODE_ENV` not set to `production`), the default log level is `debug`.
+### Environment-driven log levels
+
+The log level is derived from `NODE_ENV` and `LOG_LEVEL` using the same algorithm in both the stub server (`src/server.ts`) and the generated project server (`src/index.ts`):
+
+- In non-production environments (`NODE_ENV` not set to `"production"`) and with `LOG_LEVEL` unset, the default log level is `debug`.
 - In production (`NODE_ENV=production` and no explicit log level), the default log level is `info`.
-- You can override the level in any environment by setting the `LOG_LEVEL` environment variable (`trace`, `debug`, `info`, `warn`, `error`, `fatal`).
+- You can override the level in any environment by setting the `LOG_LEVEL` environment variable (for example, `trace`, `debug`, `info`, `warn`, `error`, `fatal`).
 
-Examples:
+Example usage:
 
 ```bash
-# Development with verbose logs
+# Development with verbose logs (generated project or stub server)
 LOG_LEVEL=debug npm run dev
 
-# Production with standard informational logs
+# Production with standard informational logs for a generated project
 NODE_ENV=production LOG_LEVEL=info npm start
 
 # Temporary deep troubleshooting in production (use sparingly)
 NODE_ENV=production LOG_LEVEL=trace npm start
 ```
+
+### JSON vs pretty-printed logs
+
+How logs are **formatted** depends on how you start the server:
+
+- When you run the compiled server directly or via `npm start` in a generated project (which runs `node dist/src/index.js`), logs are emitted as structured JSON lines from Pino. The generated-project logging tests (`src/generated-project-logging.test.ts`) assert that these JSON logs are present and that log levels behave as configured.
+- When you run `npm run dev` in a generated project, the `dev-server.mjs` script starts the compiled server with Node's `-r pino-pretty` flag in non-production environments. This keeps the same structured log data but formats it into human-readable, colorized output suitable for local development.
+
+The internal stub server (`src/server.ts`) is wired the same way as the generated project server with respect to log levels and JSON logging, but it is used only inside this repository for tests – generated projects do not run that stub server.
 
 ## Attribution
 
