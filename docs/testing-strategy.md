@@ -142,16 +142,16 @@ To keep a clear link between requirements, design, and verification:
 
   ```ts
   /**
-   * Tests for the Fastify server stub.
-   * @supports docs/decisions/002-fastify-web-framework.accepted.md REQ-FASTIFY-SERVER-STUB
+   * Tests for the initializer and project scaffolding.
+   * @supports docs/stories/001.0-DEVELOPER-TEMPLATE-INIT.story.md REQ-INIT-PROJECT
    */
   ```
 
 - In `describe` blocks and test names, include requirement identifiers from the corresponding story or ADR when they exist. For example:
 
   ```ts
-  describe('Image upload endpoint (Story 001.1-FE-UPLOAD-IMAGE)', () => {
-    it('[REQ-MULTIPART] accepts multipart/form-data PNG upload', async () => {
+  describe('Generated project production runtime smoke test (Story 006.0) [REQ-START-PRODUCTION]', () => {
+    it('[REQ-START-PRODUCTION] starts compiled server from dist/src/index.js with src/ removed', async () => {
       // ...
     });
   });
