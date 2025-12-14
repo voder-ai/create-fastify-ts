@@ -1,32 +1,32 @@
-Here’s a concise history-only summary of what’s been done so far in this project phase:
+Here’s a history-only summary of what’s been done so far in this project phase, including the most recent work.
 
 ---
 
 ## Shared Test Helpers and Test Refactors
 
-- Introduced `src/generated-project.test-helpers.ts` to centralize E2E logic for generated projects:
-  - Manages temporary project directories, scaffolding, and `node_modules` symlinks.
-  - Provides helpers to run `tsc`, start `dist/src/index.js`, poll `/health`, and assert on JSON logs and log levels.
-  - Added `@supports` annotations tied to build/logging requirements.
+- Added `src/generated-project.test-helpers.ts` to centralize E2E logic for generated projects:
+  - Handles temp project directories, scaffolding, and `node_modules` symlinks.
+  - Provides helpers to run `tsc`, start `dist/src/index.js`, poll `/health`, and assert JSON logs and log levels.
+  - Annotated helpers with `@supports` tied to build/logging requirements.
 
 - Refactored `src/generated-project-production.test.ts`:
-  - Replaced ad-hoc temp-dir setup, server startup, and health checks with shared helpers.
-  - Simplified validation of `dist/` build artifacts and ensured runtime checks operate only from `dist` (with `src/` removed).
-  - Updated the heavier, previously skipped generated-project E2E suite to reuse shared helpers.
+  - Replaced custom temp-dir setup and server startup with shared helpers.
+  - Simplified validation of `dist/` artifacts and ensured runtime checks are performed only against compiled output (`src/` removed).
+  - Updated the heavier generated-project E2E suite to reuse shared helpers.
 
 - Refactored `src/generated-project-logging.test.ts`:
   - Removed local utilities in favor of shared helpers.
-  - Simplified log assertions with `assertHasJsonLogLine` and `assertNoInfoLevelRequestLogs`.
-  - Reduced imports so tests depend only on Vitest plus the helper module.
+  - Simplified log assertions using `assertHasJsonLogLine` and `assertNoInfoLevelRequestLogs`.
+  - Reduced imports so tests depend only on Vitest and the helper module.
 
 ---
 
 ## TypeScript, Dev-Server Tests, and ESLint
 
-- Updated `tsconfig.json` so `src/dev-server.test.ts` is covered by type checking, keeping `dist` and `node_modules` excluded.
-- Added `src/mjs-modules.d.ts` for `*.mjs` imports and removed the older `dev-server.mjs.d.ts`.
-- Simplified `src/dev-server.test.ts` to use dynamic imports supported by the new declaration file.
-- Updated `eslint.config.js` to rely on the default `complexity: 'error'` threshold and confirmed no new lint issues.
+- Updated `tsconfig.json` to include `src/dev-server.test.ts` in type checking, keeping `dist` and `node_modules` excluded.
+- Added `src/mjs-modules.d.ts` to support `*.mjs` imports and removed `dev-server.mjs.d.ts`.
+- Simplified `src/dev-server.test.ts` to use dynamic imports backed by the new declaration file.
+- Updated `eslint.config.js` to rely on the default `complexity: 'error'` threshold and verified no new lint issues.
 
 ---
 
@@ -40,16 +40,16 @@ Here’s a concise history-only summary of what’s been done so far in this pro
   - `npm run format`
   - `npm run format:check`
 
-- Committed and pushed test and helper refactors as:
+- Committed and pushed:
   - `test: refactor generated project and dev server tests into shared helpers`
 
-- Verified GitHub Actions workflow **“CI/CD Pipeline (main)”** (run ID `20211284073`) completed successfully.
+- Confirmed GitHub Actions workflow **“CI/CD Pipeline (main)”** (run ID `20211284073`) succeeded.
 
 - Performed a repository review:
-  - Inspected repo layout and key docs (`README.md`, user/dev docs, ADRs).
-  - Reviewed core implementation and tests (`src/server.ts`, `src/index.ts`, `src/initializer.ts`, new helpers).
+  - Reviewed repo layout and key docs (`README.md`, user/dev docs, ADRs).
+  - Inspected core implementation and tests (`src/server.ts`, `src/index.ts`, `src/initializer.ts`, new helpers).
   - Reviewed template files and scripts.
-  - Checked documentation references to “log” and “helmet” for alignment with implementation.
+  - Checked documentation mentions of logging and Helmet for alignment with implementation.
 
 ---
 
@@ -59,29 +59,29 @@ Here’s a concise history-only summary of what’s been done so far in this pro
   - Documented generated project endpoints:
     - `GET /` → Hello World JSON.
     - `GET /health` → `{ "status": "ok" }`.
-  - Clarified these endpoints exist only in generated `src/index.ts`; the internal stub server exposed only `GET /health` (at that time).
-  - Expanded logging docs around Fastify + Pino, env-driven log levels, JSON logs in `npm start`, and `pino-pretty` in `npm run dev`.
+  - Clarified these endpoints exist in generated `src/index.ts`; the erstwhile stub server exposed only `GET /health`.
+  - Expanded logging documentation for Fastify + Pino, env-driven log levels, JSON logs in `npm start`, and `pino-pretty` in `npm run dev`.
 
 - Updated `user-docs/api.md`:
-  - Added a section describing generated project HTTP endpoints vs the library’s internal API.
-  - Rewrote logging section to describe Fastify + Pino, env-driven log levels, and parity between stub server and generated projects.
+  - Added a section describing generated project HTTP endpoints vs internal library API.
+  - Reworked logging section to describe Fastify + Pino, env-driven log levels, and parity with the former stub server.
 
 - Updated `user-docs/SECURITY.md`:
-  - Documented `@fastify/helmet` usage in stub server and generated projects.
-  - Clarified Helmet registration at bootstrap for all responses.
-  - Explicitly linked Helmet usage to stub server and generated `src/index.ts`.
+  - Documented `@fastify/helmet` usage in the stub server and generated projects.
+  - Clarified Helmet registration at bootstrap.
+  - Linked Helmet usage explicitly to stub and generated `src/index.ts`.
 
 - Enhanced `docs/testing-strategy.md`:
-  - Documented `src/dev-server.test-helpers.ts` and `src/generated-project.test-helpers.ts` and their roles.
-  - Recommended using these helpers instead of ad-hoc temp-project code.
-  - Ensured formatting compliance with Prettier.
+  - Documented `src/dev-server.test-helpers.ts` and `src/generated-project.test-helpers.ts`.
+  - Recommended using helpers instead of ad-hoc temp-project code.
+  - Ensured Prettier-compliant formatting.
 
 ---
 
 ## Build Script Annotations and Traceability
 
 - Updated `scripts/copy-template-files.mjs`:
-  - Added `@supports` JSDoc above `main()` describing:
+  - Added `@supports` JSDoc for `main()` describing:
     - Copying template assets from `src/template-files` into `dist/` during `npm run build`.
     - Support for scaffolding from `dist` only.
     - Traceability to `REQ-BUILD-OUTPUT-DIST` and `REQ-BUILD-ESM`.
@@ -90,7 +90,7 @@ Here’s a concise history-only summary of what’s been done so far in this pro
 
 ## Coverage, Testing Docs, and Coverage Scripts
 
-- Reviewed coverage/test setup:
+- Reviewed coverage/test configuration:
   - `package.json`
   - `vitest.config.mts`
   - `src/generated-project-production-npm-start.test.ts`
@@ -99,21 +99,21 @@ Here’s a concise history-only summary of what’s been done so far in this pro
 
 - Ran `npm run test:coverage` and verified:
   - V8 coverage enabled.
-  - 80% thresholds enforced for statements, branches, functions, and lines.
-  - `src/template-files/**` excluded.
-  - Text and HTML coverage reports in `coverage/`.
+  - 80% thresholds for statements, branches, functions, and lines.
+  - Exclusion of `src/template-files/**`.
+  - Text and HTML coverage output in `coverage/`.
   - Thresholds met.
 
-- Confirmed behavior of:
-  - `test:coverage` for core test set.
-  - `test:coverage:extended` for heavier generated-project E2E suite.
+- Confirmed:
+  - `test:coverage` covers core tests.
+  - `test:coverage:extended` runs heavier generated-project E2E tests.
 
-- Cross-checked `user-docs/testing.md`:
+- Updated `user-docs/testing.md`:
   - Documented coverage provider and thresholds.
   - Explained core vs extended suites.
   - Included example coverage output.
 
-- Re-ran quality commands (`npm test`, coverage, type-check, lint, build, format checks) and confirmed success, with clean `git status` (excluding `.voder/*`).
+- Re-ran quality commands (tests, coverage, type-check, lint, build, format checks) and confirmed success with clean git status (excluding `.voder/*`).
 
 ---
 
@@ -129,7 +129,7 @@ Here’s a concise history-only summary of what’s been done so far in this pro
   - `npm run build`
   - `npm test`
   - `npm run type-check`
-- Staged, committed, and pushed:
+- Committed and pushed:
   - `chore: remove committed sample exec project and enforce ignore`
 - Verified CI **CI/CD Pipeline** (run ID `20212086601`) completed successfully.
 
@@ -144,9 +144,9 @@ Here’s a concise history-only summary of what’s been done so far in this pro
   - Related tests (`initializer.test.ts`, `cli.test.ts`, generated-project/dev-server helpers/tests).
 
 - Extended hygiene test:
-  - Updated `src/repo-hygiene.generated-projects.test.ts` to expand `DISALLOWED_PROJECT_DIRS` to cover all generated-project directory names used in tests (e.g., `cli-api`, `my-api`, `prod-api`, `logging-api`, etc.).
-  - Kept test logic ensuring these directories do not exist at the repo root.
-  - Ran `npm test` to confirm the updated hygiene test passed.
+  - Updated `DISALLOWED_PROJECT_DIRS` in `src/repo-hygiene.generated-projects.test.ts` to include all generated-project directory names used in tests (e.g., `cli-api`, `my-api`, `prod-api`, `logging-api`, etc.).
+  - Kept logic ensuring these directories never exist at the repo root.
+  - Ran `npm test` to confirm the hygiene test passed.
   - Commit: `test: extend repo hygiene checks for generated projects`.
 
 - Documentation and ignore rules:
@@ -154,8 +154,8 @@ Here’s a concise history-only summary of what’s been done so far in this pro
     - Explained that manually generated sample projects must not be committed and should live outside the repo or in temp dirs.
     - Referenced ADR 0014 and listed disallowed directory names.
   - Fixed ADR filename reference to `0014-generated-test-projects-not-committed.accepted.md`.
-  - Updated `.gitignore` to ignore the same directories listed in the hygiene test.
-  - Re-ran tests, lint, type-check, build, and formatting.
+  - Updated `.gitignore` to ignore the same directories as the hygiene test.
+  - Re-ran tests, lint, type-check, build, formatting.
   - Committed:
     - `test: extend repo hygiene checks for generated projects`
     - `docs: document generated-project repo hygiene and ignore patterns`
@@ -165,25 +165,25 @@ Here’s a concise history-only summary of what’s been done so far in this pro
 
 ## Lint/Format Auto-Fix Commands and Smoke Testing
 
-- Verified lint/format commands:
+- Verified:
   - `npm run lint`
   - `npm run lint:fix`
   - `npm run format`
   - `npm run format:check`
 
 - Updated `docs/stories/007.0-DEVELOPER-LINT-FORMAT.story.md`:
-  - Marked lint/format checks and auto-fix commands as completed in acceptance criteria and Definition of Done.
+  - Marked lint/format checks and auto-fix commands as completed in acceptance criteria and DoD.
 
 - Added `scripts/lint-format-smoke.mjs`:
-  - Creates a temp project in `os.tmpdir()`.
-  - Writes a minimal `package.json` with `lint:fix` and `format` scripts.
+  - Creates a temp project under `os.tmpdir()`.
+  - Writes minimal `package.json` with `lint:fix` and `format`.
   - Writes a flat `eslint.config.js` using `no-extra-semi`.
   - Copies `.prettierrc.json` from the repo.
-  - Writes a malformed JS file (`const  answer = 42;;`).
+  - Adds malformed JS (`const  answer = 42;;`).
   - Configures `PATH` and `NODE_PATH` to use repo `node_modules`.
-  - Runs `npm run lint:fix` and asserts that the file content changes.
-  - Runs `npm run format` twice to assert changes then idempotence.
-  - Cleans up in a `finally` block.
+  - Runs `npm run lint:fix` and asserts the file changes.
+  - Runs `npm run format` twice to assert both change and idempotence.
+  - Cleans up in `finally`.
 
 - Added npm script:
   - `"quality:lint-format-smoke": "node ./scripts/lint-format-smoke.mjs"`
@@ -193,82 +193,74 @@ Here’s a concise history-only summary of what’s been done so far in this pro
   - `npm run quality:lint-format-smoke`
 
 - Updated developer docs:
-  - `docs/development-setup.md` to clarify `lint:fix` and `format` as safe auto-fix commands and recommend their usage after failures.
+  - `docs/development-setup.md` to clarify `lint:fix` and `format` as safe auto-fix commands.
   - `docs/stories/007.0-DEVELOPER-LINT-FORMAT.story.md` to reflect working auto-fix commands.
 
-- Updated `.github/workflows/ci-cd.yml`:
-  - Added CI steps:
+- Updated `.github/workflows/ci-cd.yml` to add CI steps:
 
-    ```yaml
-    - name: Check formatting
-      run: npm run format:check
+  ```yaml
+  - name: Check formatting
+    run: npm run format:check
 
-    - name: Lint/format auto-fix smoke test
-      run: npm run quality:lint-format-smoke
-    ```
+  - name: Lint/format auto-fix smoke test
+    run: npm run quality:lint-format-smoke
+  ```
 
-- Repeated local quality runs (build, tests, lint, type-check, format checks, lint:fix, format, smoke test).
+- Repeated local quality runs (build, test, lint, type-check, format, lint:fix, smoke test).
 - Committed and pushed:
   - `docs: document working lint and format auto-fix commands`
   - `chore: add lint and format auto-fix smoke test`
-- Verified CI/CD pipeline success after each push.
+- Confirmed CI/CD pipeline success after each push.
 
 ---
 
 ## Alignment of Security, Logging, and Node-Version Docs
 
-- Inspected:
+- Reviewed:
   - `README.md`
   - `user-docs/SECURITY.md`
   - `user-docs/api.md`
   - `src/template-files/**`
   - `scripts/check-node-version.mjs`
   - `src/initializer.ts`
-  - `src/server.ts` (at that time)
+  - `src/server.ts` (prior to its removal)
   - Generated-project tests and helpers.
 
 - Updated `user-docs/SECURITY.md`:
   - Corrected endpoint descriptions:
     - Stub server: `GET /health` → `{ "status": "ok" }`.
-    - Generated project: `GET /` (Hello World JSON) and `GET /health`.
-  - Updated summary and Data Handling sections to explicitly list stub and generated-project endpoints.
+    - Generated project: `GET /` + `GET /health`.
+  - Updated summary/Data Handling to list endpoints explicitly.
 
 - Updated `user-docs/api.md`:
-  - Rewrote logging intro under “Logging and Log Levels” to emphasize:
+  - Rewrote logging intro to emphasize:
     - User-facing logging behavior in generated `src/index.ts`.
-    - Stub server reusing the same pattern.
-  - Clarified shared algorithm for environment-driven log levels.
+    - Stub server reusing the same algorithm.
+  - Clarified shared environment-driven log-level algorithm.
 
 - Updated `README.md`:
-  - Intro:
-    - Clarified CLI scaffolds a project with:
-      - `GET /` Hello World JSON.
-      - `GET /health` JSON health check.
-      - Default security headers and structured logging.
+  - Intro: clarified CLI-scaffolded project includes:
+    - `GET /` Hello World JSON.
+    - `GET /health` health check.
+    - Default security headers and structured logging.
   - “What’s Included → Implemented”:
-    - Security headers: focused on `@fastify/helmet` in generated `src/index.ts`, with stub server parity.
-    - Structured logging: focused on Pino logging in generated `src/index.ts`, with notes on stub parity and dev vs prod formatting.
-  - “Security” section: foregrounded Helmet and logging in generated projects, with stub server as an internal mirror.
+    - Focused security headers on `@fastify/helmet` in generated `src/index.ts`, with stub parity.
+    - Focused structured logging on Pino in generated `src/index.ts`, noting stub parity and dev vs prod formatting.
+  - “Security” section foregrounded Helmet and logging for generated projects.
 
 - Updated `src/template-files/README.md.template`:
-  - Added `## Security and Logging`:
-    - Described Helmet in `src/index.ts`.
-    - Described Fastify+Pino logging, `pino-pretty` in dev, env-driven log levels.
-  - Tweaked logging section intro to highlight Fastify + Pino defaults in `src/index.ts`.
+  - Added `## Security and Logging` describing Helmet and Fastify+Pino, including `pino-pretty` in dev and env-driven log levels.
+  - Tweaked logging intro to highlight defaults in `src/index.ts`.
 
 - Updated `scripts/check-node-version.mjs`:
-  - Simplified error message to remove internal doc paths and reference a public GitHub URL and Node requirement.
+  - Simplified error message to reference a public GitHub URL and Node requirement, removing internal doc paths.
 
 - Updated `src/check-node-version.test.js`:
-  - Relaxed assertions to match new error text, checking for:
-    - `requires Node.js >=`
-    - Minimum version
-    - GitHub URL.
+  - Relaxed assertions to match new error text (requires Node.js >=, specific minimum, and GitHub URL).
 
-- Ran lint, type-check, tests, build, and formatting (twice for verification).
-- Committed and pushed:
+- Ran lint, type-check, tests, build, and formatting and committed:
   - `docs: align security, logging, and node-version documentation with implementation`
-- Confirmed CI/CD pipeline success.
+- Confirmed CI/CD success.
 
 ---
 
@@ -276,27 +268,25 @@ Here’s a concise history-only summary of what’s been done so far in this pro
 
 - Added `user-docs/configuration.md`:
   - Documented:
-    - Node.js version requirement (≥ 22) and `preinstall` check.
+    - Node.js requirement (≥ 22) and `preinstall` check.
     - `PORT` handling:
-      - Generated project (`src/index.ts`): `PORT ?? 3000`, with `PORT=0` allowed.
-      - Dev server: strict checks if `PORT` set; auto-find free port otherwise.
-      - Stub server: `startServer(port)` without environment-variable handling.
+      - Generated project: `PORT ?? 3000`, with `PORT=0` allowed.
+      - Dev server: strict `PORT` behavior or auto-select free port.
+      - Stub server: `startServer(port)` without env handling.
     - `LOG_LEVEL` and `NODE_ENV`:
       - Shared algorithm for generated projects and stub server.
-      - Examples for dev, prod, and troubleshooting.
+      - Examples for dev, prod, troubleshooting.
     - Log format:
       - JSON logs in compiled/prod.
-      - Pretty logs via `pino-pretty` in dev, with stub parity.
+      - Pretty logs via `pino-pretty` in dev.
     - `DEV_SERVER_SKIP_TSC_WATCH` as an advanced/test flag.
-    - Clarification that CORS-related env vars in security docs are illustrative only.
-
-  - Included the required attribution line.
+    - Clarification that CORS env vars in security docs are illustrative only.
+  - Included required attribution line.
 
 - Updated `README.md`:
-  - Added a **Configuration** section after “Testing” linking to `user-docs/configuration.md` and summarizing its scope.
+  - Added a **Configuration** section after “Testing” linking to the new guide and summarizing its scope.
 
-- Ran lint, type-check, tests, build, and formatting.
-- Committed and pushed:
+- Ran lint, type-check, tests, build, formatting and committed:
   - `docs: add configuration guide for environment-driven behavior`
 - Confirmed CI/CD workflow success.
 
@@ -304,17 +294,17 @@ Here’s a concise history-only summary of what’s been done so far in this pro
 
 ## Stub Server Removal
 
-- Analyzed `src/server.ts` and `src/server.test.ts`:
-  - Confirmed their role as an internal Fastify stub server with tests for headers and logging.
-  - Verified that generated projects already implemented equivalent security and logging patterns and that generated-project tests adequately covered them.
+- Analyzed `src/server.ts` and `src/server.test.ts` and confirmed:
+  - They implemented an internal Fastify stub server with header/logging tests.
+  - Generated projects already mirrored the same patterns and had adequate tests.
 
 - Removed stub server infrastructure:
   - Deleted:
     - `src/server.ts`
     - `src/server.test.ts`
-  - Updated `package.json` to remove `server.test.ts` from coverage patterns.
+  - Updated `package.json` coverage patterns to remove `server.test.ts`.
 
-- Updated documentation to remove stub-server references and reframe everything around generated projects:
+- Updated documentation to remove stub-server references and focus solely on generated projects:
   - `README.md`
   - `docs/development-setup.md`
   - `docs/testing-strategy.md`
@@ -322,12 +312,9 @@ Here’s a concise history-only summary of what’s been done so far in this pro
   - `user-docs/api.md`
   - `user-docs/testing.md`
   - `user-docs/SECURITY.md`
-  - Adjusted examples and references to point to generated `src/index.ts` and helpers/tests instead of `src/server.ts`.
+  - Adjusted examples and references to point to generated `src/index.ts` and associated helpers/tests.
 
-- Verified:
-  - All tests passing, including generated-project suites.
-  - Linting, type-checking, formatting, and build all successful.
-  - No remaining stub-server references (via search).
+- Verified all tests, linting, type-checking, formatting, and build succeeded and that no stub-server references remained.
 
 ---
 
@@ -343,214 +330,393 @@ Here’s a concise history-only summary of what’s been done so far in this pro
   - `src/mjs-modules.d.ts`
   - `src/initializer.ts`
   - `src/cli.ts`
-  - Checked for existing `src/index.test.d.ts` (none found).
 
-- Created `src/index.test.d.ts`:
-  - Added type-level tests for the public API exported from `./index.js`:
+- Created `src/index.test.d.ts` with type-level tests for the public API exported from `./index.js`:
+  - Asserted `initializeTemplateProject` returns `Promise<string>`.
+  - Asserted `initializeTemplateProjectWithGit` returns `Promise<{ projectDir: string; git: GitInitResult }>` using the exported type.
+  - Asserted `GitInitResult` shape:
 
-    - Validated that `initializeTemplateProject` returns `Promise<string>`.
-    - Validated that `initializeTemplateProjectWithGit` returns `Promise<{ projectDir: string; git: GitInitResult }>` using the public API type.
-    - Validated `GitInitResult` has the expected shape:
+    ```ts
+    {
+      projectDir: string;
+      initialized: boolean;
+      stdout?: string;
+      stderr?: string;
+      errorMessage?: string;
+    }
+    ```
 
-      ```ts
-      {
-        projectDir: string;
-        initialized: boolean;
-        stdout?: string;
-        stderr?: string;
-        errorMessage?: string;
-      }
-      ```
-
-  - Used `Equal` and `Expect` helper types to enforce compile-time checks.
-  - Included JSDoc `@supports` referencing:
+  - Used `Equal` / `Expect` helper types for compile-time checks.
+  - Added `@supports` JSDoc referencing:
     - `docs/stories/004.0-DEVELOPER-TESTS-RUN.story.md`
     - `REQ-TEST-EXAMPLES`
     - `REQ-TEST-TYPESCRIPT`.
 
-- Confirmed TypeScript configuration:
-  - `tsconfig.json` includes `"include": ["src"]`, so `src/index.test.d.ts` is automatically type-checked.
+- Confirmed TypeScript config includes `"include": ["src"]` so `.test.d.ts` is type-checked.
 
-- Ran and verified:
-  - `npm run type-check` (TypeScript checks including `.test.d.ts`).
-  - `npm test` (Vitest suite).
-  - `npm run lint`.
-  - `npm run build`.
-  - `npm run format:check` → then `npm run format` → then `npm run format:check` again to ensure style compliance.
+- Ran:
+  - `npm run type-check`
+  - `npm test`
+  - `npm run lint`
+  - `npm run build`
+  - `npm run format:check` → `npm run format` → `npm run format:check`
 
-- Staged, committed, and pushed:
+- Committed and pushed:
   - `test: add type-level tests for public API exports`
+- Confirmed CI/CD pipeline success.
 
-- Waited for and confirmed GitHub **CI/CD Pipeline** completion with a successful result.
+---
+
+## Security Headers Test for Generated Projects (Most Recent Work)
+
+- Implemented `src/generated-project-security-headers.test.ts` to verify Helmet security headers on generated projects:
+
+  - Annotated with:
+
+    ```ts
+    /**
+     * Tests for security headers in a generated project.
+     *
+     * These tests exercise Story 005.0 requirements by scaffolding a new project,
+     * running a TypeScript build with tsc, starting the compiled server from dist/,
+     * and asserting that HTTP responses include security headers configured by
+     * @fastify/helmet.
+     *
+     * @supports docs/stories/005.0-DEVELOPER-SECURITY-HEADERS.story.md REQ-SEC-HEADERS-TEST REQ-SEC-HEADERS-PRESENT REQ-SEC-HELMET-DEFAULT
+     */
+    ```
+
+  - Test flow:
+    - Uses `initializeGeneratedProject` with project name `security-api` in an OS temp dir, and `runTscBuildForProject` to run `tsc`, asserting `exitCode === 0`.
+    - Removes the generated project’s `src/` directory to ensure tests run solely against compiled output in `dist/`.
+    - Starts the compiled server using `startCompiledServerViaNode(projectDir, { PORT: '0' })`, binding to an ephemeral port and capturing the `/health` URL.
+    - Uses a helper `fetchHealthWithHeaders(healthUrl)` which:
+      - Issues `GET /health` via `node:http`.
+      - Collects `statusCode`, response body, and headers.
+    - Asserts:
+      - Status code is `200`.
+      - Body parses as JSON and equals `{ status: 'ok' }`.
+      - Response headers include a representative subset of Helmet security headers:
+
+        - `x-dns-prefetch-control`
+        - `x-frame-options`
+        - `x-download-options`
+        - `x-content-type-options`
+        - `x-permitted-cross-domain-policies`
+        - `referrer-policy`
+
+      - Explicitly avoids asserting `Strict-Transport-Security` since HSTS applies only over HTTPS.
+    - Ensures the Node child process is terminated using `child.kill('SIGINT')` in a `finally` block.
+    - Uses a 60-second timeout to remain robust in CI.
+
+  - Reuses existing helpers from `src/generated-project.test-helpers.ts`:
+    - `initializeGeneratedProject`
+    - `runTscBuildForProject`
+    - `cleanupGeneratedProject`
+    - `startCompiledServerViaNode`
+
+  - Uses `beforeAll`/`afterAll` to set up the project and clean up the temp directory via `cleanupGeneratedProject(tempDir)`.
+
+- Updated story and ADR to reference the new test:
+
+  - `docs/stories/005.0-DEVELOPER-SECURITY-HEADERS.story.md`:
+    - After Acceptance Criteria, added a paragraph stating that automated verification is implemented in `src/generated-project-security-headers.test.ts`, which exercises `REQ-SEC-HEADERS-TEST` against the `/health` endpoint of a generated project.
+
+  - `docs/decisions/0006-fastify-helmet-security-headers.accepted.md`:
+    - In the “Confirmation” section, updated the tests bullet to explicitly name `src/generated-project-security-headers.test.ts` as the integration test verifying security headers on the `/health` endpoint of a generated project.
+
+- Verified quality gates after adding the test and doc updates:
+
+  - Ran:
+    - `npm run build`
+    - `npm test`
+    - `npm run lint`
+    - `npm run type-check`
+    - `npm run format`
+    - `npm run format:check`
+  - Staged and committed:
+
+    - `test: add security headers verification for generated projects`
+
+  - Pushed to `main` and waited for GitHub Actions workflows:
+    - Confirmed both the **“CI/CD”** and **“CI/CD Pipeline”** workflows completed successfully.
 
 **Most recently we've executed the following action:**
 
 ---
-Used tool: list_directory with input: {"dirPath":"."}
-Used tool: find_files with input: {"pattern":"generated-project*.test.*","directory":"src"}
-Used tool: find_files with input: {"pattern":"*SECURITY*.md","directory":"."}
-Used tool: find_files with input: {"pattern":"0006-fastify-helmet-security-headers*.md","directory":"docs/decisions"}
-Used tool: find_files with input: {"pattern":"005.0-DEVELOPER-SECURITY-HEADERS.story.md","directory":"docs/stories"}
-Used tool: read_file with input: {"filePath":"docs/stories/005.0-DEVELOPER-SECURITY-HEADERS.story.md"}
-Used tool: read_file with input: {"filePath":"src/generated-project.test-helpers.ts"}
-Used tool: read_file with input: {"filePath":"src/generated-project-production.test.ts"}
-Used tool: read_file with input: {"filePath":"src/template-files/src/index.ts.template"}
-Used tool: read_file with input: {"filePath":"docs/decisions/0006-fastify-helmet-security-headers.accepted.md"}
-Used tool: generate_file with input: {"filePath":"src/generated-project-security-headers.test.ts","overwrite":false,"content":"/**\n * Tests for security headers in a generated project.\n *\n * These tests exercise Story 005.0 requirements by scaffolding a new project,\n * running a TypeScript build with tsc, starting the compiled server from dist/,\n * and asserting that HTTP responses include security headers configured by\n * @fastify/helmet.\n *\n * @supports docs/stories/005.0-DEVELOPER-SECURITY-HEADERS.story.md REQ-SEC-HEADERS-TEST REQ-SEC-HEADERS-PRESENT REQ-SEC-HELMET-DEFAULT\n */\nimport { describe, it, beforeAll, afterAll, expect } from 'vitest';\nimport http from 'node:http';\nimport fs from 'node:fs/promises';\nimport path from 'node:path';\n\nimport {\n  initializeGeneratedProject,\n  runTscBuildForProject,\n  cleanupGeneratedProject,\n  startCompiledServerViaNode,\n} from './generated-project.test-helpers.js';\n\nlet tempDir: string | undefined;\nlet projectDir: string;\nconst projectName = 'security-api';\n\ninterface HealthResponse {\n  statusCode: number;\n  body: string;\n  headers: http.IncomingHttpHeaders;\n}\n\nasync function fetchHealthWithHeaders(url: URL): Promise<HealthResponse> {\n  return new Promise((resolve, reject) => {\n    const req = http.get(url, res => {\n      const { headers, statusCode = 0 } = res;\n      let body = '';\n\n      res.on('data', chunk => {\n        body += chunk.toString();\n      });\n\n      res.on('end', () => {\n        resolve({ statusCode, body, headers });\n      });\n    });\n\n    req.on('error', reject);\n  });\n}\n\nbeforeAll(async () => {\n  const init = await initializeGeneratedProject({\n    projectName,\n    tempDirPrefix: 'fastify-ts-security-',\n    logPrefix: '[generated-project-security-headers]',\n  });\n  tempDir = init.tempDir;\n  projectDir = init.projectDir;\n\n  const { exitCode } = await runTscBuildForProject(projectDir, {\n    logPrefix: '[generated-project-security-headers]',\n  });\n  expect(exitCode).toBe(0);\n\n  // Ensure we are running purely from the compiled output, matching production usage.\n  const srcDir = path.join(projectDir, 'src');\n  await fs.rm(srcDir, { recursive: true, force: true });\n});\n\nafterAll(async () => {\n  await cleanupGeneratedProject(tempDir);\n});\n\ndescribe('Generated project security headers (Story 005.0) [REQ-SEC-HEADERS-TEST]', () => {\n  it('[REQ-SEC-HEADERS-TEST] responds on /health with Helmet security headers set', async () => {\n    const { child, healthUrl } = await startCompiledServerViaNode(projectDir, {\n      PORT: '0',\n    });\n\n    try {\n      const health = await fetchHealthWithHeaders(healthUrl);\n\n      expect(health.statusCode).toBe(200);\n      expect(() => JSON.parse(health.body)).not.toThrow();\n      expect(JSON.parse(health.body)).toEqual({ status: 'ok' });\n\n      const headerNames = Object.keys(health.headers).map(name => name.toLowerCase());\n\n      // Representative subset of security headers that @fastify/helmet is expected to set\n      // for HTTP responses. We intentionally avoid asserting Strict-Transport-Security here\n      // because HSTS is only applicable over HTTPS.\n      const expectedHelmetHeaders = [\n        'x-dns-prefetch-control',\n        'x-frame-options',\n        'x-download-options',\n        'x-content-type-options',\n        'x-permitted-cross-domain-policies',\n        'referrer-policy',\n      ];\n\n      for (const headerName of expectedHelmetHeaders) {\n        expect(headerNames).toContain(headerName);\n      }\n    } finally {\n      child.kill('SIGINT');\n    }\n  }, 60_000);\n});\n"}
-Used tool: run_command with input: {"command":"npm","args":["test"]}
-Used tool: run_command with input: {"command":"npm","args":["run","lint"]}
-Used tool: run_command with input: {"command":"npm","args":["run","type-check"]}
-Used tool: search_file_content with input: {"filePath":"docs/stories/005.0-DEVELOPER-SECURITY-HEADERS.story.md","pattern":"Header Verification Test"}
-Used tool: modify_file with input: {"filePath":"docs/stories/005.0-DEVELOPER-SECURITY-HEADERS.story.md","instruction":"After the Acceptance Criteria list, insert a short paragraph explicitly referencing the automated test file that verifies headers. Mention `src/generated-project-security-headers.test.ts` and that it exercises REQ-SEC-HEADERS-TEST against the /health endpoint of a generated project."}
-Used tool: modify_file with input: {"filePath":"docs/decisions/0006-fastify-helmet-security-headers.accepted.md","instruction":"In the 'Confirmation' list, update the bullet that starts with '**Tests**:' so that it explicitly names the test file `src/generated-project-security-headers.test.ts` as the integration test verifying security headers on the /health endpoint of a generated project."}
-Used tool: run_command with input: {"command":"npm","args":["run","build"]}
-Used tool: run_command with input: {"command":"npm","args":["run","format:check"]}
+Used tool: read_file with input: {"filePath":"scripts/lint-format-smoke.mjs"}
+Used tool: read_file with input: {"filePath":"docs/stories/007.0-DEVELOPER-LINT-FORMAT.story.md"}
+Used tool: modify_file with input: {"filePath":"scripts/lint-format-smoke.mjs","instruction":"In the main() function, before defining pkgJson, compute absolute CLI paths for ESLint and Prettier based on the current repository root and the current Node executable, and use those in the temporary project's npm scripts instead of relying on bare 'eslint' and 'prettier' commands.\n\nSpecifically:\n- Add code to derive:\n  - const nodeExec = process.execPath;\n  - const eslintCli = path.join(rootDir, 'node_modules', 'eslint', 'bin', 'eslint.js');\n  - const prettierCli = path.join(rootDir, 'node_modules', 'prettier', 'bin-prettier.cjs');\n- Optionally, assert that eslintCli and prettierCli exist using fs.access and throw a clear error if they do not.\n- Replace the existing pkgJson.scripts definitions that currently use 'eslint . --fix' and 'prettier --write .' so that they instead invoke these CLIs via the explicit Node executable, for example:\n  - `\"lint:fix\": \"\\\"${nodeExec}\\\" \\\"${eslintCli}\\\" . --fix\"`\n  - `\"format\": \"\\\"${nodeExec}\\\" \\\"${prettierCli}\\\" --write .\"`\n\nDo not change any of the subsequent behavior or assertions in the script (the checks that lint modifies the misformatted file and that format is idempotent between runs must remain intact)."}
+Used tool: run_command with input: {"command":"npm","args":["run","quality:lint-format-smoke"]}
+Used tool: check_file_exists with input: {"filePath":"node_modules/prettier/bin-prettier.cjs"}
+Used tool: check_file_exists with input: {"filePath":"node_modules/prettier/bin-prettier.js"}
+Used tool: check_file_exists with input: {"filePath":"node_modules/eslint/bin/eslint.js"}
 Used tool: get_git_status with input: {}
-Used tool: run_command with input: {"command":"npm","args":["run","format"]}
-Used tool: run_command with input: {"command":"npm","args":["run","format:check"]}
+Used tool: read_file with input: {"filePath":"package-lock.json","startLine":1,"endLine":200}
+Used tool: run_command with input: {"command":"npm","args":["explore","prettier","--","node","-e","console.log(require.resolve('prettier/bin-prettier.cjs'))"]}
+Used tool: run_command with input: {"command":"node","args":["-p","require.resolve('prettier')"]}
+Used tool: run_command with input: {"command":"node","args":["-p","JSON.stringify(require('prettier').CLI"]}
+Used tool: run_command with input: {"command":"node","args":["-p","Object.keys(require('prettier'))"]}
+Used tool: run_command with input: {"command":"node","args":["-p","require.resolve('prettier/package.json')"]}
+Used tool: read_file with input: {"filePath":"node_modules/prettier/package.json","startLine":1,"endLine":120}
+Used tool: run_command with input: {"command":"node","args":["-e","const fs=require('fs');const pkg=require('prettier/package.json');console.log(JSON.stringify(pkg.bin));"]}
+Used tool: check_file_exists with input: {"filePath":"node_modules/prettier/bin/prettier.cjs"}
+Used tool: modify_file with input: {"filePath":"scripts/lint-format-smoke.mjs","instruction":"Update the prettierCli path to match Prettier 3's actual bin location based on its package.json (\"./bin/prettier.cjs\"):\n- Replace the existing const prettierCli = ... line so that it constructs path.join(rootDir, 'node_modules', 'prettier', 'bin', 'prettier.cjs') instead of 'bin-prettier.cjs'.\nDo not change any other logic in the file."}
+Used tool: run_command with input: {"command":"npm","args":["run","quality:lint-format-smoke"]}
 Used tool: git_add_all with input: {}
-Used tool: git_commit with input: {"message":"test: add security headers verification for generated projects"}
+Used tool: git_commit with input: {"message":"test: harden lint/format smoke test to use explicit CLIs"}
 Used tool: run_command with input: {"command":"npm","args":["run","build"]}
 Used tool: run_command with input: {"command":"npm","args":["test"]}
 Used tool: run_command with input: {"command":"npm","args":["run","lint"]}
 Used tool: run_command with input: {"command":"npm","args":["run","type-check"]}
 Used tool: run_command with input: {"command":"npm","args":["run","format:check"]}
 Used tool: git_push with input: {}
-Used tool: wait_for_github_workflow with input: {"workflowName":"CI/CD","timeout":600000}
-Used tool: read_file with input: {"filePath":".github/workflows/ci-cd.yml"}
+Used tool: get_github_pipeline_status with input: {}
+Used tool: wait_for_github_workflow with input: {"workflowName":"CI/CD Pipeline","timeout":600000}
+Used tool: get_github_run_details with input: {"runId":20214165560}
+Used tool: get_github_workflow_logs with input: {"runId":20214165560}
+Used tool: run_command with input: {"command":"npm","args":["run","format","--","scripts/lint-format-smoke.mjs"]}
+Used tool: run_command with input: {"command":"npm","args":["run","format:check"]}
+Used tool: run_command with input: {"command":"npm","args":["run","quality:lint-format-smoke"]}
+Used tool: git_add_all with input: {}
+Used tool: git_commit with input: {"message":"style: format lint/format smoke test script"}
+Used tool: run_command with input: {"command":"npm","args":["run","build"]}
+Used tool: run_command with input: {"command":"npm","args":["test"]}
+Used tool: run_command with input: {"command":"npm","args":["run","lint"]}
+Used tool: run_command with input: {"command":"npm","args":["run","type-check"]}
+Used tool: run_command with input: {"command":"npm","args":["run","format:check"]}
+Used tool: run_command with input: {"command":"npm","args":["run","quality:lint-format-smoke"]}
+Used tool: git_push with input: {}
+Used tool: get_github_pipeline_status with input: {}
+Used tool: wait_for_github_workflow with input: {"workflowName":"CI/CD Pipeline","timeout":600000}
+Used tool: modify_file with input: {"filePath":"docs/stories/007.0-DEVELOPER-LINT-FORMAT.story.md","instruction":"In the \"Implementation Notes\" section, after the existing paragraphs about ESLint and Prettier commands and before the \"Understanding Quality Tools\" section, add a short subsection that explains how the automated lint/format smoke test validates this story. Mention that `scripts/lint-format-smoke.mjs` creates a temporary mini-project wired to the repository's ESLint and Prettier CLIs via their Node entry points, deliberately writes misformatted code, runs `lint:fix` and `format`, and asserts that the file changes and that formatting is idempotent.\n\nKeep the addition concise (one short paragraph or a short bullet list) and clearly label it, e.g. \"### Automated Smoke Test\"."}
+Used tool: git_add_all with input: {}
+Used tool: git_commit with input: {"message":"docs: describe automated lint/format smoke test for story 007.0"}
+Used tool: run_command with input: {"command":"npm","args":["run","build"]}
+Used tool: run_command with input: {"command":"npm","args":["test"]}
+Used tool: run_command with input: {"command":"npm","args":["run","lint"]}
+Used tool: run_command with input: {"command":"npm","args":["run","type-check"]}
+Used tool: run_command with input: {"command":"npm","args":["run","format:check"]}
+Used tool: git_push with input: {}
+Used tool: get_github_pipeline_status with input: {}
+Used tool: wait_for_github_workflow with input: {"workflowName":"CI/CD Pipeline","timeout":600000}
+Used tool: get_github_run_details with input: {"runId":20214214606}
+Used tool: get_github_workflow_logs with input: {"runId":20214214606}
+Used tool: run_command with input: {"command":"npm","args":["run","format","--","docs/stories/007.0-DEVELOPER-LINT-FORMAT.story.md"]}
+Used tool: run_command with input: {"command":"npm","args":["run","format:check"]}
+Used tool: run_command with input: {"command":"npm","args":["run","quality:lint-format-smoke"]}
+Used tool: git_add_all with input: {}
+Used tool: git_commit with input: {"message":"style: format lint/format story after smoke test docs update"}
+Used tool: run_command with input: {"command":"npm","args":["run","build"]}
+Used tool: run_command with input: {"command":"npm","args":["test"]}
+Used tool: run_command with input: {"command":"npm","args":["run","lint"]}
+Used tool: run_command with input: {"command":"npm","args":["run","type-check"]}
+Used tool: run_command with input: {"command":"npm","args":["run","format:check"]}
+Used tool: git_push with input: {}
+Used tool: get_github_pipeline_status with input: {}
 Used tool: wait_for_github_workflow with input: {"workflowName":"CI/CD Pipeline","timeout":600000}
 ---
 
 **This was the result:**
 ---
-Here’s what I implemented and verified.
+Here’s what I implemented for the **##NOW** and **##NEXT** sections, and how it behaves now.
 
-## What I did
+## Updated Plan Status
 
-### 1) Added automated security-headers test for generated projects (NOW)
+## NOW
 
-- Created `src/generated-project-security-headers.test.ts` with full traceability:
+- [x] Change the lint-and-format smoke test script so that the temporary mini-project’s lint and format commands invoke ESLint and Prettier via explicit Node entry-point paths from the main repository’s node_modules directory, rather than relying on PATH, ensuring the smoke test can always find and run these tools successfully in its isolated environment.
 
-  ```ts
-  /**
-   * Tests for security headers in a generated project.
-   *
-   * These tests exercise Story 005.0 requirements by scaffolding a new project,
-   * running a TypeScript build with tsc, starting the compiled server from dist/,
-   * and asserting that HTTP responses include security headers configured by
-   * @fastify/helmet.
-   *
-   * @supports docs/stories/005.0-DEVELOPER-SECURITY-HEADERS.story.md REQ-SEC-HEADERS-TEST REQ-SEC-HEADERS-PRESENT REQ-SEC-HELMET-DEFAULT
-   */
+## NEXT
+
+- [x] Ensure the updated smoke test still verifies that lint auto-fix modifies the deliberately misformatted file and that a second format run is idempotent, keeping the behavioral assertions for the story’s requirements intact.
+- [x] Update the lint-and-format story documentation, if needed, to explicitly mention that the smoke test uses a self-contained temporary mini-project wired to the repository’s ESLint and Prettier binaries, clarifying how the acceptance criteria are validated.
+- [x] Confirm that the lint-and-format story’s dedicated smoke test is now stable across environments by running it in a clean context and checking that its behavior aligns with the documented requirements for fast, reliable lint and format auto-fix.
+
+---
+
+## What Changed
+
+### 1) Harden `scripts/lint-format-smoke.mjs` to use explicit ESLint/Prettier CLIs (NOW)
+
+**File updated:** `scripts/lint-format-smoke.mjs`
+
+Changes:
+
+- Compute explicit paths to Node, ESLint CLI, and Prettier CLI based on the repository root:
+
+  ```js
+  const rootDir = process.cwd();
+  const nodeExec = process.execPath;
+  const eslintCli = path.join(rootDir, 'node_modules', 'eslint', 'bin', 'eslint.js');
+  const prettierCli = path.join(rootDir, 'node_modules', 'prettier', 'bin', 'prettier.cjs');
   ```
 
-- The test workflow:
-  - Uses `initializeGeneratedProject` and `runTscBuildForProject` to:
-    - Scaffold a fresh project (name: `security-api`) in an OS temp directory.
-    - Run `tsc -p tsconfig.json` inside that project and assert `exitCode === 0`.
-  - Deletes the project’s `src/` directory so the server runs purely from `dist/`, mirroring production usage.
-  - Starts the compiled server via `startCompiledServerViaNode(projectDir, { PORT: '0' })` to bind an ephemeral port.
-  - Calls a helper `fetchHealthWithHeaders(healthUrl)` which:
-    - Makes an HTTP GET to `/health`.
-    - Captures `statusCode`, `body`, and full `headers`.
-  - Asserts:
-    - Status code is 200.
-    - Body is valid JSON and equals `{ status: 'ok' }`.
-    - Response headers include a representative subset of Helmet security headers:
-      - `x-dns-prefetch-control`
-      - `x-frame-options`
-      - `x-download-options`
-      - `x-content-type-options`
-      - `x-permitted-cross-domain-policies`
-      - `referrer-policy`
-    - This satisfies `REQ-SEC-HEADERS-TEST` and supports `REQ-SEC-HEADERS-PRESENT`.
-  - Ensures the child process is always stopped via `child.kill('SIGINT')` in a `finally` block.
-  - Uses a 60s timeout for the test to keep it robust under CI.
+- Assert that both CLIs exist before continuing, with clear error messages if not:
 
-This directly implements the “Header Verification Test” acceptance criterion by exercising the `/health` endpoint of a generated project and checking real HTTP headers.
+  ```js
+  try {
+    await fs.access(eslintCli);
+  } catch {
+    throw new Error(
+      `ESLint CLI not found at ${eslintCli}. Make sure eslint is installed in this repository.`,
+    );
+  }
 
----
-
-### 2) Reused existing generated-project helpers (NEXT, item 1)
-
-In `src/generated-project-security-headers.test.ts` the test reuses the existing helper utilities:
-
-- `initializeGeneratedProject(...)`
-- `runTscBuildForProject(...)`
-- `cleanupGeneratedProject(...)`
-- `startCompiledServerViaNode(...)`
-
-These come from `src/generated-project.test-helpers.ts` and encapsulate:
-
-- Temp directory creation and cleanup.
-- Project initialization via the template initializer.
-- Node_modules linking from the repo root.
-- Running `tsc` for the generated project.
-- Starting the compiled server from `dist/src/index.js` and deriving the `/health` URL from logs.
-
-Cleanup is done via `afterAll` calling `cleanupGeneratedProject(tempDir)`, preserving the existing test hygiene pattern.
-
----
-
-### 3) Updated story and ADR to reference the new test (NEXT, item 2)
-
-To make the acceptance criteria trace explicit:
-
-- **Story** `docs/stories/005.0-DEVELOPER-SECURITY-HEADERS.story.md`:
-  - After the Acceptance Criteria checklist, I added:
-
-    > The automated verification of these criteria is implemented in `src/generated-project-security-headers.test.ts`, which exercises **REQ-SEC-HEADERS-TEST** by asserting that the expected security headers are present on responses from the `/health` endpoint of a freshly generated project.
-
-  - This ties the “Header Verification Test” acceptance criterion directly to the concrete test file.
-
-- **ADR** `docs/decisions/0006-fastify-helmet-security-headers.accepted.md`:
-  - In the “Confirmation” section, updated the tests bullet to:
-
-    > **Tests**: Integration test in `src/generated-project-security-headers.test.ts` verifies security headers are set correctly on the `/health` endpoint of a generated project
-
-  - This aligns the architecture decision’s confirmation section with the implemented tests.
-
-No user-facing docs under `user-docs/` needed changes for this plan item; they already described headers and their purpose.
-
----
-
-### 4) Verified full quality gates locally (NEXT, item 3)
-
-After implementing the test and documentation updates, I ran all required checks:
-
-- `npm run build`
-- `npm test`
-- `npm run lint`
-- `npm run type-check`
-- `npm run format` (to fix Prettier issues in the modified markdown files)
-- `npm run format:check`
-
-All commands completed successfully.
-
-Then I:
-
-- Committed the changes:
-
-  ```text
-  test: add security headers verification for generated projects
+  try {
+    await fs.access(prettierCli);
+  } catch {
+    throw new Error(
+      `Prettier CLI not found at ${prettierCli}. Make sure prettier is installed in this repository.`,
+    );
+  }
   ```
 
-- Pushed to `main`.
-- Waited for the GitHub Actions workflow **“CI/CD Pipeline”** to complete and confirmed it finished with conclusion `success`.
+- Wire the temporary mini-project’s `package.json` scripts to run those CLIs via the **explicit Node executable**, instead of relying on `PATH`:
+
+  ```js
+  const pkgJson = {
+    name: 'lint-format-smoke',
+    version: '0.0.0',
+    type: 'module',
+    scripts: {
+      'lint:fix': `"${nodeExec}" "${eslintCli}" . --fix`,
+      format: `"${nodeExec}" "${prettierCli}" --write .`,
+    },
+  };
+  ```
+
+- Kept the existing `env` override for `PATH` and `NODE_PATH` (harmless and provides additional robustness), and **did not change any of the test’s behavioral assertions**.
+
+This removes the reliance on `eslint`/`prettier` being available on `PATH` inside the temporary project, fixing the earlier `sh: eslint: command not found` failure.
+
+### 2) Preserve and validate behavioral assertions (NEXT #1)
+
+The smoke test’s behavior remains:
+
+- It writes deliberately misformatted content:
+
+  ```js
+  const beforeContent = 'const  answer = 42;;\n';
+  await fs.writeFile(sampleFile, beforeContent, 'utf8');
+  ```
+
+- Runs `npm run lint:fix` in the temp project and asserts that ESLint actually changed the file:
+
+  ```js
+  const eslintResult = spawnSync('npm', ['run', 'lint:fix'], { ... });
+
+  if (eslintResult.status !== 0) {
+    // fail with logs
+  }
+
+  const afterLint = await fs.readFile(sampleFile, 'utf8');
+  if (afterLint === beforeContent) {
+    console.error(
+      'lint:fix smoke test did not change the deliberately misformatted sample file',
+    );
+    process.exit(1);
+  }
+  ```
+
+- Runs `npm run format` and asserts Prettier changes the file further:
+
+  ```js
+  const prettierResult = spawnSync('npm', ['run', 'format'], { ... });
+
+  if (prettierResult.status !== 0) {
+    // fail with logs
+  }
+
+  const afterFormat = await fs.readFile(sampleFile, 'utf8');
+  if (afterFormat === afterLint) {
+    console.error('format smoke test did not change the sample file after linting');
+    process.exit(1);
+  }
+  ```
+
+- Runs `npm run format` a second time, asserting **idempotence**:
+
+  ```js
+  const prettierSecond = spawnSync('npm', ['run', 'format'], { ... });
+
+  if (prettierSecond.status !== 0) {
+    // fail with logs
+  }
+
+  const afterSecondFormat = await fs.readFile(sampleFile, 'utf8');
+  if (afterSecondFormat !== afterFormat) {
+    console.error('format smoke test is not idempotent between runs');
+    process.exit(1);
+  }
+  ```
+
+Verification:
+
+- Locally ran:
+
+  - `npm run quality:lint-format-smoke`
+  - It now exits `0` and prints `Lint/format auto-fix smoke test passed`.
+
+Behavior is unchanged except for how ESLint/Prettier are located; REQ-LINT-FIX, REQ-FORMAT-WRITE, and REQ-QUALITY-CONSISTENT are still validated by this script.
+
+### 3) Document the smoke test in the story (NEXT #2)
+
+**File updated:** `docs/stories/007.0-DEVELOPER-LINT-FORMAT.story.md`
+
+Added a concise **“Automated Smoke Test”** subsection under **Implementation Notes**, between the formatting notes and “Understanding Quality Tools”:
+
+```markdown
+### Automated Smoke Test
+
+The `scripts/lint-format-smoke.mjs` script validates this story end-to-end by creating a temporary mini-project wired directly to the repository’s ESLint and Prettier CLIs via their Node entry points, writing deliberately misformatted code, running the equivalent of `lint:fix` and `format`, and asserting both that the file content changes as expected and that re-running `format` is idempotent (no further changes).
+```
+
+This explicitly ties the smoke test to:
+
+- The self-contained temp mini-project approach
+- Use of the repo’s ESLint/Prettier binaries
+- Validation of:
+  - lint auto-fix,
+  - format auto-fix,
+  - idempotence / consistency
+
+After editing the Markdown, Prettier formatting was run to keep `format:check` green.
+
+### 4) Confirm stability across environments (NEXT #3)
+
+**Local checks:**
+
+- Successfully ran:
+
+  - `npm run quality:lint-format-smoke`
+  - `npm run format:check`
+  - Full local quality suite:
+    - `npm run build`
+    - `npm test`
+    - `npm run lint`
+    - `npm run type-check`
+    - `npm run format:check`
+
+All passed.
+
+**CI/CD validation:**
+
+- Pushed the changes; initial CI failures were due to formatting (first `scripts/lint-format-smoke.mjs`, then the updated story file) and were fixed by running Prettier and recommitting.
+- After the final push, the latest **“CI/CD Pipeline”** run on `main` completed with **conclusion: success**.
+  - That pipeline:
+    - Checks formatting (`npm run format:check`)
+    - Then runs `npm run quality:lint-format-smoke`
+    - Confirms both pass in a **clean checkout** environment.
+
+This shows the smoke test is stable both:
+
+- Locally (developer environment)
+- In CI (fresh clone, fresh `npm ci`, Node 22 runner)
+
+and continues to validate the lint/format story’s key requirements.
 
 ---
 
-## Updated plan status
-
-### NOW
-
-- [x] Add a new automated test that starts a generated template service and asserts that an HTTP response (for example from the `/health` endpoint) includes the expected Helmet security headers, with the test annotated to support story 005.0-DEVELOPER-SECURITY-HEADERS and requirement REQ-SEC-HEADERS-TEST.
-
-### NEXT
-
-- [x] Reuse the existing generated-project test helpers so the new security-headers test scaffolds a temporary project, builds it, starts the compiled server, performs the header assertions, and then shuts the server down and cleans up all temporary files and processes.
-- [x] Update the security-headers story and any related decision records or documentation sections to explicitly reference the new header verification test so that the documented acceptance criterion "Header Verification Test" is clearly satisfied.
-- [x] Confirm that the full automated test suite, type checking, linting, build, and formatting still succeed with the new security-headers test in place, ensuring the story is now fully implemented and non-regressive.
-
-If you’d like, I can next expand coverage to also assert headers on the `/` endpoint or add a short note into `user-docs/SECURITY.md` pointing to this test as an example pattern.
+If you’d like, I can next go back and tick the remaining acceptance criteria in the story (e.g. “Clear Error Messages”, “Fast Execution”, “Understanding Lint Rules/Format Changes”) by tightening or adding very small targeted tests or doc clarifications, but per your request the NOW and NEXT sections are fully implemented and passing in both local and CI contexts.
 ---
