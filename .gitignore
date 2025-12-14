@@ -151,3 +151,5 @@ jscpd-report/
 .voder-test-output.json
 .voder-jscpd-report/
 .voder/traceability/
+
+sample-project-exec-test/
