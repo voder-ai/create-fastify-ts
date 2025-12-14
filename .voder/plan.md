@@ -1,15 +1,15 @@
 ## NOW
 
-- [ ] Update the project’s development dependencies so that the code-duplication tool version matches the latest safe release identified by the dependency freshness report, ensuring the package metadata and lockfile are consistent and all existing tests and quality checks still pass with the new version.
+- [ ] Adjust the test coverage npm script so that the coverage run excludes the generated-project production and logging test suites, ensuring that the documented coverage command completes successfully and produces a passing coverage report without changing the default non-coverage test run behavior.
 
 ## NEXT
 
-- [ ] Add the dependency freshness tool itself as an explicit development dependency so that the CI pipeline uses the locally declared version instead of installing it on the fly, keeping dependency versions controlled by package metadata.
-- [ ] Adjust the CI dependency audit step to use the current recommended flags for excluding development dependencies, removing obsolete warnings while preserving the existing high-severity production audit behavior.
-- [ ] Ensure that any new or updated development dependencies introduced for tooling (such as jscpd and dry-aged-deps) are covered by the existing scripts and documentation so contributors know how and when these tools run.
+- [ ] Confirm that the updated coverage command runs to completion without failures, verify that coverage thresholds are still met, and capture the resulting coverage summary to validate that the story’s coverage-related acceptance criteria are satisfied.
+- [ ] Update the 004.0 developer-tests-run story file to mark the coverage-related acceptance criteria as completed, reflecting that `npm run test:coverage` now succeeds and produces a clear coverage report.
+- [ ] If needed, refine the testing documentation to briefly explain that the default coverage run focuses on core and unit-level tests and does not include the heavy generated-project E2E suites, so developers understand the intended scope of coverage metrics.
 
 ## LATER
 
-- [ ] Document a lightweight dependency management policy that explains how to interpret the dependency freshness report, when to apply safe updates to development and runtime dependencies, and how those changes are validated through the existing quality pipeline.
-- [ ] Periodically expand coverage of the dependency freshness tooling to include any new subprojects or packages added in the future, keeping the same pattern of safe, incremental upgrades validated by tests.
-- [ ] Consider adding a short developer-facing guide that illustrates common dependency update workflows in this project (for example, updating a dev tool vs a runtime library) and how those map to commit types and CI expectations.
+- [ ] Explore ways to make the generated-project production and logging tests compatible with coverage mode (for example by adjusting how TypeScript is invoked or how node_modules is shared) so they can optionally be included in extended coverage runs.
+- [ ] Consider adding a separate npm script for a full, slower integration+coverage run that exercises generated-project behavior under coverage without impacting the fast default coverage workflow.
+- [ ] Periodically re-evaluate coverage thresholds and excluded files as new features and stories are implemented, keeping the coverage run meaningful while preserving fast feedback.
