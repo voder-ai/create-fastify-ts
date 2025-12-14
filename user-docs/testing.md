@@ -38,7 +38,7 @@ npm run type-check
   - Intended for local development only; do **not** use in CI.
 
 - **`npm run test:coverage`**
-  - Runs the full Vitest suite with coverage reporting enabled (using the `v8` coverage provider).
+  - Runs the core Vitest suites (unit and primary integration tests) with coverage reporting enabled (using the `v8` coverage provider), excluding the heaviest generated-project E2E suites.
   - Prints a summary table showing coverage for **statements**, **branches**, **functions**, and **lines**.
   - Enforces global coverage thresholds (around 80% for each metric). If coverage drops below these thresholds, the command will fail.
 
