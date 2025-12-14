@@ -45,7 +45,7 @@ jobs:
 
       - name: Dependency freshness report (non-blocking)
         continue-on-error: true
-        run: npx dry-aged-deps@latest --format=table
+        run: npx dry-aged-deps --format=table
 
       - name: Release
         id: release
