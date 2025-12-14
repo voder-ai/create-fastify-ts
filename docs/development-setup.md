@@ -258,6 +258,32 @@ Contributor expectations for tests:
 - Assertions should focus on observable behavior and contract (inputs/outputs, HTTP responses) rather than internal implementation details (private helpers, specific log messages, or internal data structures), unless those internals are themselves part of an explicit contract.
 - Where practical, tests should include lightweight traceability annotations (for example, comments or descriptions) that reference the user stories or ADRs they validate. This helps maintain a clear link between requirements, design decisions, and verification.
 
+## Generated Projects and Repository Hygiene
+
+ADR `docs/decisions/0014-generated-test-projects-not-committed.accepted.md` defines strict rules for keeping this repository free of sample or initializer-generated projects:
+
+- Any projects generated for manual testing (for example, via a CLI or template) MUST be created only in temporary or external directories, outside this repository’s working tree.
+- Generated example projects MUST NEVER be added to version control in this repo, even if they are useful for local experimentation.
+
+Automated repo-hygiene tests and `.gitignore` rules enforce this policy. Contributors must avoid creating or checking in project directories like:
+
+- `cli-api`
+- `cli-test-from-dist`
+- `cli-test-project`
+- `manual-cli`
+- `test-project-exec-assess`
+- `my-api`
+- `git-api`
+- `no-git-api`
+- `cli-integration-project`
+- `cli-integration-no-git`
+- `cli-integration-dev`
+- `prod-api`
+- `logging-api`
+- `prod-start-api`
+
+Create any such throwaway projects in locations like your system temp directory or a sibling directory outside this git repository so that repo hygiene, CI checks, and version-control history remain clean.
+
 ## Security Posture and Contributor Responsibilities
 
 The current security posture reflects an early-stage service:

@@ -153,3 +153,19 @@ jscpd-report/
 .voder/traceability/
 
 sample-project-exec-test/
+
+# Ignore generated initializer projects created in tests (see ADR 0014)
+cli-api/
+cli-test-from-dist/
+cli-test-project/
+manual-cli/
+test-project-exec-assess/
+my-api/
+git-api/
+no-git-api/
+cli-integration-project/
+cli-integration-no-git/
+cli-integration-dev/
+prod-api/
+logging-api/
+prod-start-api/
