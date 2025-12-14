@@ -1,15 +1,15 @@
 ## NOW
 
-- [ ] Change the generated project’s build configuration so that every production build first clears the existing dist directory before running the TypeScript compiler, ensuring that each build produces a clean dist output with no stale files from previous builds.
+- [ ] Make the generated-project production build and node-based production start tests run unconditionally by removing the environment-variable gating from their test file so that every standard test run actually builds a fresh generated project, verifies the dist artifacts, and confirms the compiled server’s /health endpoint responds with the expected 200 JSON payload.
 
 ## NEXT
 
-- [ ] Tighten the generated-project build test so that it fails when the build command exits with a non‑zero status, while still logging diagnostic output, thereby strictly enforcing that the build succeeds for the Story 006.0 acceptance criteria.
-- [ ] Add a deterministic production-start test that runs the compiled server binary (the dist/src/index.js entrypoint produced by the build) for a freshly generated project and verifies that the /health endpoint responds with HTTP 200 and the expected JSON payload.
-- [ ] Update the generated project’s README template to describe the now-functional build and start scripts, including how to run a production build and start the compiled server and what artifacts are created in the dist directory.
+- [ ] Adjust the optional npm-based production-start test so that it remains a separate, clearly marked optional suite (kept skipped by default) that mirrors the main node-based start test without affecting the standard test run’s reliability.
+- [ ] Update the Story 006.0 testing-related documentation and any inline comments in the production E2E test files so they accurately describe that the build and node-based start checks now always run as part of the normal test suite, and that the npm-based variant is an extra optional check.
+- [ ] Ensure that the Story 006.0 requirements about clean, warning-free, and reasonably fast builds are reflected in the tests or supporting documentation (for example by clarifying acceptable build-time expectations and what constitutes a failure vs a warning).
 
 ## LATER
 
-- [ ] Optionally re-enable or refine the existing npm-based production-start E2E test so it can run reliably in CI and local environments, using it as a deeper smoke test beyond the new direct-node start test.
-- [ ] Enhance tests or documentation to address Story 006.0’s guidance about fast, warning-free builds, for example by documenting expected build times and warning behavior rather than asserting hard timing guarantees in tests.
-- [ ] Consider introducing a small shared utility module for generated-project tests to reduce duplication between build, start, and future production-behavior tests while keeping each story’s tests focused and readable.
+- [ ] Introduce lightweight performance observability for the generated-project build step (for example, capturing approximate build duration in the test logs) to justify future tuning if build times become a concern.
+- [ ] Refactor any duplicated helper logic between the production build/start tests and other generated-project tests into a small shared test utility module to keep future Story 006.x extensions easy to implement and maintain.
+- [ ] Extend production-behavior tests to cover additional future endpoints or configuration options introduced in later stories, ensuring they also run against a real compiled generated project from dist.

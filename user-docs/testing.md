@@ -6,7 +6,9 @@ The template uses **Vitest** for fast, modern testing with native TypeScript and
 
 ## Test commands
 
-From the root of the generated project:
+From the root of this template repository (not a generated project):
+
+Generated projects currently do **not** include Vitest configuration, test files, or `test` / `type-check` npm scripts by default. This guide describes how the template itself is tested and can serve as a reference if you want to add similar testing to projects you generate with it.
 
 ```bash
 # Run the Vitest suite once (JavaScript + TypeScript tests)

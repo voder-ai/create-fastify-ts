@@ -84,9 +84,9 @@ This Hello World JSON response is the main endpoint in the generated template an
 
 ## Releases and Versioning
 
-This template is designed to use **semantic-release** for automated versioning, but the automated release workflow is a planned enhancement and may not be fully wired up in the current state of the template.
+This template uses **semantic-release** for automated versioning and publishing. The CI/CD pipeline runs semantic-release on every push to the `main` branch to produce new releases and publish them to the npm registry.
 
-Intended versioning behavior (planned):
+Versioning behavior:
 
 - `feat:` → minor version bump
 - `fix:` → patch version bump

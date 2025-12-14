@@ -114,6 +114,9 @@ afterEach(async () => {
 });
 
 describe.skip('Generated project production start via npm (Story 006.0) [REQ-START-PRODUCTION]', () => {
+  // This mirrors the node-based production start test. Contributors can enable it
+  // locally by changing `describe.skip` above to `describe` to exercise `npm start`
+  // end-to-end in their environment.
   it('starts the compiled server from dist/ with npm start and responds on /health', async () => {
     const projectName = 'prod-start-api';
     const projectDir = await initializeTemplateProject(projectName);
