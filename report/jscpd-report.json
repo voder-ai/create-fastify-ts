@@ -1,0 +1,749 @@
+{
+  "statistics": {
+    "detectionDate": "2025-12-14T20:49:47.009Z",
+    "formats": {
+      "javascript": {
+        "sources": {
+          "scripts/lint-format-smoke.mjs": {
+            "lines": 132,
+            "tokens": 1066,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "scripts/copy-template-files.mjs": {
+            "lines": 38,
+            "tokens": 284,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "scripts/check-node-version.mjs": {
+            "lines": 127,
+            "tokens": 592,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/template-files/dev-server.mjs": {
+            "lines": 452,
+            "tokens": 2534,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/check-node-version.test.js": {
+            "lines": 80,
+            "tokens": 759,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          }
+        },
+        "total": {
+          "lines": 829,
+          "tokens": 5235,
+          "sources": 5,
+          "clones": 0,
+          "duplicatedLines": 0,
+          "duplicatedTokens": 0,
+          "percentage": 0,
+          "percentageTokens": 0,
+          "newDuplicatedLines": 0,
+          "newClones": 0
+        }
+      },
+      "typescript": {
+        "sources": {
+          "scripts/check-node-version.d.ts": {
+            "lines": 43,
+            "tokens": 210,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/repo-hygiene.generated-projects.test.ts": {
+            "lines": 62,
+            "tokens": 376,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/mjs-modules.d.ts": {
+            "lines": 15,
+            "tokens": 31,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/initializer.ts": {
+            "lines": 294,
+            "tokens": 1519,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/initializer.test.ts": {
+            "lines": 249,
+            "tokens": 2298,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/index.ts": {
+            "lines": 12,
+            "tokens": 34,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/index.test.d.ts": {
+            "lines": 70,
+            "tokens": 291,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/generated-project.test-helpers.ts": {
+            "lines": 236,
+            "tokens": 1984,
+            "sources": 1,
+            "clones": 5,
+            "duplicatedLines": 76,
+            "duplicatedTokens": 727,
+            "percentage": 32.2,
+            "percentageTokens": 36.64,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/generated-project-security-headers.test.ts": {
+            "lines": 108,
+            "tokens": 809,
+            "sources": 1,
+            "clones": 2,
+            "duplicatedLines": 13,
+            "duplicatedTokens": 168,
+            "percentage": 12.04,
+            "percentageTokens": 20.77,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/generated-project-production.test.ts": {
+            "lines": 126,
+            "tokens": 1025,
+            "sources": 1,
+            "clones": 3,
+            "duplicatedLines": 33,
+            "duplicatedTokens": 338,
+            "percentage": 26.19,
+            "percentageTokens": 32.98,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/generated-project-production-npm-start.test.ts": {
+            "lines": 193,
+            "tokens": 1763,
+            "sources": 1,
+            "clones": 6,
+            "duplicatedLines": 87,
+            "duplicatedTokens": 835,
+            "percentage": 45.08,
+            "percentageTokens": 47.36,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/generated-project-logging.test.ts": {
+            "lines": 89,
+            "tokens": 585,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/dev-server.test.ts": {
+            "lines": 181,
+            "tokens": 1732,
+            "sources": 1,
+            "clones": 2,
+            "duplicatedLines": 18,
+            "duplicatedTokens": 248,
+            "percentage": 9.94,
+            "percentageTokens": 14.32,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/dev-server.test-helpers.ts": {
+            "lines": 193,
+            "tokens": 1669,
+            "sources": 1,
+            "clones": 1,
+            "duplicatedLines": 7,
+            "duplicatedTokens": 86,
+            "percentage": 3.63,
+            "percentageTokens": 5.15,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/dev-server-test-types.d.ts": {
+            "lines": 63,
+            "tokens": 458,
+            "sources": 1,
+            "clones": 1,
+            "duplicatedLines": 7,
+            "duplicatedTokens": 86,
+            "percentage": 11.11,
+            "percentageTokens": 18.78,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/cli.ts": {
+            "lines": 61,
+            "tokens": 257,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/cli.test.ts": {
+            "lines": 293,
+            "tokens": 2605,
+            "sources": 1,
+            "clones": 4,
+            "duplicatedLines": 59,
+            "duplicatedTokens": 482,
+            "percentage": 20.14,
+            "percentageTokens": 18.5,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          }
+        },
+        "total": {
+          "lines": 2288,
+          "tokens": 17646,
+          "sources": 17,
+          "clones": 12,
+          "duplicatedLines": 150,
+          "duplicatedTokens": 1485,
+          "percentage": 6.56,
+          "percentageTokens": 8.42,
+          "newDuplicatedLines": 0,
+          "newClones": 0
+        }
+      }
+    },
+    "total": {
+      "lines": 3117,
+      "tokens": 22881,
+      "sources": 22,
+      "clones": 12,
+      "duplicatedLines": 150,
+      "duplicatedTokens": 1485,
+      "percentage": 4.81,
+      "percentageTokens": 6.49,
+      "newDuplicatedLines": 0,
+      "newClones": 0
+    }
+  },
+  "duplicates": [
+    {
+      "format": "typescript",
+      "lines": 6,
+      "fragment": ");\n      expect(health.statusCode).toBe(200);\n      expect(() => JSON.parse(health.body)).not.toThrow();\n      expect(JSON.parse(health.body)).toEqual({ status: 'ok' });\n\n      // Encode the \"No Source References\" acceptance criterion by asserting that server",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/generated-project-production.test.ts",
+        "start": 81,
+        "end": 86,
+        "startLoc": {
+          "line": 81,
+          "column": 7,
+          "position": 645
+        },
+        "endLoc": {
+          "line": 86,
+          "column": 83,
+          "position": 715
+        }
+      },
+      "secondFile": {
+        "name": "src/generated-project-security-headers.test.ts",
+        "start": 82,
+        "end": 88,
+        "startLoc": {
+          "line": 82,
+          "column": 10,
+          "position": 601
+        },
+        "endLoc": {
+          "line": 88,
+          "column": 6,
+          "position": 672
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 15,
+      "fragment": ");\n\n    try {\n      // 10 seconds is treated as an upper bound for a healthy response for the tiny template project,\n      // aligning with the \"Fast Build\" / \"Server Responds\" expectations in Story 006.0.\n      console.log(\n        '[generated-project-production] waiting for health endpoint at',\n        healthUrl.toString(),\n      );\n      const health = await waitForHealth(healthUrl, 10_000);\n      console.log('[generated-project-production] received health response', health);\n      expect(health.statusCode).toBe(200);\n      expect(() => JSON.parse(health.body)).not.toThrow();\n      expect(JSON.parse(health.body)).toEqual({ status: 'ok' });\n    }",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/generated-project-production.test.ts",
+        "start": 109,
+        "end": 123,
+        "startLoc": {
+          "line": 109,
+          "column": 5,
+          "position": 862
+        },
+        "endLoc": {
+          "line": 123,
+          "column": 2,
+          "position": 996
+        }
+      },
+      "secondFile": {
+        "name": "src/generated-project-production.test.ts",
+        "start": 71,
+        "end": 88,
+        "startLoc": {
+          "line": 71,
+          "column": 2,
+          "position": 580
+        },
+        "endLoc": {
+          "line": 88,
+          "column": 6,
+          "position": 672
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 20,
+      "fragment": "});\n}\n\nasync function fetchHealthOnce(url: URL): Promise<{ statusCode: number; body: string }> {\n  return new Promise((resolve, reject) => {\n    const req = http.get(url, res => {\n      let body = '';\n      res.on('data', chunk => {\n        body += chunk.toString();\n      });\n      res.on('end', () => {\n        resolve({ statusCode: res.statusCode ?? 0, body });\n      });\n    });\n\n    req.on('error', reject);\n  });\n}\n\nasync",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/generated-project-production-npm-start.test.ts",
+        "start": 62,
+        "end": 81,
+        "startLoc": {
+          "line": 62,
+          "column": 3,
+          "position": 528
+        },
+        "endLoc": {
+          "line": 81,
+          "column": 6,
+          "position": 717
+        }
+      },
+      "secondFile": {
+        "name": "src/generated-project.test-helpers.ts",
+        "start": 122,
+        "end": 141,
+        "startLoc": {
+          "line": 122,
+          "column": 2,
+          "position": 898
+        },
+        "endLoc": {
+          "line": 141,
+          "column": 7,
+          "position": 1087
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 25,
+      "fragment": "async function waitForHealth(\n  url: URL,\n  timeoutMs: number,\n  intervalMs = 500,\n): Promise<{ statusCode: number; body: string }> {\n  const deadline = Date.now() + timeoutMs;\n  while (Date.now() <= deadline) {\n    try {\n      const result = await fetchHealthOnce(url);\n      if (result.statusCode > 0) return result;\n    } catch {\n      // ignore and retry until timeout\n    }\n\n    if (Date.now() > deadline) {\n      throw new Error(`Timed out waiting for health endpoint at ${url.toString()}`);\n    }\n\n    await new Promise(resolve => setTimeout(resolve, intervalMs));\n  }\n\n  throw new Error(`Timed out waiting for health endpoint at ${url.toString()}`);\n}\n\nbeforeEach",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/generated-project-production-npm-start.test.ts",
+        "start": 81,
+        "end": 105,
+        "startLoc": {
+          "line": 81,
+          "column": 1,
+          "position": 717
+        },
+        "endLoc": {
+          "line": 105,
+          "column": 11,
+          "position": 943
+        }
+      },
+      "secondFile": {
+        "name": "src/generated-project.test-helpers.ts",
+        "start": 141,
+        "end": 165,
+        "startLoc": {
+          "line": 141,
+          "column": 2,
+          "position": 1089
+        },
+        "endLoc": {
+          "line": 165,
+          "column": 7,
+          "position": 1315
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 11,
+      "fragment": ");\n\n    let stdout = '';\n    child.stdout?.on('data', chunk => {\n      stdout += chunk.toString();\n    });\n\n    const healthUrl = await new Promise<URL>((resolve, reject) => {\n      const timeout = setTimeout(() => {\n        reject(\n          new Error(`Timed out waiting for server to report listening URL. stdout:\\n${stdout}`),",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/generated-project-production-npm-start.test.ts",
+        "start": 155,
+        "end": 165,
+        "startLoc": {
+          "line": 155,
+          "column": 2,
+          "position": 1374
+        },
+        "endLoc": {
+          "line": 165,
+          "column": 2,
+          "position": 1481
+        }
+      },
+      "secondFile": {
+        "name": "src/generated-project.test-helpers.ts",
+        "start": 207,
+        "end": 216,
+        "startLoc": {
+          "line": 207,
+          "column": 4,
+          "position": 1688
+        },
+        "endLoc": {
+          "line": 216,
+          "column": 2,
+          "position": 1793
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 16,
+      "fragment": ");\n        if (match) {\n          clearInterval(interval);\n          globalThis.clearTimeout(timeout);\n          resolve(new URL('/health', match[1]));\n        }\n      }, 500);\n\n      child.on('exit', code => {\n        clearInterval(interval);\n        globalThis.clearTimeout(timeout);\n        reject(new Error(`Server process exited early with code ${code}. stdout:\\n${stdout}`));\n      });\n    });\n\n    try",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/generated-project-production-npm-start.test.ts",
+        "start": 170,
+        "end": 185,
+        "startLoc": {
+          "line": 170,
+          "column": 40,
+          "position": 1525
+        },
+        "endLoc": {
+          "line": 185,
+          "column": 4,
+          "position": 1645
+        }
+      },
+      "secondFile": {
+        "name": "src/generated-project.test-helpers.ts",
+        "start": 221,
+        "end": 236,
+        "startLoc": {
+          "line": 221,
+          "column": 7,
+          "position": 1849
+        },
+        "endLoc": {
+          "line": 236,
+          "column": 7,
+          "position": 1969
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 9,
+      "fragment": ");\n      expect(health.statusCode).toBe(200);\n      expect(() => JSON.parse(health.body)).not.toThrow();\n      expect(JSON.parse(health.body)).toEqual({ status: 'ok' });\n    } finally {\n      child.kill('SIGINT');\n    }\n  }, 180_000);\n});",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/generated-project-production-npm-start.test.ts",
+        "start": 186,
+        "end": 194,
+        "startLoc": {
+          "line": 186,
+          "column": 5,
+          "position": 1665
+        },
+        "endLoc": {
+          "line": 194,
+          "column": 2,
+          "position": 1763
+        }
+      },
+      "secondFile": {
+        "name": "src/generated-project-security-headers.test.ts",
+        "start": 82,
+        "end": 127,
+        "startLoc": {
+          "line": 82,
+          "column": 10,
+          "position": 601
+        },
+        "endLoc": {
+          "line": 127,
+          "column": 2,
+          "position": 1025
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 10,
+      "fragment": ");\n\n      const { code, signal } = await sendSigintAndWait(child, 10_000);\n      expect(signal === 'SIGINT' || code === 0).toBe(true);\n    } finally {\n      const { rm } = await import('node:fs/promises');\n      await rm(projectDir, { recursive: true, force: true }).catch(() => {});\n    }\n  });\n}",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/dev-server.test.ts",
+        "start": 173,
+        "end": 182,
+        "startLoc": {
+          "line": 173,
+          "column": 5,
+          "position": 1606
+        },
+        "endLoc": {
+          "line": 182,
+          "column": 2,
+          "position": 1730
+        }
+      },
+      "secondFile": {
+        "name": "src/dev-server.test.ts",
+        "start": 90,
+        "end": 101,
+        "startLoc": {
+          "line": 90,
+          "column": 6,
+          "position": 778
+        },
+        "endLoc": {
+          "line": 101,
+          "column": 3,
+          "position": 905
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 8,
+      "fragment": "export function createDevServerProcess(\n    env: Record<string, string | undefined>,\n    options?: { cwd?: string; devServerPath?: string },\n  ): {\n    child: ChildProcess;\n    getStdout: () => string;\n    getStderr: () => string;\n  };",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/dev-server-test-types.d.ts",
+        "start": 32,
+        "end": 39,
+        "startLoc": {
+          "line": 32,
+          "column": 3,
+          "position": 177
+        },
+        "endLoc": {
+          "line": 39,
+          "column": 2,
+          "position": 263
+        }
+      },
+      "secondFile": {
+        "name": "src/dev-server.test-helpers.ts",
+        "start": 41,
+        "end": 48,
+        "startLoc": {
+          "line": 41,
+          "column": 1,
+          "position": 309
+        },
+        "endLoc": {
+          "line": 48,
+          "column": 2,
+          "position": 394
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 12,
+      "fragment": "let stdout = '';\n    let stderr = '';\n\n    child.stdout?.on('data', chunk => {\n      stdout += chunk.toString();\n    });\n\n    child.stderr?.on('data', chunk => {\n      stderr += chunk.toString();\n    });\n\n    child.on('error'",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/cli.test.ts",
+        "start": 39,
+        "end": 50,
+        "startLoc": {
+          "line": 39,
+          "column": 5,
+          "position": 321
+        },
+        "endLoc": {
+          "line": 50,
+          "column": 8,
+          "position": 416
+        }
+      },
+      "secondFile": {
+        "name": "src/generated-project-production-npm-start.test.ts",
+        "start": 48,
+        "end": 59,
+        "startLoc": {
+          "line": 48,
+          "column": 5,
+          "position": 401
+        },
+        "endLoc": {
+          "line": 59,
+          "column": 7,
+          "position": 496
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 21,
+      "fragment": ");\n\n    let stdout = '';\n    let stderr = '';\n\n    child.stdout?.on('data', chunk => {\n      stdout += chunk.toString();\n    });\n\n    child.stderr?.on('data', chunk => {\n      stderr += chunk.toString();\n    });\n\n    child.on('error', reject);\n    child.on('exit', code => {\n      resolve({ code, stdout, stderr });\n    });\n  });\n}\n\nasync",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/cli.test.ts",
+        "start": 86,
+        "end": 106,
+        "startLoc": {
+          "line": 86,
+          "column": 8,
+          "position": 821
+        },
+        "endLoc": {
+          "line": 106,
+          "column": 6,
+          "position": 972
+        }
+      },
+      "secondFile": {
+        "name": "src/cli.test.ts",
+        "start": 37,
+        "end": 57,
+        "startLoc": {
+          "line": 37,
+          "column": 2,
+          "position": 316
+        },
+        "endLoc": {
+          "line": 57,
+          "column": 10,
+          "position": 467
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 9,
+      "fragment": ", res => {\n      let body = '';\n      res.on('data', chunk => {\n        body += chunk.toString();\n      });\n      res.on('end', () => {\n        resolve({\n          statusCode: res.statusCode ?? 0,\n          body,",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/cli.test.ts",
+        "start": 201,
+        "end": 209,
+        "startLoc": {
+          "line": 201,
+          "column": 10,
+          "position": 1766
+        },
+        "endLoc": {
+          "line": 209,
+          "column": 2,
+          "position": 1851
+        }
+      },
+      "secondFile": {
+        "name": "src/generated-project.test-helpers.ts",
+        "start": 127,
+        "end": 133,
+        "startLoc": {
+          "line": 127,
+          "column": 4,
+          "position": 968
+        },
+        "endLoc": {
+          "line": 133,
+          "column": 2,
+          "position": 1052
+        }
+      }
+    }
+  ]
+}

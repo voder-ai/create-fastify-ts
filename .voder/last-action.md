@@ -1,26 +1,37 @@
 # Last Action Executed (Agentic)
 
-**Action:** Used tool: read_file with input: {"filePath":"src/index.ts"}
-Used tool: read_file with input: {"filePath":"tsconfig.json"}
-Used tool: read_file with input: {"filePath":"docs/stories/004.0-DEVELOPER-TESTS-RUN.story.md"}
-Used tool: read_file with input: {"filePath":"user-docs/testing.md"}
-Used tool: read_file with input: {"filePath":"README.md"}
-Used tool: read_file with input: {"filePath":"src/dev-server-test-types.d.ts"}
-Used tool: read_file with input: {"filePath":"src/mjs-modules.d.ts"}
-Used tool: read_file with input: {"filePath":"src/initializer.ts"}
-Used tool: read_file with input: {"filePath":"src/cli.ts"}
-Used tool: check_file_exists with input: {"filePath":"src/index.test.d.ts"}
-Used tool: generate_file with input: {"filePath":"src/index.test.d.ts","overwrite":false,"content":"/**\n * Type-level tests for the public API exports of this package.\n *\n * These tests are validated by the TypeScript compiler when you run\n * `npm run type-check`. If any of the expectations below become false\n * (for example, because a public API type changes in a breaking way),\n * the type-check step will fail.\n *\n * @supports docs/stories/004.0-DEVELOPER-TESTS-RUN.story.md REQ-TEST-EXAMPLES REQ-TEST-TYPESCRIPT\n */\nimport type {\n  initializeTemplateProject,\n  initializeTemplateProjectWithGit,\n  GitInitResult,\n} from './index.js';\n\n/**\n * Utility type that checks whether two types A and B are exactly equal.\n *\n * When A and B are equal, this resolves to `true`; otherwise it resolves\n * to `false`. Combined with `Expect<...>`, this enables type-level tests\n * that fail compilation when expectations are not met.\n */\ntype Equal<A, B> =\n  (<T>() => T extends A ? 1 : 2) extends\n  (<T>() => T extends B ? 1 : 2)\n    ? true\n    : false;\n\n/**\n * Utility type that asserts the provided condition is `true`.\n *\n * If `T` is not assignable to `true`, TypeScript will report a type error\n * at the site where `Expect` is instantiated.\n */\ntype Expect<T extends true> = T;\n\n/**\n * [REQ-TEST-EXAMPLES] initializeTemplateProject returns a Promise<string>.\n */\nexport type InitializeTemplateProjectReturnsPromiseOfString = Expect<\n  Equal<ReturnType<typeof initializeTemplateProject>, Promise<string>>\n>;\n\n/**\n * [REQ-TEST-EXAMPLES] initializeTemplateProjectWithGit returns a Promise\n * of an object containing a projectDir string and a GitInitResult.\n */\ntype ExpectedInitializeTemplateProjectWithGitReturn = Promise<{\n  projectDir: string;\n  git: GitInitResult;\n}>;\n\nexport type InitializeTemplateProjectWithGitReturnType = Expect<\n  Equal<ReturnType<typeof initializeTemplateProjectWithGit>, ExpectedInitializeTemplateProjectWithGitReturn>\n>;\n\n/**\n * [REQ-TEST-EXAMPLES] GitInitResult exposes the expected shape.\n */\ntype ExpectedGitInitResultShape = {\n  projectDir: string;\n  initialized: boolean;\n  stdout?: string;\n  stderr?: string;\n  errorMessage?: string;\n};\n\nexport type GitInitResultMatchesExpectedShape = Expect<\n  Equal<GitInitResult, ExpectedGitInitResultShape>\n>;\n"}
-Used tool: run_command with input: {"command":"npm","args":["run","type-check"]}
+**Action:** Used tool: list_directory with input: {"dirPath":"."}
+Used tool: find_files with input: {"pattern":"generated-project*.test.*","directory":"src"}
+Used tool: find_files with input: {"pattern":"*SECURITY*.md","directory":"."}
+Used tool: find_files with input: {"pattern":"0006-fastify-helmet-security-headers*.md","directory":"docs/decisions"}
+Used tool: find_files with input: {"pattern":"005.0-DEVELOPER-SECURITY-HEADERS.story.md","directory":"docs/stories"}
+Used tool: read_file with input: {"filePath":"docs/stories/005.0-DEVELOPER-SECURITY-HEADERS.story.md"}
+Used tool: read_file with input: {"filePath":"src/generated-project.test-helpers.ts"}
+Used tool: read_file with input: {"filePath":"src/generated-project-production.test.ts"}
+Used tool: read_file with input: {"filePath":"src/template-files/src/index.ts.template"}
+Used tool: read_file with input: {"filePath":"docs/decisions/0006-fastify-helmet-security-headers.accepted.md"}
+Used tool: generate_file with input: {"filePath":"src/generated-project-security-headers.test.ts","overwrite":false,"content":"/**\n * Tests for security headers in a generated project.\n *\n * These tests exercise Story 005.0 requirements by scaffolding a new project,\n * running a TypeScript build with tsc, starting the compiled server from dist/,\n * and asserting that HTTP responses include security headers configured by\n * @fastify/helmet.\n *\n * @supports docs/stories/005.0-DEVELOPER-SECURITY-HEADERS.story.md REQ-SEC-HEADERS-TEST REQ-SEC-HEADERS-PRESENT REQ-SEC-HELMET-DEFAULT\n */\nimport { describe, it, beforeAll, afterAll, expect } from 'vitest';\nimport http from 'node:http';\nimport fs from 'node:fs/promises';\nimport path from 'node:path';\n\nimport {\n  initializeGeneratedProject,\n  runTscBuildForProject,\n  cleanupGeneratedProject,\n  startCompiledServerViaNode,\n} from './generated-project.test-helpers.js';\n\nlet tempDir: string | undefined;\nlet projectDir: string;\nconst projectName = 'security-api';\n\ninterface HealthResponse {\n  statusCode: number;\n  body: string;\n  headers: http.IncomingHttpHeaders;\n}\n\nasync function fetchHealthWithHeaders(url: URL): Promise<HealthResponse> {\n  return new Promise((resolve, reject) => {\n    const req = http.get(url, res => {\n      const { headers, statusCode = 0 } = res;\n      let body = '';\n\n      res.on('data', chunk => {\n        body += chunk.toString();\n      });\n\n      res.on('end', () => {\n        resolve({ statusCode, body, headers });\n      });\n    });\n\n    req.on('error', reject);\n  });\n}\n\nbeforeAll(async () => {\n  const init = await initializeGeneratedProject({\n    projectName,\n    tempDirPrefix: 'fastify-ts-security-',\n    logPrefix: '[generated-project-security-headers]',\n  });\n  tempDir = init.tempDir;\n  projectDir = init.projectDir;\n\n  const { exitCode } = await runTscBuildForProject(projectDir, {\n    logPrefix: '[generated-project-security-headers]',\n  });\n  expect(exitCode).toBe(0);\n\n  // Ensure we are running purely from the compiled output, matching production usage.\n  const srcDir = path.join(projectDir, 'src');\n  await fs.rm(srcDir, { recursive: true, force: true });\n});\n\nafterAll(async () => {\n  await cleanupGeneratedProject(tempDir);\n});\n\ndescribe('Generated project security headers (Story 005.0) [REQ-SEC-HEADERS-TEST]', () => {\n  it('[REQ-SEC-HEADERS-TEST] responds on /health with Helmet security headers set', async () => {\n    const { child, healthUrl } = await startCompiledServerViaNode(projectDir, {\n      PORT: '0',\n    });\n\n    try {\n      const health = await fetchHealthWithHeaders(healthUrl);\n\n      expect(health.statusCode).toBe(200);\n      expect(() => JSON.parse(health.body)).not.toThrow();\n      expect(JSON.parse(health.body)).toEqual({ status: 'ok' });\n\n      const headerNames = Object.keys(health.headers).map(name => name.toLowerCase());\n\n      // Representative subset of security headers that @fastify/helmet is expected to set\n      // for HTTP responses. We intentionally avoid asserting Strict-Transport-Security here\n      // because HSTS is only applicable over HTTPS.\n      const expectedHelmetHeaders = [\n        'x-dns-prefetch-control',\n        'x-frame-options',\n        'x-download-options',\n        'x-content-type-options',\n        'x-permitted-cross-domain-policies',\n        'referrer-policy',\n      ];\n\n      for (const headerName of expectedHelmetHeaders) {\n        expect(headerNames).toContain(headerName);\n      }\n    } finally {\n      child.kill('SIGINT');\n    }\n  }, 60_000);\n});\n"}
 Used tool: run_command with input: {"command":"npm","args":["test"]}
 Used tool: run_command with input: {"command":"npm","args":["run","lint"]}
+Used tool: run_command with input: {"command":"npm","args":["run","type-check"]}
+Used tool: search_file_content with input: {"filePath":"docs/stories/005.0-DEVELOPER-SECURITY-HEADERS.story.md","pattern":"Header Verification Test"}
+Used tool: modify_file with input: {"filePath":"docs/stories/005.0-DEVELOPER-SECURITY-HEADERS.story.md","instruction":"After the Acceptance Criteria list, insert a short paragraph explicitly referencing the automated test file that verifies headers. Mention `src/generated-project-security-headers.test.ts` and that it exercises REQ-SEC-HEADERS-TEST against the /health endpoint of a generated project."}
+Used tool: modify_file with input: {"filePath":"docs/decisions/0006-fastify-helmet-security-headers.accepted.md","instruction":"In the 'Confirmation' list, update the bullet that starts with '**Tests**:' so that it explicitly names the test file `src/generated-project-security-headers.test.ts` as the integration test verifying security headers on the /health endpoint of a generated project."}
 Used tool: run_command with input: {"command":"npm","args":["run","build"]}
 Used tool: run_command with input: {"command":"npm","args":["run","format:check"]}
+Used tool: get_git_status with input: {}
 Used tool: run_command with input: {"command":"npm","args":["run","format"]}
 Used tool: run_command with input: {"command":"npm","args":["run","format:check"]}
 Used tool: git_add_all with input: {}
-Used tool: git_commit with input: {"message":"test: add type-level tests for public API exports"}
+Used tool: git_commit with input: {"message":"test: add security headers verification for generated projects"}
+Used tool: run_command with input: {"command":"npm","args":["run","build"]}
+Used tool: run_command with input: {"command":"npm","args":["test"]}
+Used tool: run_command with input: {"command":"npm","args":["run","lint"]}
+Used tool: run_command with input: {"command":"npm","args":["run","type-check"]}
+Used tool: run_command with input: {"command":"npm","args":["run","format:check"]}
 Used tool: git_push with input: {}
+Used tool: wait_for_github_workflow with input: {"workflowName":"CI/CD","timeout":600000}
+Used tool: read_file with input: {"filePath":".github/workflows/ci-cd.yml"}
 Used tool: wait_for_github_workflow with input: {"workflowName":"CI/CD Pipeline","timeout":600000}
 
 **Response:**
@@ -28,234 +39,132 @@ Used tool: wait_for_github_workflow with input: {"workflowName":"CI/CD Pipeline"
 ```
 Here’s what I implemented and verified.
 
-## Plan Status
+## What I did
 
-## NOW
+### 1) Added automated security-headers test for generated projects (NOW)
 
-- [x] Create a new `src/index.test.d.ts` type-level test file that exercises the exported API types from `src/index.ts` (for example, validating the `GitInitResult` shape via conditional-type assertions) and includes a JSDoc `@supports` header referencing story `docs/stories/004.0-DEVELOPER-TESTS-RUN.story.md` and the REQ-TEST-EXAMPLES / multiple-format requirements.
+- Created `src/generated-project-security-headers.test.ts` with full traceability:
 
-## NEXT
-
-- [x] Ensure the TypeScript configuration includes `src/index.test.d.ts` in the files checked by the existing type-check script so that breaking the public API types will cause type-check to fail.
-- [x] Run the existing test and type-check commands to confirm that the new `.test.d.ts` file compiles successfully and that the overall test suite and build still pass.
-- [x] Verify that the examples and claims in the Testing Guide and README that mention `src/index.test.d.ts` now correspond to the actual file contents and adjust the wording only if needed to match what the new type-level tests cover.
-
----
-
-## What I implemented
-
-### 1) New type-level test file: `src/index.test.d.ts` (NOW)
-
-Created a dedicated `.test.d.ts` suite that validates the public API exported from `src/index.ts`:
-
-```ts
-/**
- * Type-level tests for the public API exports of this package.
- *
- * These tests are validated by the TypeScript compiler when you run
- * `npm run type-check`. If any of the expectations below become false
- * (for example, because a public API type changes in a breaking way),
- * the type-check step will fail.
- *
- * @supports docs/stories/004.0-DEVELOPER-TESTS-RUN.story.md REQ-TEST-EXAMPLES REQ-TEST-TYPESCRIPT
- */
-import type {
-  initializeTemplateProject,
-  initializeTemplateProjectWithGit,
-  GitInitResult,
-} from './index.js';
-
-type Equal<A, B> =
-  (<T>() => T extends A ? 1 : 2) extends
-  (<T>() => T extends B ? 1 : 2)
-    ? true
-    : false;
-
-type Expect<T extends true> = T;
-
-/**
- * [REQ-TEST-EXAMPLES] initializeTemplateProject returns a Promise<string>.
- */
-export type InitializeTemplateProjectReturnsPromiseOfString = Expect<
-  Equal<ReturnType<typeof initializeTemplateProject>, Promise<string>>
->;
-
-/**
- * [REQ-TEST-EXAMPLES] initializeTemplateProjectWithGit returns a Promise
- * of an object containing a projectDir string and a GitInitResult.
- */
-type ExpectedInitializeTemplateProjectWithGitReturn = Promise<{
-  projectDir: string;
-  git: GitInitResult;
-}>;
-
-export type InitializeTemplateProjectWithGitReturnType = Expect<
-  Equal<
-    ReturnType<typeof initializeTemplateProjectWithGit>,
-    ExpectedInitializeTemplateProjectWithGitReturn
-  >
->;
-
-/**
- * [REQ-TEST-EXAMPLES] GitInitResult exposes the expected shape.
- */
-type ExpectedGitInitResultShape = {
-  projectDir: string;
-  initialized: boolean;
-  stdout?: string;
-  stderr?: string;
-  errorMessage?: string;
-};
-
-export type GitInitResultMatchesExpectedShape = Expect<
-  Equal<GitInitResult, ExpectedGitInitResultShape>
->;
-```
-
-Key points:
-
-- Includes the required `@supports` header referencing:
-  - `docs/stories/004.0-DEVELOPER-TESTS-RUN.story.md`
-  - `REQ-TEST-EXAMPLES` and `REQ-TEST-TYPESCRIPT`.
-- Uses `Equal` + `Expect` conditional-type helpers as described in the Testing Guide.
-- Asserts:
-  - `initializeTemplateProject` returns `Promise<string>`.
-  - `initializeTemplateProjectWithGit` returns `Promise<{ projectDir: string; git: GitInitResult }>` via the public API (`./index.js`).
-  - `GitInitResult`’s structure matches the documented fields from `src/initializer.ts`.
-
-This gives a real, enforced `.test.d.ts` example that is part of the normal `npm run type-check` flow.
-
----
-
-## TypeScript configuration & commands (NEXT)
-
-### 2) Ensure `.test.d.ts` is included in type-check
-
-- `tsconfig.json` already has:
-
-  ```json
-  {
-    "include": ["src"],
-    "exclude": ["dist", "node_modules"]
-  }
+  ```ts
+  /**
+   * Tests for security headers in a generated project.
+   *
+   * These tests exercise Story 005.0 requirements by scaffolding a new project,
+   * running a TypeScript build with tsc, starting the compiled server from dist/,
+   * and asserting that HTTP responses include security headers configured by
+   * @fastify/helmet.
+   *
+   * @supports docs/stories/005.0-DEVELOPER-SECURITY-HEADERS.story.md REQ-SEC-HEADERS-TEST REQ-SEC-HEADERS-PRESENT REQ-SEC-HELMET-DEFAULT
+   */
   ```
 
-- Since `src/index.test.d.ts` lives under `src/`, it is automatically included.
-- I confirmed this by running the existing type-check script:
+- The test workflow:
+  - Uses `initializeGeneratedProject` and `runTscBuildForProject` to:
+    - Scaffold a fresh project (name: `security-api`) in an OS temp directory.
+    - Run `tsc -p tsconfig.json` inside that project and assert `exitCode === 0`.
+  - Deletes the project’s `src/` directory so the server runs purely from `dist/`, mirroring production usage.
+  - Starts the compiled server via `startCompiledServerViaNode(projectDir, { PORT: '0' })` to bind an ephemeral port.
+  - Calls a helper `fetchHealthWithHeaders(healthUrl)` which:
+    - Makes an HTTP GET to `/health`.
+    - Captures `statusCode`, `body`, and full `headers`.
+  - Asserts:
+    - Status code is 200.
+    - Body is valid JSON and equals `{ status: 'ok' }`.
+    - Response headers include a representative subset of Helmet security headers:
+      - `x-dns-prefetch-control`
+      - `x-frame-options`
+      - `x-download-options`
+      - `x-content-type-options`
+      - `x-permitted-cross-domain-policies`
+      - `referrer-policy`
+    - This satisfies `REQ-SEC-HEADERS-TEST` and supports `REQ-SEC-HEADERS-PRESENT`.
+  - Ensures the child process is always stopped via `child.kill('SIGINT')` in a `finally` block.
+  - Uses a 60s timeout for the test to keep it robust under CI.
 
-  ```bash
-  npm run type-check
-  ```
-
-  Result: **exit code 0** (no TypeScript errors), which proves `index.test.d.ts` is part of the checked set and compiles cleanly.
-
-No changes to `tsconfig.json` were necessary.
-
-### 3) Run tests, lint, build, and formatting checks
-
-After adding the file:
-
-1. Type-check:
-
-   ```bash
-   npm run type-check
-   ```
-
-   - `tsc --noEmit` passed.
-
-2. Tests:
-
-   ```bash
-   npm test
-   ```
-
-   - Vitest run: 8 files (7 passed, 1 skipped), 32 tests passed, 3 skipped.
-   - Duration ~3.3–3.5 seconds, consistent with previous runs.
-
-3. Lint:
-
-   ```bash
-   npm run lint
-   ```
-
-   - ESLint completed with exit code 0.
-
-4. Build:
-
-   ```bash
-   npm run build
-   ```
-
-   - `tsc -p tsconfig.json && node ./scripts/copy-template-files.mjs` succeeded.
-
-5. Formatting:
-
-   - First run:
-
-     ```bash
-     npm run format:check
-     ```
-
-     - Reported style issues only in `src/index.test.d.ts`.
-
-   - Auto-fix:
-
-     ```bash
-     npm run format
-     ```
-
-     - Prettier formatted `src/index.test.d.ts`.
-
-   - Re-check:
-
-     ```bash
-     npm run format:check
-     ```
-
-     - All files now conform to Prettier style.
-
-All local quality gates pass with the new file in place.
+This directly implements the “Header Verification Test” acceptance criterion by exercising the `/health` endpoint of a generated project and checking real HTTP headers.
 
 ---
 
-## Documentation alignment (NEXT)
+### 2) Reused existing generated-project helpers (NEXT, item 1)
 
-I cross-checked the docs that mention `.test.d.ts`:
+In `src/generated-project-security-headers.test.ts` the test reuses the existing helper utilities:
 
-- **README.md**
+- `initializeGeneratedProject(...)`
+- `runTscBuildForProject(...)`
+- `cleanupGeneratedProject(...)`
+- `startCompiledServerViaNode(...)`
 
-  > “The template includes example `.test.ts`, `.test.js`, and `.test.d.ts` files…”
+These come from `src/generated-project.test-helpers.ts` and encapsulate:
 
-  This statement is now accurate: we have `.test.ts`, `.test.js`, and the new `src/index.test.d.ts`.
+- Temp directory creation and cleanup.
+- Project initialization via the template initializer.
+- Node_modules linking from the repo root.
+- Running `tsc` for the generated project.
+- Starting the compiled server from `dist/src/index.js` and deriving the `/health` URL from logs.
 
-- **user-docs/testing.md**
-
-  - Explicitly cites:
-
-    ```text
-    - Type-level tests (`.test.d.ts`)
-      - Example: `src/index.test.d.ts`.
-    ```
-
-  - Describes type-level tests using `Equal` and `Expect` helpers that assert, for example, `initializeTemplateProject` return type.
-  - The newly added `src/index.test.d.ts` follows this pattern exactly (using `Equal` + `Expect` and checking return types and `GitInitResult` shape), so the documentation and implementation are now in sync.
-
-No wording changes were necessary; the code was brought up to match the existing docs and story.
+Cleanup is done via `afterAll` calling `cleanupGeneratedProject(tempDir)`, preserving the existing test hygiene pattern.
 
 ---
 
-## Version control & CI
+### 3) Updated story and ADR to reference the new test (NEXT, item 2)
 
-- Staged and committed changes:
+To make the acceptance criteria trace explicit:
+
+- **Story** `docs/stories/005.0-DEVELOPER-SECURITY-HEADERS.story.md`:
+  - After the Acceptance Criteria checklist, I added:
+
+    > The automated verification of these criteria is implemented in `src/generated-project-security-headers.test.ts`, which exercises **REQ-SEC-HEADERS-TEST** by asserting that the expected security headers are present on responses from the `/health` endpoint of a freshly generated project.
+
+  - This ties the “Header Verification Test” acceptance criterion directly to the concrete test file.
+
+- **ADR** `docs/decisions/0006-fastify-helmet-security-headers.accepted.md`:
+  - In the “Confirmation” section, updated the tests bullet to:
+
+    > **Tests**: Integration test in `src/generated-project-security-headers.test.ts` verifies security headers are set correctly on the `/health` endpoint of a generated project
+
+  - This aligns the architecture decision’s confirmation section with the implemented tests.
+
+No user-facing docs under `user-docs/` needed changes for this plan item; they already described headers and their purpose.
+
+---
+
+### 4) Verified full quality gates locally (NEXT, item 3)
+
+After implementing the test and documentation updates, I ran all required checks:
+
+- `npm run build`
+- `npm test`
+- `npm run lint`
+- `npm run type-check`
+- `npm run format` (to fix Prettier issues in the modified markdown files)
+- `npm run format:check`
+
+All commands completed successfully.
+
+Then I:
+
+- Committed the changes:
 
   ```text
-  test: add type-level tests for public API exports
+  test: add security headers verification for generated projects
   ```
 
-- Pushed to `main` after running build, test, lint, type-check, and format:check.
-- The GitHub Actions **CI/CD Pipeline** workflow ran automatically and completed with conclusion **success**.
+- Pushed to `main`.
+- Waited for the GitHub Actions workflow **“CI/CD Pipeline”** to complete and confirmed it finished with conclusion `success`.
 
 ---
 
-If you’d like, the next incremental step would be to add a short explanatory paragraph in `user-docs/testing.md` explicitly referencing the specific assertions in `src/index.test.d.ts` (e.g., GitInitResult shape) to make the example even more concrete, but it’s not required by the current stories.
+## Updated plan status
+
+### NOW
+
+- [x] Add a new automated test that starts a generated template service and asserts that an HTTP response (for example from the `/health` endpoint) includes the expected Helmet security headers, with the test annotated to support story 005.0-DEVELOPER-SECURITY-HEADERS and requirement REQ-SEC-HEADERS-TEST.
+
+### NEXT
+
+- [x] Reuse the existing generated-project test helpers so the new security-headers test scaffolds a temporary project, builds it, starts the compiled server, performs the header assertions, and then shuts the server down and cleans up all temporary files and processes.
+- [x] Update the security-headers story and any related decision records or documentation sections to explicitly reference the new header verification test so that the documented acceptance criterion "Header Verification Test" is clearly satisfied.
+- [x] Confirm that the full automated test suite, type checking, linting, build, and formatting still succeed with the new security-headers test in place, ensuring the story is now fully implemented and non-regressive.
+
+If you’d like, I can next expand coverage to also assert headers on the `/` endpoint or add a short note into `user-docs/SECURITY.md` pointing to this test as an example pattern.
 ```

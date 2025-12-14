@@ -17,13 +17,33 @@ async function main() {
   const sampleFile = path.join(tmpDir, 'sample.js');
 
   try {
+    const nodeExec = process.execPath;
+    const eslintCli = path.join(rootDir, 'node_modules', 'eslint', 'bin', 'eslint.js');
+    const prettierCli = path.join(rootDir, 'node_modules', 'prettier', 'bin', 'prettier.cjs');
+
+    try {
+      await fs.access(eslintCli);
+    } catch {
+      throw new Error(
+        `ESLint CLI not found at ${eslintCli}. Make sure eslint is installed in this repository.`,
+      );
+    }
+
+    try {
+      await fs.access(prettierCli);
+    } catch {
+      throw new Error(
+        `Prettier CLI not found at ${prettierCli}. Make sure prettier is installed in this repository.`,
+      );
+    }
+
     const pkgJson = {
       name: 'lint-format-smoke',
       version: '0.0.0',
       type: 'module',
       scripts: {
-        'lint:fix': 'eslint . --fix',
-        format: 'prettier --write .',
+        'lint:fix': `"${nodeExec}" "${eslintCli}" . --fix`,
+        format: `"${nodeExec}" "${prettierCli}" --write .`,
       },
     };
 

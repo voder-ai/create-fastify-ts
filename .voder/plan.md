@@ -1,15 +1,15 @@
 ## NOW
 
-- [ ] Add a new automated test that starts a generated template service and asserts that an HTTP response (for example from the `/health` endpoint) includes the expected Helmet security headers, with the test annotated to support story 005.0-DEVELOPER-SECURITY-HEADERS and requirement REQ-SEC-HEADERS-TEST.
+- [ ] Change the lint-and-format smoke test script so that the temporary mini-project’s lint and format commands invoke ESLint and Prettier via explicit Node entry-point paths from the main repository’s node_modules directory, rather than relying on PATH, ensuring the smoke test can always find and run these tools successfully in its isolated environment.
 
 ## NEXT
 
-- [ ] Reuse the existing generated-project test helpers so the new security-headers test scaffolds a temporary project, builds it, starts the compiled server, performs the header assertions, and then shuts the server down and cleans up all temporary files and processes.
-- [ ] Update the security-headers story and any related decision records or documentation sections to explicitly reference the new header verification test so that the documented acceptance criterion "Header Verification Test" is clearly satisfied.
-- [ ] Confirm that the full automated test suite, type checking, linting, build, and formatting still succeed with the new security-headers test in place, ensuring the story is now fully implemented and non-regressive.
+- [ ] Ensure the updated smoke test still verifies that lint auto-fix modifies the deliberately misformatted file and that a second format run is idempotent, keeping the behavioral assertions for the story’s requirements intact.
+- [ ] Update the lint-and-format story documentation, if needed, to explicitly mention that the smoke test uses a self-contained temporary mini-project wired to the repository’s ESLint and Prettier binaries, clarifying how the acceptance criteria are validated.
+- [ ] Confirm that the lint-and-format story’s dedicated smoke test is now stable across environments by running it in a clean context and checking that its behavior aligns with the documented requirements for fast, reliable lint and format auto-fix.
 
 ## LATER
 
-- [ ] Expand the security-headers test to cover both the root (`/`) and `/health` endpoints in generated projects so that Helmet behavior is validated consistently across all default routes.
-- [ ] Add brief guidance in the security or testing user documentation explaining how the security-headers test works, so users can copy the pattern into their own services when they customize Helmet or add new routes.
-- [ ] If future stories introduce optional CORS support or CSP customization in code, extend the security-headers test suite to validate those headers and configurations under different environment settings.
+- [ ] Extend the smoke test to exercise additional representative file types (for example JSON and Markdown) so that formatting consistency is demonstrated beyond JavaScript alone.
+- [ ] Add a short section to the development setup documentation describing the smoke test’s behavior and how contributors can mimic its pattern when setting up lint/format tooling in downstream projects.
+- [ ] Consider adding a lightweight secondary check that runs only the smoke test in isolation, providing an even faster sanity check for lint/format tooling when making ESLint or Prettier configuration changes in the future.
