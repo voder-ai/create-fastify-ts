@@ -7,17 +7,16 @@
  *
  * @supports docs/stories/006.0-DEVELOPER-PRODUCTION-BUILD.story.md REQ-BUILD-TSC REQ-BUILD-OUTPUT-DIST REQ-BUILD-DECLARATIONS REQ-BUILD-SOURCEMAPS REQ-BUILD-ESM REQ-START-PRODUCTION REQ-START-NO-WATCH REQ-START-PORT REQ-START-LOGS
  */
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
-import { spawn } from 'node:child_process';
+import { spawn, type ChildProcess } from 'node:child_process';
 import http from 'node:http';
 
 import { initializeTemplateProject } from './initializer.js';
 
-let originalCwd: string;
-let tempDir: string;
+const shouldRunProductionE2E = process.env.CFTS_E2E === '1';
 
 async function directoryExists(dirPath: string): Promise<boolean> {
   try {
@@ -101,7 +100,6 @@ async function waitForHealth(
   intervalMs = 500,
 ): Promise<{ statusCode: number; body: string }> {
   const deadline = Date.now() + timeoutMs;
-  // Poll until we either get a response or hit the timeout.
   while (Date.now() <= deadline) {
     try {
       const result = await fetchHealthOnce(url);
@@ -120,130 +118,139 @@ async function waitForHealth(
   throw new Error(`Timed out waiting for health endpoint at ${url.toString()}`);
 }
 
-beforeEach(async () => {
-  originalCwd = process.cwd();
-  tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'fastify-ts-prod-'));
-  process.chdir(tempDir);
-});
+async function startCompiledServerViaNode(
+  projectDir: string,
+  envOverrides: Record<string, string | undefined>,
+): Promise<{ child: ChildProcess; healthUrl: URL; stdout: string }> {
+  const envRun: Record<string, string | undefined> = {
+    ...process.env,
+    ...envOverrides,
+  };
 
-afterEach(async () => {
-  process.chdir(originalCwd);
-  await fs.rm(tempDir, { recursive: true, force: true });
-});
+  const child = spawn(process.execPath, ['dist/src/index.js'], {
+    cwd: projectDir,
+    env: envRun,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
 
-describe('Generated project production build (Story 006.0) [REQ-BUILD-TSC]', () => {
-  it('builds the project with tsc and outputs JS, d.ts, and sourcemaps into dist/', async () => {
-    const projectName = 'prod-build-api';
-    const projectDir = await initializeTemplateProject(projectName);
+  let stdout = '';
+  child.stdout?.on('data', chunk => {
+    stdout += chunk.toString();
+  });
 
-    const installResult = await runNpmCommand(['install'], {
-      cwd: projectDir,
-      env: process.env,
-    });
-    expect(installResult.code).toBe(0);
+  const healthUrl = await new Promise<URL>((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      reject(new Error(`Timed out waiting for server to report listening URL. stdout:\n${stdout}`));
+    }, 60_000);
 
-    const buildResult = await runNpmCommand(['run', 'build'], {
-      cwd: projectDir,
-      env: process.env,
-    });
-
-    if (buildResult.code !== 0) {
-      // In constrained environments (e.g., missing npm), skip artifact checks but surface output for debugging.
-      // This still exercises Story 006.0 behavior in standard environments where npm is available.
-      console.log('npm run build failed in test environment', {
-        code: buildResult.code,
-        stdout: buildResult.stdout,
-        stderr: buildResult.stderr,
-      });
-      return;
-    }
-
-    const distDir = path.join(projectDir, 'dist');
-    const distIndexJs = path.join(distDir, 'src', 'index.js');
-    const distIndexDts = path.join(distDir, 'src', 'index.d.ts');
-    const distIndexMap = path.join(distDir, 'src', 'index.js.map');
-
-    expect(await directoryExists(distDir)).toBe(true);
-    expect(await fileExists(distIndexJs)).toBe(true);
-    expect(await fileExists(distIndexDts)).toBe(true);
-    expect(await fileExists(distIndexMap)).toBe(true);
-  }, 120_000);
-});
-
-// NOTE: This test is currently skipped in the default suite because npm-based
-// process management can behave differently across environments (CI vs local).
-// The implementation remains as a reference and can be enabled in controlled
-// environments when deterministic behavior is ensured.
-describe.skip('Generated project production start (Story 006.0) [REQ-START-PRODUCTION]', () => {
-  it('starts the compiled server from dist/ with npm start and responds on /health', async () => {
-    const projectName = 'prod-start-api';
-    const projectDir = await initializeTemplateProject(projectName);
-
-    const env: Record<string, string | undefined> = { ...process.env, PORT: '0' };
-
-    const installResult = await runNpmCommand(['install'], {
-      cwd: projectDir,
-      env,
-    });
-    expect(installResult.code).toBe(0);
-
-    const buildResult = await runNpmCommand(['run', 'build'], {
-      cwd: projectDir,
-      env,
-    });
-
-    if (buildResult.code !== 0) {
-      // In constrained environments (e.g., missing npm), skip artifact checks but surface output for debugging.
-      // This still exercises Story 006.0 behavior in standard environments where npm is available.
-      console.log('npm run build failed in test environment', {
-        code: buildResult.code,
-        stdout: buildResult.stdout,
-        stderr: buildResult.stderr,
-      });
-      return;
-    }
-
-    const child = spawn('npm', ['start'], {
-      cwd: projectDir,
-      env,
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
-
-    let stdout = '';
-    child.stdout?.on('data', chunk => {
-      stdout += chunk.toString();
-    });
-
-    const healthUrl = await new Promise<URL>((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        reject(
-          new Error(`Timed out waiting for server to report listening URL. stdout:\n${stdout}`),
-        );
-      }, 60_000);
-
-      const interval = setInterval(() => {
-        const match = stdout.match(/Server listening at (http:\/\/[^\s]+)/);
-        if (match) {
-          clearInterval(interval);
-          globalThis.clearTimeout(timeout);
-          resolve(new URL('/health', match[1]));
-        }
-      }, 500);
-
-      child.on('exit', code => {
+    const interval = setInterval(() => {
+      const match = stdout.match(/Server listening at (http:\/\/[^\s]+)/);
+      if (match) {
         clearInterval(interval);
         globalThis.clearTimeout(timeout);
-        reject(new Error(`Server process exited early with code ${code}. stdout:\n${stdout}`));
-      });
-    });
+        resolve(new URL('/health', match[1]));
+      }
+    }, 500);
 
-    try {
-      const health = await waitForHealth(healthUrl, 30_000);
-      expect(health.statusCode).toBe(200);
-      expect(() => JSON.parse(health.body)).not.toThrow();
-      expect(JSON.parse(health.body)).toEqual({ status: 'ok' });
-    } finally {
-      child.kill('SIGINT');
+    child.on('exit', code => {
+      clearInterval(interval);
+      globalThis.clearTimeout(timeout);
+      reject(new Error(`Server process exited early with code ${code}. stdout:\n${stdout}`));
+    });
+  });
+
+  return { child, healthUrl, stdout };
+}
+
+if (shouldRunProductionE2E) {
+  let originalCwd: string;
+  let tempDir: string;
+  let projectDir: string;
+  const projectName = 'prod-api';
+
+  beforeAll(async () => {
+    originalCwd = process.cwd();
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'fastify-ts-prod-'));
+    process.chdir(tempDir);
+
+    projectDir = await initializeTemplateProject(projectName);
+
+    const envInstallBuild: Record<string, string | undefined> = {
+      ...process.env,
+    };
+
+    const installResult = await runNpmCommand(['install'], {
+      cwd: projectDir,
+      env: envInstallBuild,
+    });
+    if (installResult.code !== 0) {
+      console.log('npm install failed in test environment', {
+        code: installResult.code,
+        stdout: installResult.stdout,
+        stderr: installResult.stderr,
+      });
     }
-  }, 180_000);
-});
+    expect(installResult.code).toBe(0);
+
+    const buildResult = await runNpmCommand(['run', 'build'], {
+      cwd: projectDir,
+      env: envInstallBuild,
+    });
+    if (buildResult.code !== 0) {
+      console.log('npm run build failed in test environment', {
+        code: buildResult.code,
+        stdout: buildResult.stdout,
+        stderr: buildResult.stderr,
+      });
+    }
+    expect(buildResult.code).toBe(0);
+  });
+
+  afterAll(async () => {
+    process.chdir(originalCwd);
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  describe('Generated project production build (Story 006.0) [REQ-BUILD-TSC]', () => {
+    it('builds the project with tsc and outputs JS, d.ts, and sourcemaps into dist/', async () => {
+      const distDir = path.join(projectDir, 'dist');
+      const distIndexJs = path.join(distDir, 'src', 'index.js');
+      const distIndexDts = path.join(distDir, 'src', 'index.d.ts');
+      const distIndexMap = path.join(distDir, 'src', 'index.js.map');
+
+      expect(await directoryExists(distDir)).toBe(true);
+      expect(await fileExists(distIndexJs)).toBe(true);
+      expect(await fileExists(distIndexDts)).toBe(true);
+      expect(await fileExists(distIndexMap)).toBe(true);
+    }, 120_000);
+  });
+
+  describe('Generated project production start via node (Story 006.0) [REQ-START-PRODUCTION]', () => {
+    it('starts the compiled server from dist/src/index.js and responds on /health', async () => {
+      const { child, healthUrl } = await startCompiledServerViaNode(projectDir, {
+        PORT: '0',
+      });
+
+      try {
+        const health = await waitForHealth(healthUrl, 30_000);
+        expect(health.statusCode).toBe(200);
+        expect(() => JSON.parse(health.body)).not.toThrow();
+        expect(JSON.parse(health.body)).toEqual({ status: 'ok' });
+      } finally {
+        child.kill('SIGINT');
+      }
+    }, 180_000);
+  });
+} else {
+  describe.skip('Generated project production build (Story 006.0) [REQ-BUILD-TSC]', () => {
+    it('skips production build E2E because CFTS_E2E is not set', () => {
+      expect(process.env.CFTS_E2E).not.toBe('1');
+    });
+  });
+
+  describe.skip('Generated project production start via node (Story 006.0) [REQ-START-PRODUCTION]', () => {
+    it('skips production start E2E because CFTS_E2E is not set', () => {
+      expect(process.env.CFTS_E2E).not.toBe('1');
+    });
+  });
+}

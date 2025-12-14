@@ -81,7 +81,9 @@ function createTemplatePackageJson(projectName: string): TemplatePackageJson {
     type: 'module',
     scripts: {
       dev: 'node dev-server.mjs',
-      build: 'tsc -p tsconfig.json',
+      clean:
+        "node -e \"const fs=require('fs'); fs.rmSync('dist', { recursive: true, force: true });\"",
+      build: 'npm run clean && tsc -p tsconfig.json',
       start: 'node dist/src/index.js',
     },
     // Minimal runtime dependency required by the template-init story.

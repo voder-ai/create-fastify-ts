@@ -1,16 +1,15 @@
 ## NOW
 
-- [ ] Replace the placeholder build and start scripts in the generated project’s template package configuration so that new projects compile their TypeScript source into a dist directory and run the Fastify server from the compiled dist output when developers execute the build and start commands.
+- [ ] Change the generated project’s build configuration so that every production build first clears the existing dist directory before running the TypeScript compiler, ensuring that each build produces a clean dist output with no stale files from previous builds.
 
 ## NEXT
 
-- [ ] Update the TypeScript configuration template used for generated projects so that a production build emits declaration files and appropriate sourcemaps into the dist directory, matching the requirements for build output in the production-build story.
-- [ ] Add automated tests that scaffold a new project in a temporary directory, run the build command, and assert that the build succeeds and produces the expected JavaScript and declaration files in dist without referencing the src directory at runtime.
-- [ ] Add automated tests that start the compiled server in a generated project using the start command and verify that the /health endpoint on the configured port responds with a successful status code and the expected JSON payload.
-- [ ] Adjust internal documentation or stories, if needed, to reflect the implemented build and start behavior for generated projects, including how to run production builds and servers and what outputs to expect.
+- [ ] Tighten the generated-project build test so that it fails when the build command exits with a non‑zero status, while still logging diagnostic output, thereby strictly enforcing that the build succeeds for the Story 006.0 acceptance criteria.
+- [ ] Add a deterministic production-start test that runs the compiled server binary (the dist/src/index.js entrypoint produced by the build) for a freshly generated project and verifies that the /health endpoint responds with HTTP 200 and the expected JSON payload.
+- [ ] Update the generated project’s README template to describe the now-functional build and start scripts, including how to run a production build and start the compiled server and what artifacts are created in the dist directory.
 
 ## LATER
 
-- [ ] Introduce a clean-build behavior for generated projects so that old dist contents are removed or overwritten safely before each build, ensuring the output directory accurately reflects the current source.
-- [ ] Refine logging and configuration for the production start command in generated projects so that startup messages, port selection, and error cases align closely with all detailed requirements in the production-build story.
-- [ ] Consider adding an optional start script or documented example for the template package itself if the story or future requirements call for running the stub server in production mode from this repository.
+- [ ] Optionally re-enable or refine the existing npm-based production-start E2E test so it can run reliably in CI and local environments, using it as a deeper smoke test beyond the new direct-node start test.
+- [ ] Enhance tests or documentation to address Story 006.0’s guidance about fast, warning-free builds, for example by documenting expected build times and warning behavior rather than asserting hard timing guarantees in tests.
+- [ ] Consider introducing a small shared utility module for generated-project tests to reduce duplication between build, start, and future production-behavior tests while keeping each story’s tests focused and readable.
