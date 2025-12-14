@@ -120,7 +120,7 @@ describe('npm init @voder-ai/fastify-ts', () => {
     execSync('npm run build', { cwd: projectDir, stdio: 'inherit' });
 
     // Verify build output
-    expect(fs.existsSync(path.join(projectDir, 'dist'))).toBe(true);
+    expect(fs.existsSync(path.join(projectDir, 'dist')).toBe(true);
   });
 
   it('fails gracefully when directory already exists', () => {
@@ -192,6 +192,25 @@ As endpoints and payloads become more complex, extract reusable test helpers:
 - Keep helpers small and focused; avoid over-abstracting at the cost of clarity.
 
 For example, a helper to create a test Fastify instance with all plugins registered can keep individual tests focused on behavior, not setup.
+
+### Shared helpers for dev server and generated projects
+
+This repository already includes several shared helpers that you should prefer over re-implementing similar logic inside new tests:
+
+- `src/dev-server.test-helpers.ts` – encapsulates creating temporary project directories and starting the `dev-server.mjs` script under different environments. Use these helpers when you need to exercise:
+  - Port auto‑discovery and strict `PORT` semantics for the dev server.
+  - `DEV_SERVER_SKIP_TSC_WATCH` behavior in test mode.
+  - Hot‑reload behavior when compiled files in `dist/src/` change.
+
+- `src/generated-project.test-helpers.ts` – encapsulates creating full generated projects in OS temp directories, linking `node_modules` from the repo, running `tsc` builds, and starting the compiled server from `dist/src/index.js`. Use these helpers when you need to:
+  - Verify production builds and runtime behavior of generated projects (for example, `/health` responses and absence of `src/` in logs).
+  - Assert logging behavior and log‑level configuration in compiled servers.
+
+When adding new tests that touch the dev server or generated projects:
+
+- **Do not** shell out directly to `npm init @voder-ai/fastify-ts` or re‑create temp‑project logic unless there is a strong reason.
+- Prefer extending these helpers or adding small, focused utilities next to them so that future tests can share the same behavior.
+- Keep helper APIs small and intention‑revealing (for example, `initializeGeneratedProject`, `runTscBuildForProject`, `startCompiledServerViaNode`). This keeps tests readable and reduces duplication across suites.
 
 ## Evolving Coverage
 
