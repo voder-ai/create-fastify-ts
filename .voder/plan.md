@@ -1,15 +1,15 @@
 ## NOW
 
-- [ ] Change the lint-and-format smoke test script so that the temporary mini-project’s lint and format commands invoke ESLint and Prettier via explicit Node entry-point paths from the main repository’s node_modules directory, rather than relying on PATH, ensuring the smoke test can always find and run these tools successfully in its isolated environment.
+- [ ] Make the hot-reload behavior test for the dev server pass by updating the test in the dev-server test suite so that it reliably detects the server restart on a compiled output change within an appropriate timeout while still asserting both the restart log message and a clean, graceful shutdown after the restart.
 
 ## NEXT
 
-- [ ] Ensure the updated smoke test still verifies that lint auto-fix modifies the deliberately misformatted file and that a second format run is idempotent, keeping the behavioral assertions for the story’s requirements intact.
-- [ ] Update the lint-and-format story documentation, if needed, to explicitly mention that the smoke test uses a self-contained temporary mini-project wired to the repository’s ESLint and Prettier binaries, clarifying how the acceptance criteria are validated.
-- [ ] Confirm that the lint-and-format story’s dedicated smoke test is now stable across environments by running it in a clean context and checking that its behavior aligns with the documented requirements for fast, reliable lint and format auto-fix.
+- [ ] If the updated test reveals an actual defect in the dev server’s hot-reload logic, adjust the hot-reload implementation so that changing the compiled output file always triggers a single restart with clear logging and no orphaned processes, then re-run the test to confirm it passes.
+- [ ] Update the dev-server story to reflect that the hot-reload acceptance criteria are now fully validated by the passing test, including any notes about restart timing and graceful shutdown behavior.
+- [ ] Ensure the entire dev-server test suite, including the hot-reload scenario, runs consistently without flakiness in the normal test environment so that story 003.0 can be considered complete and stable.
 
 ## LATER
 
-- [ ] Extend the smoke test to exercise additional representative file types (for example JSON and Markdown) so that formatting consistency is demonstrated beyond JavaScript alone.
-- [ ] Add a short section to the development setup documentation describing the smoke test’s behavior and how contributors can mimic its pattern when setting up lint/format tooling in downstream projects.
-- [ ] Consider adding a lightweight secondary check that runs only the smoke test in isolation, providing an even faster sanity check for lint/format tooling when making ESLint or Prettier configuration changes in the future.
+- [ ] Add additional dev-server tests that exercise more complex change scenarios, such as multiple rapid changes to the compiled output file, to demonstrate that hot reload behaves sensibly under repeated edits.
+- [ ] Extend documentation for contributors to explain how the dev server’s hot-reload mechanism works and how to diagnose or adjust it if future changes introduce timing or process-lifecycle issues.
+- [ ] Consider adding a lightweight smoke test that runs only the dev-server hot-reload scenario, providing a quick sanity check when modifying dev-server or watcher-related code.
