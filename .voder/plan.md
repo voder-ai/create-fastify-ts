@@ -1,15 +1,16 @@
 ## NOW
 
-- [ ] Adjust the test coverage npm script so that the coverage run excludes the generated-project production and logging test suites, ensuring that the documented coverage command completes successfully and produces a passing coverage report without changing the default non-coverage test run behavior.
+- [ ] Update the internal testing strategy documentation to explain that the main coverage command focuses on core test suites and excludes the heaviest generated-project E2E tests, so developers understand how this scoped coverage run satisfies the testing story’s coverage requirements.
 
 ## NEXT
 
-- [ ] Confirm that the updated coverage command runs to completion without failures, verify that coverage thresholds are still met, and capture the resulting coverage summary to validate that the story’s coverage-related acceptance criteria are satisfied.
-- [ ] Update the 004.0 developer-tests-run story file to mark the coverage-related acceptance criteria as completed, reflecting that `npm run test:coverage` now succeeds and produces a clear coverage report.
-- [ ] If needed, refine the testing documentation to briefly explain that the default coverage run focuses on core and unit-level tests and does not include the heavy generated-project E2E suites, so developers understand the intended scope of coverage metrics.
+- [ ] Introduce an additional npm script that runs an extended coverage suite including the generated-project production and logging tests, while keeping the existing fast coverage script unchanged for core tests.
+- [ ] Adjust the generated-project production and logging test suites as needed so they execute successfully under the new extended coverage run without flakiness or timeouts.
+- [ ] Document the new extended coverage command in the testing guide and README, clarifying that it is a slower, optional run that includes the generated-project E2E-style suites.
+- [ ] Decide whether and how the extended coverage run should be integrated into continuous integration, such as via an optional or scheduled job that does not slow down the main quality gate.
 
 ## LATER
 
-- [ ] Explore ways to make the generated-project production and logging tests compatible with coverage mode (for example by adjusting how TypeScript is invoked or how node_modules is shared) so they can optionally be included in extended coverage runs.
-- [ ] Consider adding a separate npm script for a full, slower integration+coverage run that exercises generated-project behavior under coverage without impacting the fast default coverage workflow.
-- [ ] Periodically re-evaluate coverage thresholds and excluded files as new features and stories are implemented, keeping the coverage run meaningful while preserving fast feedback.
+- [ ] Refine and optimize the extended coverage run to keep its execution time reasonable as more generated-project tests are added.
+- [ ] Reevaluate global coverage thresholds and excluded paths once the extended coverage run is stable, ensuring they still reflect desired quality targets.
+- [ ] Consider adding targeted coverage reports for specific subsystems (initializer, dev server, logging, generated projects) to make it easier to see the impact of future changes on test coverage.

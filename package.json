@@ -21,6 +21,7 @@
     "build": "tsc -p tsconfig.json && node ./scripts/copy-template-files.mjs",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage src/check-node-version.test.js src/cli.test.ts src/dev-server.test.ts src/generated-project-production-npm-start.test.ts src/index.test.js src/index.test.ts src/initializer.test.ts src/repo-hygiene.generated-projects.test.ts src/server.test.ts",
+    "test:coverage:extended": "vitest run --coverage src/check-node-version.test.js src/cli.test.ts src/dev-server.test.ts src/generated-project-production-npm-start.test.ts src/index.test.js src/index.test.ts src/initializer.test.ts src/repo-hygiene.generated-projects.test.ts src/server.test.ts src/generated-project-production.test.ts src/generated-project-logging.test.ts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "duplication": "jscpd --threshold 20 src scripts",

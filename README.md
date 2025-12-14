@@ -70,6 +70,7 @@ npm run build
 - `npm test` runs the Vitest test suite once.
 - `npm test -- --watch` runs the suite in watch mode and is intended for local development only (not CI).
 - `npm run test:coverage` runs the core test suites with coverage reporting enabled (excluding the heaviest generated-project E2E suites) and enforces global coverage thresholds.
+- `npm run test:coverage:extended` is a slower, optional run that includes the generated-project production/logging E2E suites for extended coverage.
 - `npm run type-check` runs TypeScript in `noEmit` mode and also validates `.test.d.ts` type-level tests.
 
 The template includes example `.test.ts`, `.test.js`, and `.test.d.ts` files so you can see patterns for both behavior-focused tests and type-level tests. For more details, see the [Testing Guide](user-docs/testing.md).
