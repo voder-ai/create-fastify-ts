@@ -22,6 +22,16 @@ const DISALLOWED_PROJECT_DIRS = [
   'cli-test-project',
   'manual-cli',
   'test-project-exec-assess',
+  // Additional common generated project directory names used in tests
+  'my-api',
+  'git-api',
+  'no-git-api',
+  'cli-integration-project',
+  'cli-integration-no-git',
+  'cli-integration-dev',
+  'prod-api',
+  'logging-api',
+  'prod-start-api',
 ];
 
 describe('Repository hygiene (generated projects)', () => {

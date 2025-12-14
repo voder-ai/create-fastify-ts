@@ -1,14 +1,13 @@
 ## NOW
 
-- [ ] Remove the tracked sample-project-exec-test generated project directory from the source tree so that no committed files from that project remain in the repository.
+- [ ] Extend the existing repository-hygiene test so it asserts that additional common generated-project directory names do not exist at the repository root, preventing those generated projects from ever being accidentally committed again.
 
 ## NEXT
 
-- [ ] Ensure the ignore rules explicitly prevent any future sample-project-exec-test project directories from being added to version control so that generated projects stay out of the tracked codebase.
-- [ ] Ensure that all remaining tracked source and documentation files conform to the configured formatting rules so that a fresh checkout has no formatting violations.
-- [ ] Verify that, on a clean codebase, the lint and format commands for the lint/format story (lint, lint with fixes, format, and format check) all complete successfully without reporting issues, satisfying the story’s acceptance criteria.
+- [ ] Update the development setup documentation to clearly state that any sample or generated projects used for manual testing must be created only in temporary or external directories and must never be added to version control.
+- [ ] Broaden the ignore rules for generated projects to cover a small, well-defined set of common generated-project directory patterns that match the new hygiene tests, ensuring consistent prevention at both the .gitignore and test levels.
 
 ## LATER
 
-- [ ] Extend repository hygiene tests or ignore rules to cover any other common generated-project directory names so that accidental commits of generated projects are systematically prevented.
-- [ ] Document in the development setup guide that generated sample projects must be created only in temporary directories and never committed, reinforcing the expectations behind the lint/format and repo-hygiene stories.
+- [ ] Add a brief section to the relevant architecture or process decision record documenting the repository hygiene policy for generated projects and how the tests and ignore rules enforce it.
+- [ ] Introduce a concise contributor checklist in the development documentation that reiterates key version-control rules, including not committing build artifacts, coverage outputs, or any generated sample projects.
