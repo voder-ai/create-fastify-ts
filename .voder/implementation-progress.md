@@ -186,7 +186,7 @@ Overall implementation quality is very high but not yet at the target threshold.
 - Generated project endpoints (`GET /` and `GET /health`) match `src/template-files/index.ts.template`.
 - Node.js ≥ 22 requirement is correctly enforced via `engines.node`, the `preinstall` script, and `scripts/check-node-version.mjs`, and is tested in `src/check-node-version.test.js`.
 - User-facing API documentation (user-docs/api.md) is aligned with the implementation:
-- Documents `getServiceHealth`, `initializeTemplateProject`, and `initializeTemplateProjectWithGit` exactly as implemented in `src/index.ts` and `src/initializer.ts`.
+- Documents `initializeTemplateProject` and `initializeTemplateProjectWithGit` exactly as implemented in `src/index.ts` and `src/initializer.ts`.
 - The `GitInitResult` type in the docs matches the exported interface, including how success/failure is reported (non-throwing git init, `initialized` flag, `errorMessage`, etc.).
 - Provides runnable TS/JS code examples that use the real signatures and behavior.
 - Testing and tooling documentation is accurate and complete for the template (not generated projects):

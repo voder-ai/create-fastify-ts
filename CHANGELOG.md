@@ -11,7 +11,8 @@ For the authoritative list of released versions and detailed release notes, plea
 
 ## Current feature set
 
-The current published versions provide a minimal service skeleton with:
+The current published versions provide:
 
-- A `getServiceHealth()` function that returns the string `"ok"` for simple wiring checks.
-- A Fastify server helper that exposes a single `GET /health` endpoint returning `{ "status": "ok" }`.
+- An npm initializer (`npm init @voder-ai/fastify-ts`) that scaffolds new Fastify + TypeScript projects.
+- Template files for a minimal Fastify server with security headers, structured logging, and TypeScript + ESM configuration.
+- CLI tooling for project initialization with optional Git repository setup.

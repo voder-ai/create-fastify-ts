@@ -67,22 +67,22 @@ The template includes examples of three complementary test file formats:
 
 ### How type-level tests work
 
-Type-level tests use conditional types to assert constraints about your public API. For example, `src/index.test.d.ts` includes a check that the `getServiceHealth` function returns a `string`:
+Type-level tests use conditional types to assert constraints about your public API. For example, you might create a type-level test to verify that `initializeTemplateProject` returns a `Promise<string>`:
 
 ```ts
-import type { getServiceHealth } from './index.js';
+import type { initializeTemplateProject } from './index.js';
 
 type Equal<A, B> =
   (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
 
 type Expect<T extends true> = T;
 
-export type GetServiceHealthReturnsString = Expect<
-  Equal<ReturnType<typeof getServiceHealth>, string>
+export type InitializeReturnsPromiseString = Expect<
+  Equal<ReturnType<typeof initializeTemplateProject>, Promise<string>>
 >;
 ```
 
-If you later change the return type of `getServiceHealth` to something non-`string`, `npm run type-check` will fail, alerting you that the public API has changed in a way that may break consumers.
+If you later change the return type to something incompatible, `npm run type-check` will fail, alerting you that the public API has changed in a way that may break consumers.
 
 ## Interpreting coverage reports
 

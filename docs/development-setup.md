@@ -5,10 +5,11 @@ This document describes the initial project structure and tooling.
 ## Project Structure
 
 - `src/`
-  - `index.ts` – small TypeScript entry module exposing `getServiceHealth()` and template initializer functions.
-  - `index.test.ts` – verifies the TypeScript + ESM wiring by calling `getServiceHealth()`.
+  - `index.ts` – entry module that re-exports template initializer functions.
   - `initializer.ts` – implements project scaffolding logic for `npm init @voder-ai/fastify-ts`.
   - `cli.ts` – command-line interface entry point for the initializer.
+  - `initializer.test.ts` – tests project scaffolding and template file generation.
+  - `cli.test.ts` – tests command-line interface behavior.
 - `docs/` – architecture decision records and user stories that drive implementation.
 
 ## Tooling Overview
@@ -41,10 +42,10 @@ A typical function-level annotation in TypeScript:
 
 ```ts
 /**
- * @supports docs/decisions/001-typescript-esm.accepted.md REQ-TSC-BOOTSTRAP
+ * @supports docs/stories/001.0-DEVELOPER-TEMPLATE-INIT.story.md REQ-INIT-PROJECT
  */
-export function getServiceHealth(): string {
-  return 'ok';
+export async function initializeTemplateProject(projectName: string): Promise<string> {
+  // implementation
 }
 ```
 
@@ -61,15 +62,16 @@ Example test file header and describe block in a Vitest test:
 
 ```ts
 /**
- * @supports docs/decisions/001-typescript-esm.accepted.md REQ-TSC-BOOTSTRAP
+ * @supports docs/stories/001.0-DEVELOPER-TEMPLATE-INIT.story.md REQ-INIT-PROJECT
  */
 
 import { describe, it, expect } from 'vitest';
-import { getServiceHealth } from './index.js';
+import { initializeTemplateProject } from './initializer.js';
 
-describe('getServiceHealth – REQ-TSC-BOOTSTRAP', () => {
-  it("returns 'ok' for service bootstrap – REQ-TSC-BOOTSTRAP", () => {
-    expect(getServiceHealth()).toBe('ok');
+describe('initializeTemplateProject – REQ-INIT-PROJECT', () => {
+  it('creates project directory with expected files – REQ-INIT-PROJECT', async () => {
+    const projectDir = await initializeTemplateProject('test-project');
+    expect(projectDir).toContain('test-project');
   });
 });
 ```
@@ -205,8 +207,8 @@ The pipeline runs the following steps in order:
 4. **Post-release smoke test**
    - Creates a temporary project.
    - Installs the just-published npm package by name.
-   - Dynamically imports the package and calls `getServiceHealth()`.
-   - Fails the workflow if `getServiceHealth()` is missing or does not return `"ok"`.
+   - Dynamically imports the package and verifies that `initializeTemplateProject` is exported.
+   - Fails the workflow if the exported function is not callable.
 
 Because the quality gates and release happen in a single workflow run, there are no manual approval gates or separate release pipelines. If the pipeline is green, the new version is already published and has passed a basic smoke test.
 
@@ -242,10 +244,10 @@ Treat `.voder` like `docs/`: it is considered internal documentation and governa
 
 The test suite covers multiple areas:
 
-- `src/index.test.ts` validates the TypeScript and ESM wiring by importing the public entry point and asserting that `getServiceHealth()` returns `"ok"`.
 - `src/initializer.test.ts` tests project scaffolding and template file generation.
 - `src/cli.test.ts` tests the command-line interface behavior.
 - `src/generated-project*.test.ts` files test the actual generated projects in temporary directories.
+- `src/check-node-version.test.js` validates Node.js version enforcement.
 
 Tests are run locally with:
 
