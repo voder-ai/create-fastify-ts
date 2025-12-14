@@ -1,6 +1,6 @@
 # Fastify TypeScript Template
 
-A production-ready TypeScript + Fastify template for building REST APIs and microservices. The CLI scaffolds a minimal Fastify app that responds with a Hello World JSON payload on `GET /` and exposes a simple JSON health check on `GET /health` in the generated project, with security headers and structured logging configured by default.
+A production-ready TypeScript + Fastify template for building REST APIs and microservices. The CLI scaffolds a minimal Fastify app that responds with a Hello World JSON payload on `GET /`, exposes a simple JSON health check on `GET /health` in the generated project, and configures security headers and structured logging by default.
 
 ## Quick Start
 
@@ -35,8 +35,8 @@ Requires Node.js 22 or newer (LTS recommended); attempting to install dependenci
 - **Hello World endpoint**: `GET /` returns a simple JSON payload in the generated project
 - **Dev server**: `npm run dev` starts a TypeScript-aware dev server with hot reload
 - **Production build & start**: `npm run build` + `npm start` run the compiled server from `dist/`
-- **Security Headers**: @fastify/helmet registered by default in both the internal stub server and generated projects
-- **Structured Logging**: Fastify's integrated Pino logger with environment-driven log levels for both the internal stub server and generated projects, plus a dev server (`npm run dev`) that pipes logs through `pino-pretty` for human-readable local output while production (`npm start`) keeps JSON log lines.
+- **Security Headers**: `@fastify/helmet` registered by default in the Fastify server generated into `src/index.ts` for new projects; the internal stub server used only for this template's own tests (`src/server.ts`) uses the same configuration.
+- **Structured Logging**: Fastify's integrated Pino logger with environment-driven log levels implemented in the generated project's `src/index.ts`; the internal stub server (`src/server.ts`) uses the same pattern for template self-tests, and the dev server (`npm run dev`) pipes logs through `pino-pretty` for human-readable local output while production (`npm start`) keeps JSON log lines.
 
 ### Planned Enhancements
 
@@ -109,8 +109,8 @@ For details on the programmatic API (including `getServiceHealth`, `initializeTe
 
 Currently implemented:
 
-- Security headers via @fastify/helmet in both the stub server and generated projects
-- Structured JSON logging via Fastify's default Pino integration when you run the compiled server directly or with `npm start`; `npm run dev` uses the same structured logs but formats them via `pino-pretty` for easier local reading.
+- Security headers via `@fastify/helmet` in the Fastify server generated into `src/index.ts` for new projects; the internal stub server (`src/server.ts`) used only for this template's tests also registers Helmet with the same defaults.
+- Structured logging using Fastify's default Pino integration in generated projects (`src/index.ts`), with JSON logs when you run the compiled server directly or with `npm start`; `npm run dev` uses the same structured logs but formats them via `pino-pretty` for easier local reading. The internal stub server mirrors this logging configuration but is not part of generated projects.
 
 Planned security-related enhancements (not yet implemented):
 

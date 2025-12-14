@@ -75,10 +75,7 @@ describe('Node.js version enforcement (Story 002.0)', () => {
 
       expect(result.message).toContain('requires Node.js >=');
       expect(result.message).toContain('21.9.0');
-      expect(result.message).toContain('docs/decisions/0012-nodejs-22-minimum-version.accepted.md');
-      expect(result.message).toContain(
-        'docs/stories/002.0-DEVELOPER-DEPENDENCIES-INSTALL.story.md',
-      );
+      expect(result.message).toContain('https://github.com/voder-ai/create-fastify-ts');
     });
   });
 });

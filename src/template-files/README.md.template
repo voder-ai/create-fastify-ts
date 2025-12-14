@@ -72,11 +72,21 @@ To start the compiled server (for production or production-like environments):
 npm start
 ```
 
-This runs the JavaScript build from `dist/` without watch or automatic reload. The server listens on the port specified by the `PORT` environment variable, defaulting to `3000` if `PORT` is not set.
+This runs the JavaScript build from `dist` without watch or automatic reload. The server listens on the port specified by the `PORT` environment variable, defaulting to `3000` if `PORT` is not set.
+
+## Security and Logging
+
+This project uses Fastify's integrated logging and `@fastify/helmet` for basic HTTP security headers:
+
+- The Fastify server in `src/index.ts` registers `@fastify/helmet` once at startup so that all responses include a standard set of security headers by default.
+- Logging is provided by Fastify's built-in Pino logger. By default, it logs structured JSON; in development (`npm run dev`), logs are pretty-printed via `pino-pretty` for easier reading.
+- The initial logging configuration uses environment-driven log levels so that you can control verbosity with `LOG_LEVEL` and `NODE_ENV`.
+
+For more background and examples, see the upstream template documentation for `@voder-ai/create-fastify-ts`.
 
 ## Logging
 
-Generated projects use Fastify's integrated [Pino](https://getpino.io/) logger with sensible defaults:
+Generated projects use Fastify's integrated [Pino](https://getpino.io/) logger with sensible defaults implemented in `src/index.ts`:
 
 - In non-production environments (`NODE_ENV` not set to `production`), the default log level is `debug`.
 - In production (`NODE_ENV=production` and no explicit level), the default log level is `info`.

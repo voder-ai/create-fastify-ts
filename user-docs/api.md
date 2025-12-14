@@ -225,11 +225,13 @@ Inside this template repository there is also an internal Fastify **stub server*
 
 ## Logging and Log Levels
 
-Both the internal Fastify stub server used by this library and the servers in freshly generated projects use Fastify's integrated Pino logger with sensible, environment-driven defaults.
+Generated projects created by this template use Fastify's integrated Pino logger with sensible, environment-driven defaults. The logging behavior is implemented in the generated project's `src/index.ts` and is part of what you run in your own service.
+
+Inside this template repository, there is also an internal Fastify stub server (`src/server.ts`) that exists only to support the library's own tests and examples. That stub server is not copied into generated projects, but it uses the same logging configuration pattern so that security and logging tests exercise realistic behavior.
 
 ### Environment-driven log levels
 
-The log level is derived from `NODE_ENV` and `LOG_LEVEL` using the same algorithm in both the stub server (`src/server.ts`) and the generated project server (`src/index.ts`):
+In both generated projects (`src/index.ts`) and the internal stub server (`src/server.ts`), the log level is derived from `NODE_ENV` and `LOG_LEVEL` using the same algorithm:
 
 - In non-production environments (`NODE_ENV` not set to `"production"`) and with `LOG_LEVEL` unset, the default log level is `debug`.
 - In production (`NODE_ENV=production` and no explicit log level), the default log level is `info`.

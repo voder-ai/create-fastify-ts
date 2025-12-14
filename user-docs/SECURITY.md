@@ -12,8 +12,9 @@ At this early stage, there are two distinct contexts to consider:
   - `GET /health` – returns a JSON payload such as `{ "status": "ok" }`.
 - A **freshly generated project** created via `npm init @voder-ai/fastify-ts` instead exposes:
   - `GET /` – returns a Hello World JSON payload such as `{ "message": "Hello World from Fastify + TypeScript!" }`.
+  - `GET /health` – returns a JSON payload such as `{ "status": "ok" }`.
 
-In a freshly generated project, the `GET /` Hello World endpoint is currently the only application endpoint.
+In a freshly generated project, the `GET /` Hello World endpoint and the `GET /health` health check endpoint are currently the only application endpoints.
 
 There are currently **no** authenticated endpoints, no image-upload functionality, and no persistent storage. As a result:
 
@@ -31,7 +32,8 @@ These limitations are expected for an early bootstrap; future versions will intr
 Because the only implemented endpoints at this stage are:
 
 - `GET /health` on the **internal stub server** (returning a simple status JSON), and
-- `GET /` on a **freshly generated project** (returning a static Hello World JSON message),
+- `GET /` on a **freshly generated project** (returning a static Hello World JSON message), and
+- `GET /health` on a **freshly generated project** (returning a simple status JSON),
 
 and they do not accept user input beyond the HTTP request itself:
 
