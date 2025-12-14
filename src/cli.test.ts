@@ -231,7 +231,7 @@ describe('CLI initializer (Story 001.0)', () => {
   });
 
   it('creates a new project directory when invoked with a project name (with git available)', async () => {
-    const projectName = 'cli-api';
+    const projectName = 'cli-integration-project';
 
     const result = await runCli([projectName], { cwd: tempDir });
 
@@ -239,7 +239,7 @@ describe('CLI initializer (Story 001.0)', () => {
   });
 
   it('scaffolds the project without git initialization when git is not available', async () => {
-    const projectName = 'cli-api-no-git';
+    const projectName = 'cli-integration-no-git';
 
     const nodeDir = path.dirname(process.execPath);
     const envWithoutGit: Env = {
@@ -256,7 +256,7 @@ describe('CLI initializer (Story 001.0)', () => {
   // (npm_execpath / npm_node_execpath). Enable in CI or environments where npm is guaranteed
   // to be available and stable.
   it.skip('initializes a project and runs the dev server with a healthy /health endpoint (skipped: requires npm in PATH)', async () => {
-    const projectName = 'cli-api-dev';
+    const projectName = 'cli-integration-dev';
 
     const projectDir = await initializeProjectWithCli(projectName, tempDir);
 
