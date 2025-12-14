@@ -75,6 +75,9 @@ Guidelines:
   npm test
   npm run build
   ```
+- Always create test projects inside OS temporary directories using `fs.mkdtemp` and `os.tmpdir()`.
+- Never commit initializer-generated projects (such as full `my-api/` trees) to the repository; tests must create and delete them at runtime instead.
+- Prefer helper utilities (like `src/dev-server.test-helpers.ts` and the helpers in `src/initializer.test.ts` / `src/cli.test.ts`) that encapsulate temporary project creation and cleanup.
 - Test both successful creation and error cases (existing directory, invalid project names, etc.).
 - Verify the generated project structure matches expectations (required files exist, correct content).
 - Run the generated project's own test suite to ensure the template is functional.
@@ -84,19 +87,23 @@ Guidelines:
 
 Example test structure:
 
-````ts
+```ts
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+
 describe('npm init @voder-ai/fastify-ts', () => {
-  const tmpDir = path.join(__dirname, '../tmp-init-tests');
+  let tmpDir: string;
 
-  beforeEach(() => {
-    fs.ensureDirSync(tmpDir);
+  beforeEach(async () => {
+    tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'fastify-ts-init-'));
   });
 
-  afterEach(() => {
-    fs.removeSync(tmpDir);
+  afterEach(async () => {
+    await fs.rm(tmpDir, { recursive: true, force: true });
   });
 
-  it('creates a working project with all required files', () => {
+  it('creates a working project with all required files', async () => {
     // Run initializer
     execSync('npm init @voder-ai/fastify-ts test-app', { cwd: tmpDir });
 
@@ -118,13 +125,14 @@ describe('npm init @voder-ai/fastify-ts', () => {
 
   it('fails gracefully when directory already exists', () => {
     const projectDir = path.join(tmpDir, 'existing-app');
-    fs.ensureDirSync(projectDir);
+    fs.mkdirSync(projectDir, { recursive: true });
 
     expect(() => {
       execSync('npm init @voder-ai/fastify-ts existing-app', { cwd: tmpDir });
     }).toThrow();
   });
 });
+```
 
 ## Traceability and Test Organization
 
@@ -137,7 +145,7 @@ To keep a clear link between requirements, design, and verification:
    * Tests for the Fastify server stub.
    * @supports docs/decisions/002-fastify-web-framework.accepted.md REQ-FASTIFY-SERVER-STUB
    */
-````
+  ```
 
 - In `describe` blocks and test names, include requirement identifiers from the corresponding story or ADR when they exist. For example:
 
