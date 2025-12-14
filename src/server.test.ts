@@ -1,8 +1,9 @@
 /**
  * Tests for the Fastify server stub.
  * @supports docs/decisions/0002-fastify-web-framework.accepted.md REQ-FASTIFY-SERVER-STUB
+ * @supports docs/stories/008.0-DEVELOPER-LOGS-MONITOR.story.md REQ-LOG-STRUCTURED-JSON REQ-LOG-AUTO-REQUEST REQ-LOG-ERROR-STACKS REQ-LOG-LEVEL-CONFIG
  */
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { buildServer, startServer } from '../src/server.js';
 
 async function withStartedServer(port: number, callback: any): Promise<void> {
@@ -153,5 +154,56 @@ describe('Fastify server stub security headers (REQ-SEC-HEADERS-TEST, REQ-SEC-HE
     expect(headers['strict-transport-security']).toBeDefined();
     expect(headers['x-content-type-options']).toBeDefined();
     expect(headers['referrer-policy']).toBeDefined();
+  });
+});
+
+describe('Fastify server logging configuration (Story 008.0) [REQ-LOG-LEVEL-CONFIG]', () => {
+  let originalNodeEnv: string | undefined;
+  let originalLogLevel: string | undefined;
+
+  beforeEach(() => {
+    originalNodeEnv = process.env.NODE_ENV;
+    originalLogLevel = process.env.LOG_LEVEL;
+  });
+
+  afterEach(() => {
+    if (originalNodeEnv === undefined) {
+      delete process.env.NODE_ENV;
+    } else {
+      process.env.NODE_ENV = originalNodeEnv;
+    }
+
+    if (originalLogLevel === undefined) {
+      delete process.env.LOG_LEVEL;
+    } else {
+      process.env.LOG_LEVEL = originalLogLevel;
+    }
+  });
+
+  it('[REQ-LOG-LEVEL-CONFIG] defaults to debug level when NODE_ENV is not production and LOG_LEVEL is not set', () => {
+    delete process.env.NODE_ENV;
+    delete process.env.LOG_LEVEL;
+
+    const app: any = buildServer();
+
+    expect(app.log.level).toBe('debug');
+  });
+
+  it("[REQ-LOG-LEVEL-CONFIG] defaults to info level when NODE_ENV='production' and LOG_LEVEL is not set", () => {
+    process.env.NODE_ENV = 'production';
+    delete process.env.LOG_LEVEL;
+
+    const app: any = buildServer();
+
+    expect(app.log.level).toBe('info');
+  });
+
+  it('[REQ-LOG-LEVEL-CONFIG] uses LOG_LEVEL environment variable when provided', () => {
+    process.env.NODE_ENV = 'development';
+    process.env.LOG_LEVEL = 'trace';
+
+    const app: any = buildServer();
+
+    expect(app.log.level).toBe('trace');
   });
 });

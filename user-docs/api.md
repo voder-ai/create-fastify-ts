@@ -212,6 +212,27 @@ type GitInitResult = {
   - `errorMessage` is present and contains a brief explanation (e.g., `git not found in PATH` or the underlying error message).
   - The project is still created and usable at the returned `projectDir` path.
 
+## Logging and Log Levels
+
+Generated projects use Fastify's integrated Pino logger with sensible defaults:
+
+- In non-production environments (`NODE_ENV` not set to `production`), the default log level is `debug`.
+- In production (`NODE_ENV=production` and no explicit log level), the default log level is `info`.
+- You can override the level in any environment by setting the `LOG_LEVEL` environment variable (`trace`, `debug`, `info`, `warn`, `error`, `fatal`).
+
+Examples:
+
+```bash
+# Development with verbose logs
+LOG_LEVEL=debug npm run dev
+
+# Production with standard informational logs
+NODE_ENV=production LOG_LEVEL=info npm start
+
+# Temporary deep troubleshooting in production (use sparingly)
+NODE_ENV=production LOG_LEVEL=trace npm start
+```
+
 ## Attribution
 
 Created autonomously by [voder.ai](https://voder.ai).

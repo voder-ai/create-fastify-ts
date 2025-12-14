@@ -9,11 +9,21 @@
  * @supports docs/stories/002.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-CLEAN-LOGS
  * @supports docs/stories/005.0-DEVELOPER-SECURITY-HEADERS.story.md REQ-SEC-HELMET-DEFAULT
  * @supports docs/stories/005.0-DEVELOPER-SECURITY-HEADERS.story.md REQ-SEC-HEADERS-PRESENT
+ * @supports docs/stories/008.0-DEVELOPER-LOGS-MONITOR.story.md REQ-LOG-STRUCTURED-JSON REQ-LOG-PINO-INTEGRATED REQ-LOG-LEVELS-SUPPORT REQ-LOG-ERROR-STACKS REQ-LOG-AUTO-REQUEST REQ-LOG-LEVEL-CONFIG REQ-LOG-PROD-JSON
  */
 import Fastify from 'fastify';
 import helmet from '@fastify/helmet';
 
-const fastify = Fastify({ logger: true });
+const nodeEnv = process.env.NODE_ENV ?? 'development';
+const defaultLogLevel = nodeEnv === 'production' ? 'info' : 'debug';
+const logLevel = process.env.LOG_LEVEL ?? defaultLogLevel;
+
+// Implements structured JSON logging with env-driven log level configuration.
+const fastify = Fastify({
+  logger: {
+    level: logLevel,
+  },
+});
 
 // @supports docs/stories/005.0-DEVELOPER-SECURITY-HEADERS.story.md REQ-SEC-HELMET-DEFAULT
 // @supports docs/stories/005.0-DEVELOPER-SECURITY-HEADERS.story.md REQ-SEC-HEADERS-PRESENT

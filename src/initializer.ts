@@ -90,11 +90,13 @@ function createTemplatePackageJson(projectName: string): TemplatePackageJson {
     dependencies: {
       fastify: '^5.6.2',
       '@fastify/helmet': '^13.0.2',
+      pino: '^9.0.0',
     },
     // TypeScript is required for the initialized project.
     devDependencies: {
       typescript: '^5.9.3',
       '@types/node': NODE_TYPES_VERSION,
+      'pino-pretty': '^11.0.0',
     },
   };
 }

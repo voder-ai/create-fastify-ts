@@ -12,6 +12,7 @@
  * - Provide clear, concise console output for developers
  *
  * @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-START-FAST REQ-DEV-PORT-AUTO REQ-DEV-PORT-STRICT REQ-DEV-CLEAN-LOGS
+ * @supports docs/stories/008.0-DEVELOPER-LOGS-MONITOR.story.md REQ-LOG-DEV-PRETTY REQ-LOG-LEVEL-CONFIG
  */
 import { spawn } from 'node:child_process';
 import { watch } from 'node:fs';
@@ -201,6 +202,11 @@ function startTypeScriptWatch(projectRoot) {
 function startCompiledServer(projectRoot, env, port, mode) {
   const distEntry = path.join(projectRoot, 'dist', 'src', 'index.js');
 
+  const isDev = env.NODE_ENV !== 'production';
+  const args = isDev
+    ? ['-r', 'pino-pretty', path.relative(projectRoot, distEntry)]
+    : [path.relative(projectRoot, distEntry)];
+
   const modeLabel =
     mode === 'auto' ? '(auto-discovered from DEFAULT_PORT)' : '(from PORT environment variable)';
 
@@ -208,7 +214,7 @@ function startCompiledServer(projectRoot, env, port, mode) {
     `dev-server: starting Fastify server on http://localhost:${port} (host ${HOST}) ${modeLabel}`,
   );
 
-  const node = spawn('node', [distEntry], {
+  const node = spawn(process.execPath, args, {
     cwd: projectRoot,
     env,
     stdio: 'inherit',

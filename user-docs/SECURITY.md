@@ -21,7 +21,7 @@ There are currently **no** authenticated endpoints, no image-upload functionalit
 - The service does **not** perform user authentication or authorization.
 - The service does **not** provide rate-limiting or abuse protection on public endpoints yet.
 - The service does **not** configure CORS (no custom CORS policy is in place).
-- The service does **not** apply additional security headers (for example, via `@fastify/helmet`).
+- The service **does** apply additional security headers via `@fastify/helmet`, using the plugin's default configuration for both the internal stub server and freshly generated projects. This default configuration is intended as a sensible baseline and can be customized or hardened further in your own application code.
 - The service does **not** perform validation or strict checking of environment variables at startup.
 
 These limitations are expected for an early bootstrap; future versions will introduce additional endpoints and stronger security features.
@@ -56,8 +56,9 @@ Planned areas of improvement include, but are not limited to:
 - Rate limiting or other controls to mitigate abuse.
 - Additional automated security checks in the CI/CD pipeline.
 - Explicit CORS configuration appropriate to your deployment environment.
-- Security headers using Fastify plugins such as `@fastify/helmet` (or equivalent).
+- Security headers using Fastify plugins such as `@fastify/helmet` (or equivalent) **beyond the current default configuration**, including application-specific tuning of policies like CSP.
 - More robust environment-variable validation and configuration checks at startup.
+- Enhanced log redaction rules and clear logging content guidelines to ensure that structured JSON logs (already provided via Fastify's default Pino integration) do not contain sensitive data.
 
 Until these features are implemented and documented, you should treat the service as a minimal building block and place it behind your own security controls appropriate to your environment.
 
@@ -65,9 +66,9 @@ Until these features are implemented and documented, you should treat the servic
 
 ## HTTP Security Headers (REQ-SEC-HEADER-DOCS, REQ-SEC-HELMET-DEFAULT, REQ-SEC-OWASP)
 
-This template is designed to be compatible with `@fastify/helmet`, which is the recommended way to configure common HTTP security headers in line with [OWASP Secure Headers Best Practices](https://owasp.org/www-project-secure-headers/).
+This template uses `@fastify/helmet` by default in both the internal stub server and freshly generated projects. This is the recommended way to configure common HTTP security headers in line with [OWASP Secure Headers Best Practices](https://owasp.org/www-project-secure-headers/).
 
-> Important: A freshly generated project **does not** automatically install or register `@fastify/helmet`. You must explicitly add and configure it in your application bootstrap (for example, in `app.ts` or `server.ts`).
+> Important: A freshly generated project registers `@fastify/helmet` with its default settings. You are expected to review and, if needed, **customize** this configuration (for example, CSP directives) in your application bootstrap (for example, in `app.ts` or `server.ts`).
 
 ### Typical `@fastify/helmet` setup
 
@@ -177,7 +178,7 @@ The following describes the major headers configured by `@fastify/helmet` out of
 
 CSP is one of the most effective mechanisms for mitigating XSS and related injection issues. OWASP recommends adopting a **strict, application-specific CSP** and rolling it out carefully (often starting in `Report-Only` mode).
 
-This template does **not** ship with a hard-coded CSP. Instead, you are expected to configure CSP yourself when you add `@fastify/helmet`. Below are example patterns for safe CSP customization.
+This template does **not** ship with a hard-coded CSP beyond the defaults provided by `@fastify/helmet`. Instead, you are expected to configure CSP yourself when you customize Helmet. Below are example patterns for safe CSP customization.
 
 ### Enabling a basic CSP
 
@@ -392,7 +393,7 @@ To align with OWASP recommendations:
 ## Summary and Acceptance Criteria Mapping
 
 - **REQ-SEC-HEADER-DOCS / REQ-SEC-HELMET-DEFAULT**:  
-  This document explains the typical default headers configured by `@fastify/helmet`, what they do, and which attacks they help mitigate.
+  This document explains the typical default headers configured by `@fastify/helmet`, what they do, and which attacks they help mitigate. It also notes that Helmet is registered by default for both the internal stub server and freshly generated projects.
 - **REQ-SEC-CSP-CUSTOM**:  
   CSP is described with concrete customization examples, including restrictive and environment-specific policies.
 - **REQ-SEC-CORS-DOCS / REQ-SEC-CORS-OPTOUT**:  

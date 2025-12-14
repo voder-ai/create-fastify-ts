@@ -13,10 +13,15 @@ import helmet from '@fastify/helmet';
  * @supports docs/decisions/0002-fastify-web-framework.accepted.md REQ-FASTIFY-SERVER-STUB
  * @supports docs/stories/005.0-DEVELOPER-SECURITY-HEADERS.story.md REQ-SEC-HELMET-DEFAULT
  * @supports docs/stories/005.0-DEVELOPER-SECURITY-HEADERS.story.md REQ-SEC-HEADERS-PRESENT
+ * @supports docs/stories/008.0-DEVELOPER-LOGS-MONITOR.story.md REQ-LOG-STRUCTURED-JSON REQ-LOG-LEVELS-SUPPORT REQ-LOG-AUTO-REQUEST REQ-LOG-ERROR-STACKS REQ-LOG-LEVEL-CONFIG
  * @returns {import('fastify').FastifyInstance} A configured Fastify server instance.
  */
 export function buildServer() {
-  const app = fastify({ logger: true });
+  const nodeEnv = process.env.NODE_ENV ?? 'development';
+  const defaultLogLevel = nodeEnv === 'production' ? 'info' : 'debug';
+  const logLevel = process.env.LOG_LEVEL ?? defaultLogLevel;
+
+  const app = fastify({ logger: { level: logLevel } });
 
   // @supports docs/stories/005.0-DEVELOPER-SECURITY-HEADERS.story.md REQ-SEC-HELMET-DEFAULT REQ-SEC-HEADERS-PRESENT
   app.register(helmet);

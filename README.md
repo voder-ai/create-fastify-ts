@@ -1,6 +1,6 @@
 # Fastify TypeScript Template
 
-A production-ready TypeScript + Fastify template for building REST APIs and microservices. The CLI scaffolds a minimal Fastify app that responds with a Hello World JSON payload on `GET /` in the generated project. Additional production features (security headers, structured logging, and more) are planned as future enhancements.
+A production-ready TypeScript + Fastify template for building REST APIs and microservices. The CLI scaffolds a minimal Fastify app that responds with a Hello World JSON payload on `GET /` in the generated project, with security headers and structured logging configured by default.
 
 ## Quick Start
 
@@ -35,13 +35,13 @@ Requires Node.js 22 or newer (LTS recommended); attempting to install dependenci
 - **Hello World endpoint**: `GET /` returns a simple JSON payload in the generated project
 - **Dev server**: `npm run dev` starts a TypeScript-aware dev server with hot reload
 - **Production build & start**: `npm run build` + `npm start` run the compiled server from `dist/`
+- **Security Headers**: @fastify/helmet registered by default in both the internal stub server and generated projects
+- **Structured Logging**: Fastify's integrated Pino logger with environment-driven log levels
 
 ### Planned Enhancements
 
 These features are planned and not yet implemented in the current template:
 
-- **Security Headers**: Production-ready security via @fastify/helmet
-- **Structured Logging**: Pino for JSON logs
 - **Environment Variable Validation**: Strict runtime configuration validation
 - **CORS Configuration**: Opt-in, configurable CORS for APIs
 
@@ -105,13 +105,14 @@ For details on the programmatic API (including `getServiceHealth`, `initializeTe
 
 Currently implemented:
 
-- Basic Fastify server with a Hello World endpoint
+- Security headers via @fastify/helmet in both the stub server and generated projects
+- Structured JSON logging via Fastify's default Pino integration
 
 Planned security-related enhancements (not yet implemented):
 
 - Environment variable validation
-- CORS opt-in configuration
-- Structured logging with Pino (ensuring no sensitive data in logs)
+- CORS configuration
+- Optional additional hardening of security headers (e.g., custom CSP, stricter policies)
 
 See [Security Overview](user-docs/SECURITY.md) for detailed security guidance and planned practices.
 

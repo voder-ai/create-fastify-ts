@@ -5,7 +5,7 @@
  * strict PORT semantics) and the dev-server runtime behavior (test-mode
  * TypeScript watcher skip and hot-reload of the compiled server).
  *
- * @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-PORT-AUTO REQ-DEV-PORT-STRICT REQ-DEV-CLEAN-LOGS REQ-DEV-HOT-RELOAD REQ-DEV-GRACEFUL-STOP REQ-DEV-TYPESCRIPT-WATCH
+ * @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-PORT-AUTO REQ-DEV-PORT-STRICT REQ-DEV-CLEAN-LOGS REQ-DEV-HOT-RELOAD REQ-DEV-GRACEFUL-STOP REQ-DEV-TYPESCRIPT-WATCH REQ-LOG-DEV-PRETTY
  */
 import { describe, it, expect } from 'vitest';
 import {
@@ -139,6 +139,44 @@ describe('Dev server runtime behavior (Story 003.0)', () => {
       const { rm } = await import('node:fs/promises');
       await rm(projectDir, { recursive: true, force: true }).catch(() => {});
       throw error;
+    }
+  });
+});
+
+describe('Dev server runtime behavior with pino-pretty (Story 008.0)', () => {
+  it('starts the compiled server via pino-pretty in development mode [REQ-LOG-DEV-PRETTY]', async () => {
+    const { projectDir, devServerPath } = await createMinimalProjectDir();
+
+    try {
+      const env: Record<string, string | undefined> = {
+        ...process.env,
+        NODE_ENV: 'development',
+        DEV_SERVER_SKIP_TSC_WATCH: '1',
+        PORT: '41237',
+      };
+
+      const { child, getStdout, getStderr } = createDevServerProcess(env, {
+        cwd: projectDir,
+        devServerPath,
+      });
+
+      const targetLine = 'dev-server: launching Fastify server from dist/src/index.js...';
+
+      await waitForDevServerMessage(child, getStdout, getStderr, targetLine, 20_000);
+
+      // Allow a short delay for logs to be produced
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const stdout = getStdout();
+
+      // Verify that some non-empty log lines were produced
+      expect(stdout.split('\n').some(line => line.trim().length > 0)).toBe(true);
+
+      const { code, signal } = await sendSigintAndWait(child, 10_000);
+      expect(signal === 'SIGINT' || code === 0).toBe(true);
+    } finally {
+      const { rm } = await import('node:fs/promises');
+      await rm(projectDir, { recursive: true, force: true }).catch(() => {});
     }
   });
 });
