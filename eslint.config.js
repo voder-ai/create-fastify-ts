@@ -27,7 +27,7 @@ export default [
       },
     },
     rules: {
-      complexity: ['error', { max: 20 }],
+      complexity: 'error',
       'max-lines-per-function': ['error', { max: 80 }],
       'max-lines': ['error', { max: 300 }],
     },

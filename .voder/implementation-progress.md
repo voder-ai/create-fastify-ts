@@ -1,649 +1,273 @@
 # Implementation Progress Assessment
 
-**Generated:** 2025-12-14T16:16:01.236Z
+**Generated:** 2025-12-14T16:45:55.185Z
 
 ![Progress Chart](./progress-chart.png)
 
-Projected completion (from current rate): cycle 35.5
+Projected completion (from current rate): cycle 51.0
 
-## IMPLEMENTATION STATUS: INCOMPLETE (93% ± 18% COMPLETE)
+## IMPLEMENTATION STATUS: INCOMPLETE (91% ± 18% COMPLETE)
 
 ## OVERALL ASSESSMENT
-Overall implementation quality is very high across nearly all dimensions, with excellent documentation, healthy dependencies, strong automated testing, and a robust CI/CD pipeline that uses semantic-release and enforces security checks. Code quality, execution, and tooling are all near-production-grade, and version control practices (including .voder handling and generated-project hygiene) are well structured. However, the system is still considered INCOMPLETE because functional coverage of the documented stories is not yet at the required level: at least one story (004.0 previously, and more broadly functionality at 88%) lags behind the other areas. Until the remaining functional requirements and their tests are fully implemented and validated, overall status must remain below the target completion threshold despite the otherwise mature engineering practices.
+Overall implementation quality is high and the core functionality is fully delivered, but the project remains marked INCOMPLETE because not all quality dimensions meet the stringent global threshold. Functionality is at 100%, with all eight stories implemented and validated via traceable, requirement-focused tests. Testing and execution are excellent (mid‑90s), with a robust Vitest suite, clear coverage strategy (core vs extended), realistic generated‑project smoke tests, and clean build/lint/type-check pipelines. Dependencies and release automation are near-ideal, with fresh, vulnerability-free packages and semantic‑release driven continuous deployment. However, documentation (82%), code quality (80%), security (88%), and version control (90%) fall short of the 95% overall bar due to a few known gaps: some user docs drift from actual generated-project behavior, there is moderate duplication and some larger/denser tests, security docs and templates (e.g., env examples) could be tighter, and a small amount of configuration and structural polish remains. These are refinements rather than structural issues, but under the defined thresholds they keep the overall status at INCOMPLETE.
 
 
 
-## CODE_QUALITY ASSESSMENT (94% ± 18% COMPLETE)
-- Code quality is excellent. Modern tooling (ESLint 9, Prettier 3, strict TypeScript, jscpd) is properly configured, all checks pass locally and in CI, and hooks enforce them on every commit/push. Complexity and size limits are at or better than recommended defaults with no disabled rules. The only notable debt is moderate duplication in some integration/end‑to‑end test files, which is below configured thresholds but worth gradually refactoring.
-- All core quality tools pass:
-- `npm run lint` (ESLint 9 with `@eslint/js` recommended + TS parser) passes with no errors.
-- `npm run format:check` (Prettier 3) reports all files properly formatted.
-- `npm run type-check` (tsc `--noEmit`, strict mode) passes with no type errors.
-- `npm run duplication` (jscpd `--threshold 20 src scripts`) passes; overall duplication is below the configured threshold.
-- ESLint configuration is strong and not relaxed:
-- Uses `@eslint/js` recommended config.
-- TypeScript files use `@typescript-eslint/parser` with modern `ecmaVersion` and `sourceType: 'module'.
-- Complexity and size rules are enabled at good thresholds:
-  - `complexity: ['error', { max: 20 }]` (target default; no relaxed high value).
-  - `max-lines-per-function: ['error', { max: 80 }]`.
-  - `max-lines: ['error', { max: 300 }]`.
-- Lint passing implies no functions exceed these limits.
-- TypeScript configuration supports quality:
-- `strict: true`, `forceConsistentCasingInFileNames: true`, `esModuleInterop: true`.
-- `rootDir: ./src`, `outDir: dist` with clean separation of source/build.
-- Excludes `dist`, `node_modules`, and one special test file (`src/dev-server.test.ts`) for Node `--test` usage.
-- No `skip` of relevant source; type checking applies to actual implementation files.
-- Duplication is moderate and localized mostly to tests:
-- jscpd summary:
-  - JavaScript: 0% duplicated lines.
-  - TypeScript: ~11.5% duplicated lines, ~13.7% duplicated tokens; 17 clones found.
-  - Overall: ~8.9% duplicated lines, ~11.2% duplicated tokens.
-- Clones are concentrated in test files like `src/generated-project-production*.test.ts`, `src/generated-project-logging.test.ts`, `src/dev-server.test.ts`, `src/cli.test.ts`.
-- No evidence of high (>20–30%) duplication in any production file; no duplication in core TS/JS modules that would warrant DRY penalties.
-- No disabled quality checks in project code:
-- Grep and documentation evidence show no `/* eslint-disable */`, `eslint-disable-next-line`, `@ts-nocheck`, `@ts-ignore`, or `@ts-expect-error` in `src`, `scripts`, or `.husky`.
-- All such suppressions are confined to `node_modules`.
-- This means configured ESLint and TypeScript rules are fully enforced with no hidden skips.
-- Production code is clean and test‑free:
-- `src/index.ts` exposes a simple `getServiceHealth` and re‑exports initializer functions; no test or mock imports.
-- `src/cli.ts` is a focused CLI wrapper around `initializeTemplateProjectWithGit`, with clear user messages and simple argument handling; no test logic.
-- `src/server.ts` defines `buildServer` and `startServer` using `fastify` and `@fastify/helmet`, with a health endpoint and structured logging; no test‑only behavior in production paths.
-- `scripts/check-node-version.mjs` and `scripts/copy-template-files.mjs` are small, single‑purpose scripts using only Node core and project modules.
-- Script centralization and tooling integration are excellent:
-- `package.json` scripts cover all dev tools: `build`, `test`, `lint`, `lint:fix`, `duplication`, `type-check`, `format`, `format:check`, `release`.
-- Dev scripts in `scripts/` are all referenced from `package.json` (no orphan scripts): `check-node-version.mjs` via `preinstall`, `copy-template-files.mjs` via `build`.
-- No build/tooling anti‑patterns such as `prelint`/`preformat` running `build`; all tools operate directly on source files.
-- Git hooks enforce quality locally:
-- `.husky/pre-commit`: runs `npm run format` and `npm run lint` → fast style and lint checks on every commit.
-- `.husky/pre-push`: runs `npm run build`, `npm test`, `npm run lint`, `npm run type-check`, `npm run format:check` → mirrors CI checks pre‑push.
-- This matches the desired pattern of quick checks on commit and full gate on push.
-- CI/CD workflow supports code quality:
-- `.github/workflows/ci-cd.yml` triggers on `push` to `main` only, with a single `quality-and-deploy` job.
-- Steps: `npm ci`, `npm audit --omit=dev --audit-level=high`, `npm run lint`, `npm run type-check`, `npm run build`, `npm test`, `npm run format:check`, `npx dry-aged-deps` (non‑blocking), `npx semantic-release`.
-- Post‑release smoke test installs the published package and verifies `getServiceHealth()` returns `"ok"`.
-- This ensures the same quality gates apply in CI as locally, and release only happens when quality checks pass.
-- Naming, comments, and error handling are clear and consistent:
-- Functions and files have descriptive names (`buildServer`, `startServer`, `initializeTemplateProjectWithGit`, `enforceMinimumNodeVersionOrExit`).
-- JSDoc and inline comments explain intent (why) rather than repeating obvious implementation details.
-- `@supports` annotations link implementation to specific stories and ADRs, aiding maintainability.
-- Error handling uses clear user‑facing messages and non‑zero exits where appropriate; no silent failures in production scripts.
-- No AI slop or temporary artifacts detected:
-- No placeholder comments or generic AI‑style boilerplate; comments reference concrete decisions and stories.
-- No `.patch`, `.diff`, `.rej`, `.bak`, `.tmp`, or `*~` files are present.
-- No empty or trivial source files; `.d.ts` files serve a clear typing purpose.
-- Test files, while somewhat verbose in places, are purposeful and behavior‑focused rather than boilerplate. 
-- Overall, the codebase appears intentionally structured and maintained, not auto‑generated without review.
+## CODE_QUALITY ASSESSMENT (80% ± 18% COMPLETE)
+- The project has a strong code-quality foundation: linting, formatting, type-checking, and duplication checks are all configured and passing; Husky hooks enforce them; production code is clean, typed, and readable with good naming and traceability annotations. The main quality debt is moderate duplication in larger integration tests and a few small configuration refinements (e.g., explicit complexity max, one test file excluded from type-checking). Overall this is a high-quality, maintainable codebase with some room for polish.
+- {"area":"Tooling and Quality Gates","finding":"Linting, formatting, type-checking, and duplication checks are all configured and passing.","evidence":["npm run lint → exit code 0 (uses `eslint .` with eslint.config.js)","npm run format:check → exit code 0 (Prettier 3.7.4, `prettier --check .`)","npm run type-check → exit code 0 (tsc --noEmit, strict: true)","npm run duplication → exit code 0 (jscpd --threshold 20 src scripts, overall duplicated lines 8.94%, tokens 11.24%)","npm test → exit code 0 (Vitest 4.0.15, all tests pass)"],"impact":"Strong baseline: tools are set up correctly and run cleanly, which supports maintainability and early detection of issues."}
+- {"area":"Linting Configuration and Complexity","finding":"ESLint is configured with modern flat config, recommended rules, and explicit complexity/size limits appropriate for the current codebase.","evidence":["eslint.config.js imports @eslint/js and @typescript-eslint/parser and uses js.configs.recommended.","Global languageOptions extend recommended globals and add Node/DOM-ish globals (process, console, setTimeout, URL, etc.).","TypeScript files block applies parser and rules:","  - complexity: ['error', { max: 20 }] (ESLint default target)","  - 'max-lines-per-function': ['error', { max: 80 }]","  - 'max-lines': ['error', { max: 300 }]","Ignores: dist/**, node_modules/**, **/*.d.ts, vitest.config.mts.","npm run lint passes with these rules; no overrides or per-file relaxations observed."],"impact":"Complexity and size constraints are in place and enforced. complexity=20 meets the target. Function and file size limits are reasonable (stricter than the 500-line file guideline, under the 100-line function hard limit). The only minor nit is that complexity still uses an explicit max value instead of `complexity: 'error'` now that it’s at the default."}
+- {"area":"Formatting","finding":"Prettier is configured and consistently enforced across the repo.","evidence":["package.json: devDependency \"prettier\": \"3.7.4\".","scripts: \"format\": \"prettier --write .\", \"format:check\": \"prettier --check .\".","npm run format:check → All matched files use Prettier code style!","Spot checks of src/index.ts, src/cli.ts, src/server.ts, src/initializer.ts show consistent formatting (indentation, quotes, semicolons, line wrapping).",".husky/pre-commit runs `npm run format` (auto-fix) before lint."],"impact":"Consistent automated formatting improves readability and reduces review noise. Pre-commit enforcement ensures new changes stay formatted."}
+- {"area":"Type Checking","finding":"TypeScript is configured in strict mode and type-checking passes for the main codebase.","evidence":["tsconfig.json:","  - compilerOptions: { target: ES2022, module: NodeNext, moduleResolution: NodeNext, rootDir: ./src, outDir: dist }","  - strict: true, esModuleInterop: true, forceConsistentCasingInFileNames: true, resolveJsonModule: true, declaration: true.","  - skipLibCheck: true (standard trade-off for speed).","  - include: [\"src\"].","  - exclude: [\"dist\", \"node_modules\", \"src/dev-server.test.ts\"].","npm run type-check (tsc --noEmit) → exit code 0."],"impact":"Production and most test code benefit from strict typing, aiding maintainability and catching many classes of bugs. One integration test file is excluded from type-checking (see next item), which is a small but real gap."}
+- {"area":"Type-Checking Coverage Gaps","finding":"One test file is explicitly excluded from tsc, leaving a small untyped island.","evidence":["tsconfig.json exclude includes \"src/dev-server.test.ts\" with a comment referencing Node's `--test` mode execution.","That file is significant and non-trivial (multiple async integration tests orchestrating dev server processes)."],"impact":"Given the complexity of dev-server.test.ts, not having tsc validate it slightly reduces safety for that area. This is moderate debt but confined to tests, not production runtime."}
+- {"area":"Duplication (DRY)","finding":"jscpd reports moderate duplication concentrated in complex integration tests; production code shows no meaningful duplication.","evidence":["npm run duplication (jscpd --threshold 20 src scripts) passes but reports 17 clones.","Summary: 23 files, 3188 lines; duplicated lines 285 (8.94%), duplicated tokens 11.24%.","Clone locations are all in test code and helpers, e.g.:","  - src/server.test.ts (two similar blocks ~12 lines).","  - src/generated-project-production.test.ts and src/initializer.test.ts (shared project-init sequences).","  - src/generated-project-production-npm-start.test.ts and src/generated-project-production.test.ts (duplicated runtime smoke test flows, 42+ line segments).","  - src/generated-project-logging.test.ts shares large blocks (55+ lines) with src/generated-project-production*.test.ts.","  - src/dev-server.test.ts has self-duplication (two similar 9–11 line blocks).","No clones reported in src/server.ts, src/index.ts, src/cli.ts, src/initializer.ts, or scripts/*.mjs."],"impact":"Because duplication is mostly in larger integration tests, it mainly affects test maintainability: changing flows requires edits in multiple places and increases chance of inconsistencies. Overall duplication is below 20%, but some individual test files have substantial repeated sequences. This warrants a modest penalty."}
+- {"area":"Disabled Quality Checks / Suppressions","finding":"No project code uses `eslint-disable`, `@ts-nocheck`, or `@ts-ignore`; suppressions appear only in third-party node_modules.","evidence":["grep -R eslint-disable . → only hits in node_modules and .voder/implementation-progress.md commentary; none in src, scripts, or .husky.","grep -R @ts-nocheck . and @ts-ignore . → only hits in node_modules and tooling libraries.","Spot checks of src/index.ts, src/cli.ts, src/server.ts, src/initializer.ts show no inline disabling comments.",".voder/implementation-progress.md explicitly documents that project code avoids these suppressions."],"impact":"This is very positive. Issues are addressed rather than hidden, improving long-term robustness and easing static analysis."}
+- {"area":"Production Code Purity & Test Boundaries","finding":"Production modules are cleanly separated from test logic; no test imports in production code.","evidence":["Production-oriented files (src/index.ts, src/cli.ts, src/server.ts, src/initializer.ts) only import node:* stdlib and runtime libs (fastify, @fastify/helmet) or local implementation modules.","Test files under src (e.g., *.test.ts, *.test.js, dev-server.test-helpers.ts) import vitest and testing utilities, but nothing from them bleeds into production exports.","No jest/mocha/sinon/mock imports in production files (search for 'jest' and 'vitest' in src show usage only in tests)."],"impact":"Keeps runtime dependencies minimal and avoids shipping test-only logic into consumers’ environments, which is good practice for templates and generators."}
+- {"area":"File and Function Size","finding":"File and function size constraints are reasonable and enforced; key files are within healthy limits.","evidence":["ESLint rules:","  - 'max-lines': ['error', { max: 300 }] (strict vs 500-line failure guideline).","  - 'max-lines-per-function': ['error', { max: 80 }].","npm run lint passes, implying no functions exceed 80 lines and no files exceed 300 lines.","Spot checks:","  - src/index.ts: very small (few lines, 1 function + re-exports).","  - src/server.ts: ~50–60 lines, 2 functions (buildServer, startServer) both short and focused.","  - src/initializer.ts: longer but well-factored into smaller helpers (createTemplatePackageJson, copyTextTemplate, scaffoldProject, initializeTemplateProject, initializeGitRepository, etc.), instead of one monolithic function."],"impact":"Encourages maintainable, focused functions and prevents the emergence of god files/classes. The chosen thresholds are balanced and currently satisfied."}
+- {"area":"Naming, Clarity, and Traceability","finding":"Names are clear, self-documenting, and code is well-annotated with requirement traceability.","evidence":["Function names like getServiceHealth, buildServer, startServer, initializeTemplateProject, initializeGitRepository, copyTextTemplate, scaffoldProject clearly describe behavior.","CLI entrypoint (src/cli.ts) uses descriptive messaging and clear argument parsing logic.","JSDoc-style comments with @supports annotations link code to story/ADR files, e.g.:","  - src/index.ts getServiceHealth: @supports docs/decisions/0001-typescript-esm.accepted.md REQ-TSC-BOOTSTRAP.","  - src/server.ts buildServer: multiple @supports lines for security headers and logging stories.","  - src/initializer.ts functions reference template-init, dev-server, and production build stories.","No misleading abbreviations or unclear variable names observed in sampled files."],"impact":"High clarity and explicit traceability make the codebase approachable for new contributors and support requirements-level reasoning. This is well above average for templates."}
+- {"area":"Error Handling Patterns","finding":"Error handling is consistent and context-aware in key components.","evidence":["src/cli.ts:","  - Validates projectName; prints clear usage message and sets `process.exitCode = 1` instead of calling process.exit directly.","  - Wraps initialization in try/catch; logs user-friendly error message including the error object and sets a failing exitCode.","src/initializer.ts:","  - initializeTemplateProject validates non-empty project name and throws a descriptive Error.","  - initializeGitRepository captures errors from `git init`, normalizes to a GitInitResult object with errorMessage, and does not crash the process.","  - Fallback logic in scaffoldProject: attempts to read package.json.template; on failure uses createTemplatePackageJson, ensuring scaffolding still succeeds."],"impact":"Consistent, non-silent error handling improves robustness and user experience, especially important for CLI generators where users run commands in varied environments."}
+- {"area":"Git Hooks and Developer Workflow","finding":"Husky hooks enforce quality gates at appropriate times, though pre-commit is relatively heavy.","evidence":[".husky/pre-commit:","  - npm run format","  - npm run lint",".husky/pre-push:","  - npm run build","  - npm test","  - npm run lint","  - npm run type-check","  - npm run format:check","These align with the documented requirement that pre-commit run formatting and fast checks, and pre-push run the full quality suite.","All referenced scripts exist in package.json and run successfully."],"impact":"Ensures issues are caught before commits/pushes. The only consideration is that formatting the entire repo on every commit can be slightly heavy; however, this trades some speed for stronger guarantees and matches the defined process requirements."}
+- {"area":"Scripts Directory and Centralization","finding":"All scripts under scripts/ are wired through package.json; no orphaned or unused dev scripts.","evidence":["scripts/ contents:","  - check-node-version.mjs (+ .d.ts).","  - copy-template-files.mjs.","package.json scripts:","  - preinstall uses ./scripts/check-node-version.mjs (guarded by fs.existsSync).","  - build uses node ./scripts/copy-template-files.mjs after tsc.","No other stray scripts found; no shell scripts outside this contract."],"impact":"Respects the 'contract centralization' pattern; developers can discover scripts via npm run, and there are no dead or confusing helper scripts."}
+- {"area":"AI Slop and Temporary Artifacts","finding":"No evidence of AI-generated slop in code; temporary and patch files appear absent.","evidence":["Code in src/* is focused, specific, and aligned to stories/ADRs; no generic or template-y placeholder functions.","No files with only comments or TODO placeholders.","No .patch, .diff, .rej, .bak, .tmp, or editor backup (~) files found in the inspected paths.","Comments explain 'why' (design intent, trade-offs, fallback behavior) rather than restating obvious 'how'."],"impact":"Indicates careful, intentional development rather than bulk-generated code; reduces risk of hidden bugs and weird edge-case behavior."}
+- {"area":"Versioning and Release Tooling (Quality-related aspects)","finding":"semantic-release is configured as a devDependency and wired via npm script, but this is orthogonal to code quality tools and appears correctly isolated.","evidence":["package.json devDependencies include \"semantic-release\": \"25.0.2\" and \"@semantic-release/exec\".","script: \"release\": \"semantic-release\".","No quality tool depends on build artifacts unnecessarily: lint, format, type-check, duplication scripts all run on source without preceding build steps.","No prelint/preformat hooks that call build."],"impact":"Release automation does not interfere with quality tooling, preserving a clean and efficient developer feedback loop. This supports rather than hinders code quality."}
 
 **Next Steps:**
-- Refactor the most duplicated test flows into shared helpers:
-- Target `src/generated-project-production.test.ts`, `src/generated-project-production-npm-start.test.ts`, `src/generated-project-logging.test.ts`, `src/dev-server.test.ts`, and `src/cli.test.ts`.
-- Extract common project‑setup, server‑startup, and assertion logic into reusable functions (e.g., in `dev-server.test-helpers.ts` or a new `test-utils` module).
-- This will reduce the ~11.5% TypeScript duplication and make tests easier to maintain without touching production code.
-- Optionally enhance duplication tooling for finer insights:
-- Keep `npm run duplication` as‑is for a quick global check.
-- Add an optional script like `"duplication:report": "jscpd --threshold 20 --reporters json src scripts"` so developers can inspect per‑file duplication percentages and prioritize refactors accordingly.
-- Maintain current complexity and size standards for new code:
-- Keep new or modified functions below complexity 20 and preferably well below the 80‑line per‑function and 300‑line per‑file limits.
-- When a function begins to approach those limits, favor extracting smaller helpers rather than raising thresholds or adding suppressions.
-- Preserve the suppression‑free state:
-- When integrating new libraries or features, avoid introducing `eslint-disable` or TypeScript ignore comments in project code.
-- If a suppression is temporarily unavoidable (e.g., faulty external types), scope it as narrowly as possible and document it clearly with an intent to remove once upstream is fixed.
-- Continue using the centralized script and hook model for any future tools:
-- Add all new dev tools via `package.json` scripts and, where appropriate, integrate them into Husky hooks and CI.
-- Keep pre‑commit hooks fast (format + lint) and pre‑push hooks aligned with CI (build, test, lint, type‑check, format check) to maintain the current high bar for code quality.
+- {"priority":"high","action":"Refactor duplicated integration test logic into shared helpers to reduce jscpd-reported clones, especially among generated-project-*.test.ts and dev-server.test.ts.","rationale":"jscpd reports 17 clones with substantial repeated blocks (20–55+ lines) across generated-project-production*.test.ts, generated-project-logging.test.ts, and dev-server tests. Extracting common flows—for example, 'initialize template project and run production server', 'start dev server and wait for log message'—into reusable helper functions will reduce duplication, centralize behavior, and make tests easier to maintain.","concrete_steps":["Identify the longest repeated sequences from the jscpd output (start from src/generated-project-production.test.ts, src/generated-project-production-npm-start.test.ts, src/generated-project-logging.test.ts, src/dev-server.test.ts).","Create or extend existing test helper modules (e.g., src/generated-project-helpers.ts, src/dev-server.test-helpers.ts) with reusable functions encapsulating those flows.","Update the duplicate sites to use the new helpers.","Re-run: npm run duplication, npm run lint, npm test, npm run type-check."]}
+- {"priority":"medium","action":"Bring the ESLint complexity rule to the 'default' form by removing the explicit max object once you’re confident no functions rely on a higher threshold.","rationale":"You are already at the target complexity threshold (max: 20). The recommended final state is `complexity: 'error'` without an explicit max, matching ESLint defaults and documenting that no relaxed threshold is in use.","concrete_steps":["In eslint.config.js, change `complexity: ['error', { max: 20 }]` to `complexity: 'error'`.","Run: npm run lint to confirm no new issues.","Commit with message like: `chore: use default complexity threshold`."]}
+- {"priority":"medium","action":"Extend type-checking to cover src/dev-server.test.ts or document why it must remain excluded.","rationale":"dev-server.test.ts is a non-trivial file orchestrating processes and timeouts. Leaving it out of tsc strict checking is a small but avoidable gap. If Node test-runner integration requires special handling, that should be clearly documented.","concrete_steps":["Try removing \"src/dev-server.test.ts\" from tsconfig.json exclude and run: npm run type-check.","If type errors arise, either fix the types in that test or add minimal ambient declarations for any Node-specific globals it uses.","If it truly cannot be type-checked (e.g., due to Node’s experimental test runner constraints), add a comment explaining the reason and the trade-offs above the exclude entry."]}
+- {"priority":"medium","action":"Optionally slim down pre-commit formatting scope to staged files only to keep commit hooks consistently fast.","rationale":"Current pre-commit runs `npm run format` on the entire repo, which can become slow as the project grows. Running format on only staged files maintains the same guarantees for new changes while keeping hook run-time comfortably under ~10 seconds.","concrete_steps":["Introduce a small helper using lint-staged or a custom script (e.g., `lint-staged` config or `prettier --write` on `git diff --name-only --cached`).","Update .husky/pre-commit to call that helper instead of global `npm run format`.","Ensure that a full-format command remains available for periodic repo-wide normalization (keep `npm run format`)."]}
+- {"priority":"low","action":"Consider lowering max-lines-per-function from 80 toward 60–70 over time, using the incremental ratcheting strategy.","rationale":"While 80 lines per function is under the 100-line hard fail guideline, shorter functions (ideally <50) are easier to understand and test. Ratcheting down gradually helps prevent overly large functions from accumulating as the codebase grows.","concrete_steps":["Experiment locally (without committing) with: `npx eslint src --rule 'max-lines-per-function: [\"error\", { max: 70 }]` to see where violations appear.","Refactor the offending functions into smaller, focused helpers where it improves clarity.","Once violations are resolved in targeted areas, update eslint.config.js to the new max value and commit with a message like `refactor: reduce max-lines-per-function threshold`.","Repeat in future cycles as appropriate, aiming for ~60 as a comfortable standard."]}
+- {"priority":"low","action":"Document jscpd usage and thresholds in development docs so contributors understand duplication expectations.","rationale":"Developers may not realize that duplication is being actively monitored at an 8–20% range. Brief documentation in docs/ on how to run and interpret jscpd results will encourage them to factor out common logic proactively.","concrete_steps":["Add a short section to a dev doc (e.g., docs/decisions or a contributing guide) describing `npm run duplication`, the current threshold (20%), and expectations for refactoring large repeated blocks.","Include example output and guidance on extracting helpers vs. when some duplication (especially in tests) is acceptable."]}
 
-## TESTING ASSESSMENT (94% ± 19% COMPLETE)
-- Testing in this project is excellent: it uses Vitest correctly, all tests pass, coverage is high with enforced thresholds, tests are well-structured and strongly traceable to stories/ADRs, and they respect isolation and non-interactive execution. Minor opportunities remain around tiny bits of logic in tests and a few uncovered branches in helper code, but nothing blocking.
-- Uses an established framework (Vitest 4.x) with proper configuration:
-  - `vitest.config.mts` defines include/exclude patterns and coverage thresholds (80% for lines/statements/branches/functions).
-  - `package.json` scripts: `test: "vitest run"` and `test:coverage: "vitest run --coverage ..."` are non-interactive and aligned with project tooling.
-
-- All tests pass (absolute requirement met):
-  - `npm test` exits 0 and runs 11 test files (10 executed, 1 skipped) with 56 passed, 3 skipped tests.
-  - Skipped tests (`it.skip` / `describe.skip`) are explicitly marked as optional heavy E2E (e.g., CLI+dev-server flow, npm-based production start) and do not hide failures.
-
-- Coverage is high and meets configured thresholds:
-  - `npm run test:coverage` exits 0, reports ~91–92% statements/lines, ~85% branches, ~92% functions overall.
-  - Core modules `src/index.ts` and `src/server.ts` are at 100% for all metrics.
-  - `src/initializer.ts` and `src/dev-server.test-helpers.ts` are very well covered with only a few uncovered branches, which are non-critical helper paths.
-
-- Test isolation and repo cleanliness are exemplary:
-  - All scaffolding/generator tests use OS temp directories via `fs.mkdtemp(path.join(os.tmpdir(), ...))` and clean up with `fs.rm(..., { recursive: true, force: true })` in `afterEach`/`afterAll` or `finally` blocks.
-  - No tests create or modify files under the repository root; generated projects live only in temp dirs.
-  - `src/repo-hygiene.generated-projects.test.ts` enforces that known generated-project directories are **not** present in the repo, protecting against accidental commits of test artifacts.
-
-- Tests are non-interactive and finish promptly:
-  - `npm test` runs Vitest once (no watch mode) and completes in ~3–4 seconds in the observed run.
-  - Some tests spawn child processes (dev server, compiled server, tsc) but all are controlled with explicit timeouts and clean SIGINT shutdown; no user input is required.
-
-- Test quality and coverage of behaviors, errors, and edges are strong:
-  - Node version tests (`check-node-version.test.js`) cover parsing variants, version comparisons, and both acceptance and rejection with clear messages containing documentation links.
-  - Initializer tests (`initializer.test.ts`) validate directory creation, minimal but complete `package.json` (ESM, scripts, deps), `tsconfig.json`, README content, `.gitignore` patterns, Fastify hello-world stub, name validation (empty names rejected, whitespace trimmed), and git initialization behavior under both presence and absence of git.
-  - Server tests (`server.test.ts`) cover `/health` (GET/HEAD), unknown routes (404 JSON errors), malformed JSON bodies (400 with helpful message), `startServer` happy path on ephemeral ports, failure on invalid ports, security headers from `@fastify/helmet`, and environment-driven logging level configuration.
-  - Dev server tests (`dev-server.test.ts` + helpers) cover port resolution (auto vs strict), invalid/occupied ports raising `DevServerError`, dev runtime behavior under `DEV_SERVER_SKIP_TSC_WATCH`, hot-reload on `dist` changes, and `pino-pretty` behavior in development.
-  - Generated project tests validate tsc builds, presence of JS/d.ts/maps in dist, starting compiled server from dist with `src/` removed, `/health` behavior, absence of TS/source references in production logs, and logging level behavior (JSON logs at info, suppressed request logs at error).
-
-- Test structure, names, and traceability are high-quality:
-  - All major test files include JSDoc `@supports` annotations pointing to specific `docs/stories/...` and `docs/decisions/...` files with requirement IDs (e.g., `REQ-DEV-PORT-AUTO`, `REQ-BUILD-TSC`, `REQ-LOG-LEVEL-CONFIG`).
-  - `describe` blocks often include story numbers or requirement IDs (e.g., `Template initializer (Story 001.0) [REQ-INIT-DIRECTORY]`, `Generated project production build (Story 006.0) [REQ-BUILD-TSC]`).
-  - `it` descriptions are behavior-focused and descriptive, frequently including REQ IDs for clear mapping.
-  - Test file names are accurate and feature-oriented (`initializer.test.ts`, `server.test.ts`, `dev-server.test.ts`, `generated-project-production.test.ts`, etc.) with no misuse of coverage terminology in names.
-
-- Tests are largely independent and deterministic:
-  - Each suite sets up its own state, typically using fresh temp directories and process environment isolation (saving/restoring `process.cwd()` and env vars in `beforeEach`/`afterEach`).
-  - Generated-project suites reuse a single project per file via `beforeAll`, but individual tests operate on distinct aspects (build outputs, runtime behavior) without hidden ordering assumptions.
-  - Timing-sensitive operations (server startup, log emission) are managed via polling-with-timeouts (`waitForDevServerMessage`, `waitForHealth`), and ports are either random/ephemeral or chosen carefully, reducing flakiness risk; both observed runs completed cleanly.
-
-- Appropriate use of test helpers/data builders and testability-friendly design:
-  - Helpers like `createMinimalProjectDir`, `createFakeProjectForHotReload`, `expectBasicScaffold`, `expectHealthOk`, `sendSigintAndWait`, and `startCompiledServerViaNode` encapsulate common setup and teardown, making tests concise and consistent.
-  - Application code exposes clean, testable interfaces (`buildServer`, `startServer`, `initializeTemplateProject`, `initializeTemplateProjectWithGit`, and pure functions in `check-node-version.mjs`).
-
-- Minor areas for potential improvement (non-blocking):
-  - A few tests contain simple loops or small bits of logic (e.g., collecting multiple `getServiceHealth()` results) rather than separate parameterized cases; this is minor and does not impact clarity.
-  - A couple of helper branches (`initializer.ts`, dev-server helpers) remain uncovered, though they are not critical paths; increasing coverage there would polish already-strong metrics.
-  - Not every `describe` string explicitly mentions the story ID even though the file-level `@supports` does; adding story references in all describe blocks would make test reports even more self-documenting from a requirements perspective.
+## TESTING ASSESSMENT (96% ± 19% COMPLETE)
+- Testing in this project is excellent and effectively production‑ready. It uses Vitest correctly, all tests pass, coverage is high with enforced thresholds, tests are isolated and non‑interactive, and there is strong traceability from tests back to requirements and ADRs.
+- Framework: Uses Vitest (modern, actively maintained) with a clear ADR (0004) backing the choice. `npm test` runs `vitest run` in non‑interactive mode.
+- Execution: `npm test` succeeds with all active tests passing (10 files passed, 1 skipped by design). Skipped suites are explicitly marked as optional/heavy, not flaky failures.
+- Coverage: `npm run test:coverage` succeeds with overall coverage ~92% lines and ~85% branches, exceeding configured 80% thresholds in `vitest.config.mts`. Coverage is enforced, not just measured.
+- Scope: Tests cover unit behavior (`index`, node‑version checker), integration (Fastify server, initializer), CLI wiring, dev‑server behavior (ports, hot reload, signals), generated-project E2E scenarios (build + production runtime + logging), and repo hygiene for generated projects.
+- Isolation & cleanliness: All filesystem‑writing tests use OS temp directories (`fs.mkdtemp` with `os.tmpdir()`), and clean them up with `fs.rm(..., { recursive: true, force: true })`. No tests create/modify tracked repo files; a dedicated hygiene test ensures generated projects are never committed.
+- Non‑interactive & deterministic: Default test commands are non‑watch and non‑interactive. Long‑running behaviors (servers, dev server, generated projects) are orchestrated via child processes with bounded timeouts and stdout polling; failures would surface clear diagnostics. Current runs show stable, fast execution (~3–4s).
+- Error & edge cases: Tests exercise malformed JSON requests, unknown routes, invalid/occupied ports, empty/whitespace project names, missing git, and Node versions below minimum, as well as success paths for all of these.
+- Structure & readability: Test files are well‑named (`server.test.ts`, `initializer.test.ts`, etc.), test names describe behavior, and tests use clear Arrange–Act–Assert patterns. Helper modules (e.g., `dev-server.test-helpers.ts`) encapsulate common setup/teardown and process control.
+- Traceability: Nearly all test files include `@supports` annotations pointing to specific story/ADR markdown files plus requirement IDs; describe blocks and test names include story numbers and `[REQ-...]` tags, giving strong bidirectional traceability.
+- Independence: Tests are self‑contained, set up their own environment/dirs, and restore global state (e.g., `process.cwd()`, env vars) after each run. There is no indication of order dependence or shared mutable state issues.
 
 **Next Steps:**
-- Optionally increase coverage on remaining uncovered branches in `src/initializer.ts` and `src/dev-server.test-helpers.ts` by adding focused unit tests for those specific code paths, pushing branch coverage closer to 100% for core initializer/server behavior.
-- Where tests currently use simple loops to repeat assertions (e.g., calling `getServiceHealth()` repeatedly), consider refactoring to parameterized tests or clearer per-case assertions to fully align with the “no logic in tests” guideline—this is mainly stylistic but can further improve readability.
-- For maximum traceability in test reports, standardize `describe` titles to always include the story identifier (e.g., `Story 001.0`) and associated REQ IDs, complementing the existing JSDoc `@supports` annotations, especially in utility/hygiene suites like `repo-hygiene.generated-projects.test.ts`.
-- If any flakiness ever appears in CI around dev-server or production tests, tune timeouts and prefer ephemeral ports (`port: 0` + reading actual port from logs) over fixed port numbers, following patterns already used in some tests. The current setup worked well in observed runs but can be further hardened as the CI environment evolves.
+- Keep the heaviest E2E suites (especially npm‑based production start) optional via `describe.skip` and document clearly when to enable them (e.g., pre‑release or extended CI).
+- Optionally factor out a small shared helper for "wait for regex in stdout with timeout" to slightly simplify dev‑server and generated‑project tests and centralize readiness polling behavior.
+- Maintain current practices when adding new features: add targeted unit/integration/E2E tests, ensure they use temp directories, and include `@supports` + `[REQ-...]` traceability so the suite stays consistent and robust as the project evolves.
 
 ## EXECUTION ASSESSMENT (94% ± 18% COMPLETE)
-- Execution quality is high. The TypeScript build, linting, formatting, and type-checking all pass locally. The Vitest suite exercises both the template library and fully generated Fastify projects (including real HTTP servers, dev server behavior, and CLI flows). Runtime resources are cleaned up correctly, and there are no database or caching concerns at this stage. Overall, this is close to production-ready from a runtime perspective.
-- Build process works and matches configuration:
-- `npm run build` completes successfully, running `tsc -p tsconfig.json` then `node ./scripts/copy-template-files.mjs`.
-- `package.json` `main` (`dist/index.js`) and `bin` (`dist/cli.js`) align with the TypeScript compilation output.
-
-Local execution and tests:
-- `npm test` (`vitest run`) exits with code 0.
-- Vitest config includes `src/**/*.test.ts` and `src/**/*.test.js` and excludes `dist`/`node_modules`, with v8 coverage configured and 80% thresholds.
-- Test output: 10 test files passed, 1 skipped; 56 tests passed, 3 skipped.
-- Key suites validate:
-  - Fastify server: `src/server.test.ts` covers `buildServer`/`startServer`, `/health` endpoint, and structured logs.
-  - Core exports: `src/index.test.ts` / `src/index.test.js` validate `getServiceHealth` and re-exports.
-  - Project initialization: `src/initializer.test.ts` exercises `initializeTemplateProject` and filesystem scaffolding.
-  - CLI behavior: `src/cli.test.ts` covers success and error flows for the CLI entry point.
-  - Generated projects: `src/generated-project-production.test.ts` initializes a project in a temp dir, runs `tsc`, starts `node dist/src/index.js`, and asserts `/health` returns `{ status: 'ok' }` on an ephemeral port.
-  - Logging: `src/generated-project-logging.test.ts` inspects logs at different `LOG_LEVEL` values.
-  - Dev server: `src/dev-server.test.ts` validates port resolution, watcher skipping in test mode, hot reload, graceful SIGINT handling, and pino-pretty logs.
-  - Node version guard: `src/check-node-version.test.js` exercises the `preinstall` node-version check.
-  - Repo hygiene: `src/repo-hygiene.generated-projects.test.ts` ensures generated projects are not committed.
-
-Runtime environment and configuration:
-- `engines.node` is set to `>=22.0.0` in `package.json`, clearly declaring the supported runtime.
-- `preinstall` script runs `scripts/check-node-version.mjs` when installed from npm to enforce the Node version; there is a dedicated test suite for this behavior.
-- Project is ESM (`"type": "module"`) and uses TypeScript 5.9.x with `@types/node` 24.x.
-
-Application runtime behavior (library, CLI, dev server, generated app):
-- `src/index.ts`:
-  - `getServiceHealth()` returns `'ok'`, tested via unit tests.
-  - Re-exports `initializeTemplateProject` and `initializeTemplateProjectWithGit` for library consumers.
-- `src/initializer.ts`:
-  - Validates non-empty `projectName` and throws a descriptive error otherwise.
-  - `scaffoldProject` creates the project directory, writes `package.json` from a template or fallback object, sets up `src/index.ts`, `tsconfig.json`, `README.md` (with name substitution), `.gitignore`, and `dev-server.mjs`.
-  - `initializeGitRepository` runs `git init` via `execFile`, captures stdout/stderr, and returns a structured `GitInitResult`; failures are captured in `errorMessage` without throwing.
-  - `initializeTemplateProjectWithGit` composes scaffolding and Git init, always returning a result object and never failing silently.
-- CLI (`src/cli.ts`):
-  - Reads `projectName` from `process.argv`.
-  - If missing, prints a clear usage message and sets `process.exitCode = 1` without abrupt termination.
-  - On success, logs project path and whether Git was initialized, and sets `exitCode = 0`.
-  - Catches errors, logs them, and sets `exitCode = 1`.
-- Dev server behavior (from template `dev-server.mjs`, exercised via tests):
-  - Resolves ports: auto-selects a free port and updates `env.PORT` when unset; uses explicit `PORT` when valid and free; throws a specific error type on invalid/occupied ports.
-  - Runtime: in test mode with `DEV_SERVER_SKIP_TSC_WATCH=1`, keeps the process running without the TypeScript watcher and exits cleanly on SIGINT.
-  - Hot reload: detects changes to `dist/src/index.js`, logs restart messages, and restarts the child server process.
-  - In development mode, runs via `pino-pretty` and emits readable logs verified in tests.
-- Generated production app:
-  - Tests show a compiled Fastify server starting with log lines like `"Server listening at http://127.0.0.1:..."` and serving `/health` with 200 and `{"status":"ok"}`.
-  - Validates that the generated `npm run build` + `npm start` workflow works in a temp directory using linked `node_modules`.
-
-Error handling, input validation, and visibility:
-- Input validation:
-  - Initializer rejects empty project names with explicit `Error('Project name must be a non-empty string')`.
-  - CLI checks for missing project name and prints a usage error.
-  - Dev server templates validate `PORT` and report issues through a domain-specific error class.
-- Error handling:
-  - `initializeGitRepository` and `initializeTemplateProjectWithGit` never swallow errors; they convert failures into structured results.
-  - Dev server helpers and tests surface timeouts and premature exits with detailed stdout/stderr in the error message.
-  - Fastify’s default JSON error responses are used for HTTP-level problems, and logs include error metadata (as seen in test output for invalid JSON bodies).
-- No silent failures: tests assert on expected log output, HTTP responses, process exit codes/signals, and error conditions, making silent regression unlikely.
-
-Performance, resource management, and N+1:
-- No database or external persistence layer yet; there is no evidence of DB queries in loops or any ORM usage, so N+1 query concerns are currently not applicable.
-- Resource cleanup:
-  - Dev-server tests use `createServerOnRandomPort` with `server.close()` in `finally` blocks.
-  - Child processes spawned for dev server and generated servers are terminated via SIGINT and awaited with `sendSigintAndWait`, including timeout protections.
-  - Temporary project dirs are created with `fs.mkdtemp(os.tmpdir() + '...')` and removed via `fs.rm(..., { recursive: true, force: true })` in `finally` blocks.
-- No obvious unnecessary object creation or tight hot loops; the initializer and CLI are short-lived and IO-bound.
-- Caching is not yet relevant given the current scope (one-off project scaffolding rather than long-lived, high-throughput services).
-
-Static quality checks supporting runtime correctness:
-- `npm run lint` (ESLint 9, flat config) passes, confirming code follows the configured style and basic correctness rules.
-- `npm run type-check` (`tsc --noEmit`) passes, ensuring TypeScript types for both main code and tests are sound.
-- `npm run format:check` (Prettier 3) passes, confirming consistent formatting and reducing risk of subtle mistakes.
-- These checks, combined with the runtime tests, create a strong safety net for execution-related changes.
-
-Overall completeness vs. runtime criteria:
-- Build process tested and passing locally.
-- Runtime environment (Node 22+, ESM + TS, Fastify, helmet, Pino) validated via tests and actual HTTP requests.
-- Core runtime workflows (CLI, scaffolding, dev server, production server) demonstrably work.
-- Input validation and error handling are present and well-tested for key paths.
-- No silent failures detected; errors and warnings are logged and surfaced via results.
-- N+1 and caching concerns are not applicable yet, but there is no evidence of problematic patterns in current code.
-- End-to-end flows for generated projects are explicitly tested and passing.
-- All key local quality commands (build, test, lint, type-check, format:check) succeed, aligning with good execution practices.
+- Execution quality is very high. The project builds, type-checks, lints, formats, and runs its test suite cleanly in a local Node 22 environment. Core runtime flows (CLI initializer, Fastify server, dev-server script, and generated-project production build/start) are thoroughly validated via Vitest tests that exercise real processes, servers, and HTTP calls. Resources (temp dirs, servers, child processes) are managed carefully with proper cleanup. A few heavier E2E paths are intentionally skipped by default for speed, which is the main reason this is not scored closer to 100%.
+- Build process is reliable and reproducible locally: `npm run build` (TypeScript compile + template file copy) completes successfully with no errors, confirming that the project can be transformed into runnable artifacts.
+- Type-checking is enforced independently of build: `npm run type-check` (`tsc --noEmit`) passes, providing strong confidence that the TypeScript codebase is type-consistent in the targeted Node 22 environment.
+- Linting and formatting are clean: `npm run lint` (ESLint 9.x flat config) and `npm run format:check` (Prettier 3.x) both pass, indicating no outstanding style or basic correctness issues that might signal hidden runtime problems.
+- The full automated test suite runs successfully with `npm test` (Vitest): 11 files, 56 tests passed, 3 skipped, covering unit, integration, and E2E-like scenarios that start actual Fastify servers, spawn child processes, and perform HTTP requests.
+- The CLI (`src/cli.ts`) is exercised in `src/cli.test.ts` using the built `dist/cli.js`: tests verify that invoking the CLI with a project name creates a project directory and returns a non-null exit code, and that it behaves sensibly when `git` is unavailable—validating local CLI execution in realistic conditions.
+- The initializer (`src/initializer.ts`) is thoroughly tested in `src/initializer.test.ts` using OS temp directories: tests confirm directory creation, presence and shape of `package.json`, `tsconfig.json`, `README.md`, `.gitignore`, and `dev-server.mjs`, as well as Fastify/TypeScript dependency wiring and validation of project names (including error on empty name).
+- Git initialization is treated as best-effort and verified in tests: `initializeTemplateProjectWithGit` runs `git init` and returns a structured `GitInitResult`, with tests simulating both presence and absence of `git` via `PATH` manipulation. This avoids runtime crashes and ensures errors are surfaced through the API instead of failing silently.
+- The Fastify server (`src/server.ts`) is verified end-to-end by `src/server.test.ts`: tests cover /health behavior (GET/HEAD 200 with JSON `{ status: 'ok' }`), 404 responses for unknown routes and unsupported methods, proper 400 errors for malformed JSON, ephemeral port startup via `startServer(0)`, multiple start/stop cycles, and error propagation when given an invalid port.
+- Security headers and logging configuration are validated at runtime: tests assert Helmet-derived headers (`content-security-policy`, `x-frame-options`, `strict-transport-security`, `x-content-type-options`, `referrer-policy`) are present on /health responses, and that `buildServer()` uses `NODE_ENV` and `LOG_LEVEL` to derive an appropriate Fastify logger level (debug in non-prod, info in prod, overridden by LOG_LEVEL).
+- The dev-server runtime used in generated projects is strongly validated by `src/dev-server.test.ts` + `src/dev-server.test-helpers.ts`: tests use real child processes to run `dev-server.mjs`, assert port resolution semantics (auto vs strict, invalid/in-use ports via `DevServerError`), verify hot-reload behavior when `dist/src/index.js` changes, and ensure dev processes remain running until SIGINT and exit cleanly once signaled.
+- Generated-project production behavior is thoroughly tested in `src/generated-project-production.test.ts`: the initializer creates a project in a temp directory, TypeScript builds it using the root `node_modules` via a symlink, and a compiled server (`node dist/src/index.js`) is started; tests then poll `/health` to ensure a 200 status and `{ status: 'ok' }` body, and assert that runtime logs contain no `.ts` or `src/` references, guaranteeing pure-dist execution.
+- Process and resource management is careful: tests consistently use `fs.mkdtemp` in `os.tmpdir()` for temp projects, always clean up with `fs.rm(..., { recursive: true, force: true })` in `afterEach`/`finally`, close Fastify apps with `app.close()`, and terminate child processes via SIGINT with explicit timeouts, minimizing risk of leaked processes or open handles.
+- Input validation and error handling are implemented and exercised at runtime: CLI validates project name and returns non-zero exit codes on misuse or exceptions; initializer throws on empty names; server tests assert correct HTTP error behavior and messages; git initialization errors are captured and propagated via `GitInitResult` rather than crashing, so there are no silent failures.
+- Some heavier E2E flows are intentionally skipped by default (e.g., full CLI + `npm install` + `npm run dev` flow, and an additional long-running production start test), meaning the default test run favors speed over maximum runtime coverage; these are available for opt-in deeper validation but are not part of every local run.
+- There are no database calls or heavy external services, so classic runtime pitfalls like N+1 queries do not apply; loops and polling are bounded and used for log/health checks with clear timeouts and error messages, which is appropriate for this project’s scope.
+- Logging-intensive operations (dev server, production smoke tests) are designed with structured JSON logs and explicit console output; when things go wrong (timeouts, build errors, missing log lines), error messages include captured stdout/stderr, ensuring no silent or opaque failures during runtime validation.
 
 **Next Steps:**
-- Optionally run `npm run test:coverage` regularly or in CI to enforce the configured coverage thresholds and ensure that end-to-end runtime paths remain well-covered over time.
-- Add a few more negative-path tests around project initialization and CLI behavior (e.g., existing non-empty target directory, filesystem permission errors) to further harden runtime robustness and error messaging.
-- Add a targeted test case simulating `git` being unavailable or failing to confirm the CLI’s user-facing messaging and to guarantee that project initialization still succeeds while clearly reporting the Git issue.
-- If the initializer will be used very frequently or under load, consider adding a small stress test that initializes multiple projects concurrently in temporary directories to observe performance and any potential race conditions.
-- As Node LTS versions evolve, keep `engines.node`, the `NODE_TYPES_VERSION` constant, and `check-node-version` tests in sync so that the strong runtime compatibility guarantee is maintained.
+- Introduce a dedicated npm script (e.g., `npm run test:e2e-full`) that flips the currently `describe.skip`-ed heavy E2E suites to active, so developers can easily opt into a full, end-to-end runtime check (including CLI + npm install + dev server and the extended production start flow) when needed, while keeping the default `npm test` fast.
+- Add or expand documentation (likely in `docs/testing-strategy.md` or similar) explaining the different test tiers—unit/integration vs. heavy E2E—and when to run each, so contributors know how to re-validate full runtime behavior locally after changes to the initializer, CLI, dev-server, or server code.
+- Optionally add a small smoke script (exposed via `npm run smoke` or similar) that runs `npm run build` and then imports/executes the built `dist` modules (CLI/server) directly, complementing the existing tests that focus on generated-project execution and providing an additional quick check that built artifacts run without relying solely on the test harness.
 
-## DOCUMENTATION ASSESSMENT (96% ± 18% COMPLETE)
-- User-facing documentation for this project is very strong. It accurately reflects the implemented CLI template and generated projects, is clearly separated from internal specs, uses correct Markdown links to published docs only, documents the semantic‑release strategy, and maintains consistent licensing and thorough API/usage examples. Traceability annotations and code-level documentation are comprehensive and well-formed. Only minor clarity improvements are suggested.
-- User-facing vs internal docs separation:
-- User-facing docs are `README.md`, `CHANGELOG.md`, `LICENSE`, and `user-docs/{api.md,testing.md,SECURITY.md}`.
-- Internal project docs live under `docs/` and are not linked from user-facing docs (searches found no `docs/` or `prompts/` paths in README or user-docs).
-- `package.json.files` includes only `dist`, `README.md`, `CHANGELOG.md`, `LICENSE`, and `user-docs`, so internal docs (`docs/`, `prompts/`, `.voder/`) are not published, satisfying separation requirements.
-- README accuracy vs implementation:
-- README’s core claims match the implementation:
-  - CLI template: `npm init @voder-ai/fastify-ts my-api` matches `src/cli.ts`, which expects a project name and delegates to `initializeTemplateProjectWithGit`.
-  - Generated project: `GET /` Hello World endpoint and `dev`/`build`/`start` scripts are implemented in `src/template-files/src/index.ts.template`, `src/template-files/package.json.template`, and `src/template-files/dev-server.mjs`.
-  - Internal stub server: `GET /health` returning `{ status: 'ok' }` matches `src/server.ts`.
-  - Security headers and structured logging descriptions align with `@fastify/helmet` usage and Pino-based logging in both stub and generated servers.
-- Implemented vs planned features are clearly separated (e.g., env var validation and CORS are explicitly labeled as “planned and not yet implemented”), matching the absence of such features in the code.
-- Node.js >= 22 requirement is enforced by `scripts/check-node-version.mjs` (wired via `preinstall`) and `
-- engines": { "node": ">=22.0.0" }` in `package.json`, consistent with README’s statement that older Node versions will fail fast when installing/using the template, though the phrasing slightly blurs whether this applies to generated projects’ own installs.
-- User docs: Testing guide correctness:
-- `user-docs/testing.md` clearly states it documents tests for the template repo, and that generated projects currently do NOT include Vitest or test scripts, which matches `src/template-files/package.json.template`.
-- Documented commands (`npm test`, `npm test -- --watch`, `npm run test:coverage`, `npm run type-check`) correspond exactly to `package.json` scripts and `vitest.config.mts`.
-- Descriptions of test file types and example paths (`src/server.test.ts`, `src/initializer.test.ts`, `src/index.test.js`, `src/check-node-version.test.js`, `src/index.test.d.ts`) match actual files and patterns.
-- Coverage behavior (v8 provider, ~80% thresholds, excluded `src/template-files/**`) matches `vitest.config.mts`.
-- Includes clear, runnable command examples and explains how to interpret coverage output.
-- User docs: API reference correctness:
-- `user-docs/api.md` documents the public API that is actually exported from `src/index.ts`:
-  - `getServiceHealth(): string` returning `'ok'`.
-  - `initializeTemplateProject(projectName: string): Promise<string>` for scaffolding without Git.
-  - `initializeTemplateProjectWithGit(projectName: string): Promise<{ projectDir: string; git: GitInitResult }>` for scaffolding with best-effort Git init.
-- Documented behavior and error cases match implementations in `src/initializer.ts`, including:
-  - Trimming and validation of `projectName`.
-  - Directory creation, template copying, and fallback `package.json` creation.
-  - Best-effort `git init` in `initializeGitRepository`, which sets `initialized` and `errorMessage` appropriately without throwing.
-- The documented `GitInitResult` type exactly matches the exported `interface GitInitResult` fields.
-- API reference includes accurate TS and JS usage examples and detailed logging configuration behavior that matches `server.ts` and `template-files/src/index.ts.template`.
-- User docs: Security overview correctness:
-- `user-docs/SECURITY.md` correctly explains:
-  - Internal stub server exposes `GET /health` with `{ "status": "ok" }` (matches `src/server.ts`).
-  - Generated project exposes `GET /` with a Hello World JSON body (matches `src/template-files/src/index.ts.template`).
-- Documented non-features (no auth, no persistence, no rate limiting, no CORS, no env validation) are accurate – these are not present in the code.
-- Documents that `@fastify/helmet` is enabled by default in both internal stub and generated projects, and provides an accurate high-level description of the headers Helmet configures, with OWASP-aligned rationale.
-- CSP and CORS sections clearly distinguish between current behavior (no strict CSP; CORS not enabled) and recommended patterns, with example configurations labeled as guidance, not existing defaults.
-- The requirement mapping at the end stays at the level of requirement IDs, without linking to internal `docs/` or `prompts/` paths from user docs.
-- Link formatting, integrity, and publication:
-- All intra-repo documentation references in user-facing docs are proper Markdown links with existing targets:
-  - README links `[Testing Guide](user-docs/testing.md)`, `[API Reference](user-docs/api.md)`, `[Security Overview](user-docs/SECURITY.md)` – all three files exist in `user-docs/` and are included in `package.json.files`.
-  - `user-docs/testing.md` links to `[API Reference](api.md#logging-and-log-levels)`; `api.md` exists and contains the referenced `## Logging and Log Levels` section, so the anchor is valid.
-- There are no user-facing Markdown links to internal project docs (`docs/`, `prompts/`, `.voder/`). Searches confirmed there are no such links in README or `user-docs/*`.
-- Code references (filenames, commands) are formatted with backticks rather than Markdown links, so there are no incorrect links to non-published code files.
-- `package.json.files` ensures that all linked doc files are actually published with the npm package (`README.md`, `CHANGELOG.md`, `LICENSE`, `user-docs/`), eliminating broken-doc-link risk in the artifact.
-- The only mentions of internal paths (`docs/...`) appear in runtime error messages in `scripts/check-node-version.mjs`, not in Markdown docs, so they do not violate the documentation link rules (though they do expose internal paths to users as plain text).
-- Versioning and CHANGELOG:
-- Project uses semantic-release, as shown by:
-  - `.releaserc.json` in repo (semantic-release config).
-  - `package.json` scripts: `"release": "semantic-release"` and devDeps `semantic-release`, `@semantic-release/exec`.
-- `CHANGELOG.md`:
-  - Explicitly documents semantic-release usage and explains why `package.json.version` (0.0.0) is intentionally not updated.
-  - Directs users to GitHub Releases and npm registry for authoritative version and change history.
-- README’s Releases and Versioning section reinforces the same strategy and avoids embedding concrete version numbers, preventing staleness.
-- This aligns perfectly with best practices for semantic-release projects.
-- License consistency:
-- `package.json` has `"license": "MIT"` (valid SPDX identifier).
-- Root `LICENSE` contains standard MIT license text with copyright `(c) 2025 voder.ai`.
-- No additional LICENSE files or divergent license declarations were found, so license information is consistent across the project and matches the published metadata.
-- Code documentation and API docstrings:
-- Public API and core infrastructure code are documented with JSDoc-style comments:
-  - `src/index.ts` documents `getServiceHealth()` and export intent for initializer functions.
-  - `src/initializer.ts` documents responsibilities, parameters, and return values for exported functions (`initializeTemplateProject`, `initializeTemplateProjectWithGit`, `initializeGitRepository`) and important internals (`createTemplatePackageJson`, `scaffoldProject`, etc.).
-  - `src/server.ts` documents `buildServer()` and `startServer()` including behavior, return types, and parameter semantics.
-  - `scripts/check-node-version.mjs` and `src/template-files/dev-server.mjs` contain explanatory comments and function-level docblocks describing purpose and behavior.
-- User-facing docs provide runnable examples (TS and JS) for the main public API functions and CLI commands, and clearly show configuration patterns (log levels, CSP, CORS).
-- Traceability annotations:
-- `@supports` annotations are consistently used across code and tests to link implementation to specific stories/decisions and requirement IDs:
-  - Implementation: `src/index.ts`, `src/server.ts`, `src/initializer.ts`, `src/cli.ts`, `scripts/check-node-version.mjs`, `src/template-files/*.ts` and `dev-server.mjs` all include `@supports docs/... REQ-...` lines.
-  - Tests: files such as `src/index.test.ts`, `src/server.test.ts`, `src/initializer.test.ts`, `src/check-node-version.test.js`, `src/generated-project-logging.test.ts`, etc., have file-level `@supports` tags referencing the same stories/decisions and requirement IDs.
-  - Type-level tests (`src/index.test.d.ts`) also have `@supports` annotations.
-- The annotation format (`@supports <story-path> <REQ-ID...>`) is consistent and parseable, with no placeholder or malformed content observed.
-- Significant branches in critical code paths (e.g., dev server logic, Node.js version enforcement) are annotated with inline `@supports` comments, supporting requirement traceability and automated assessment.
-- README attribution:
-- `README.md` includes an explicit `## Attribution` section with the required text:
-  - `Created autonomously by [voder.ai](https://voder.ai).`
-- All user-docs (`api.md`, `testing.md`, `SECURITY.md`) also include the same attribution, ensuring clear origin information for end users.
+## DOCUMENTATION ASSESSMENT (82% ± 18% COMPLETE)
+- User-facing documentation is well-structured, mostly accurate, and clearly separated from internal docs. README, API reference, testing guide, and security overview are comprehensive and shipped with the package. License and link hygiene are excellent. The main weaknesses are a few important inaccuracies where docs claim security and logging behavior in generated projects that is only implemented in the internal stub server, not in the generated template, which harms currency and trust.
+- User-facing doc set and structure:
+- Root README.md serves as the main entry point for users, with clear quick start, feature list, dev commands, and release strategy.
+- Additional user-facing docs live in user-docs/: api.md, testing.md, SECURITY.md, and are included in package.json "files" so they ship with the npm package.
+- Internal project docs (stories, decisions, dev guides) are correctly under docs/ and are NOT included in package.json "files", so they won’t be published to npm, preserving the boundary between user and project docs.
 
-**Next Steps:**
-- Clarify the Node.js version requirement wording in README to match the actual enforcement scope even more precisely. For example, explicitly state that using the template CLI (`npm init @voder-ai/fastify-ts`) requires Node 22+, and that this check runs via the template’s own preinstall hook, while generated projects may configure their own engines/constraints separately if desired.
-- Consider adjusting the user-facing error message in `scripts/check-node-version.mjs` to avoid referencing internal `docs/...` paths that are not published. Replace those lines with a more general pointer such as “see the project’s documentation or release notes for details on the minimum Node.js version requirement,” keeping the error message user-oriented.
-- Optionally update the “Current feature set” section in `CHANGELOG.md` so it matches the latest feature set described in README (including the template CLI behavior and generated project endpoints), or remove the static list and rely solely on GitHub Releases and README to describe current capabilities, reducing potential for drift.
-- Add a short note to README under the “Generated project endpoint” or a new “Testing in generated projects” subsection clarifying that generated projects start without tests by default and linking directly to the Testing Guide for users who wish to add similar testing setups to their own services.
+Attribution requirement:
+- README.md includes an explicit "## Attribution" section with the required text and link: "Created autonomously by [voder.ai](https://voder.ai)."
+- user-docs/api.md, user-docs/testing.md, and user-docs/SECURITY.md also include the same attribution line.
+- This fully satisfies the attribution rule for user-facing documentation.
 
-## DEPENDENCIES ASSESSMENT (96% ± 19% COMPLETE)
-- Dependencies are in excellent health: all installed packages are on the latest safe (mature) versions allowed by the project’s policy, the npm lockfile is correctly committed, installs/tests pass cleanly with no deprecations or vulnerabilities, and there are currently no actionable upgrades according to dry-aged-deps.
-- Currency & safe versions:
-- Tool: `npx dry-aged-deps --format=xml`
-- Output shows 3 outdated packages but **0 safe updates**:
-  - `@eslint/js`: current 9.39.1, latest 9.39.2, `<filtered>true</filtered>`, age 1 day
-  - `@types/node`: current 24.10.2, latest 25.0.2, `<filtered>true</filtered>`, age 0 days
-  - `eslint`: current 9.39.1, latest 9.39.2, `<filtered>true</filtered>`, age 1 day
-- Summary section: `<safe-updates>0</safe-updates>`
-- Interpretation: there are **no packages** where `<filtered>false</filtered>` and `<current> < latest>`, so there are **no required or allowed upgrades** under the 7‑day maturity policy.
-- Package management & lockfile:
-- `package.json` present with clear `dependencies` and `devDependencies`.
-- `package-lock.json` exists and is tracked in git:
-  - `git ls-files package-lock.json` → `package-lock.json`
-- Only npm is used (no `yarn.lock` or `pnpm-lock.yaml`), avoiding cross-lock conflicts.
-- `engines.node: ">=22.0.0"` documents the supported runtime and is compatible with the dependency set.
-- Install, deprecations, and security:
-- `npm install` completes successfully and reports:
-  - `up to date, audited 745 packages in 1s`
-  - `found 0 vulnerabilities`
-  - **No** `npm WARN deprecated` lines observed.
-- `npm audit` output: `found 0 vulnerabilities`.
-- Assessment: no current deprecation warnings or known vulnerabilities in the installed tree.
-- Compatibility & runtime verification:
-- `npm test` (Vitest) passes:
-  - 10 test files passed, 1 skipped; 56 tests passed, 3 skipped.
-- Tests exercise real use of dependencies:
-  - Fastify server startup and routing, `@fastify/helmet`, generated project initialization, dev server, logging, CLI behavior.
-- This indicates the declared versions work correctly together in realistic scenarios with no observed incompatibilities.
-- Dependency definitions & overrides:
-- `dependencies`: `fastify@5.6.2`, `@fastify/helmet@13.0.2` – focused and appropriate for a Fastify/TS template.
-- `devDependencies` include tooling actually used in scripts: ESLint, TypeScript, Vitest, Prettier, Husky, semantic-release, jscpd, dry-aged-deps.
-- `overrides.semver-diff: "4.0.0"` pins a transitive dependency, reducing surprise updates.
-- No signs of duplicate direct dependencies or circular dependency problems; tests and runtime behavior are normal.
+Link formatting and integrity:
+- All references between user-facing docs use proper Markdown links:
+  - README → [Testing Guide](user-docs/testing.md), [API Reference](user-docs/api.md), [Security Overview](user-docs/SECURITY.md).
+  - user-docs/testing.md → [API Reference](api.md#logging-and-log-levels).
+- All linked files exist in the repo and are included in the npm "files" field ("user-docs").
+- There are no Markdown links from user-facing docs to internal docs/ or prompts/ paths; searches for "docs/" and "prompts/" inside README and user-docs only turn up external URLs (MDN/OWASP) or code comments, which are allowed.
+- Code references (commands, filenames) are formatted as code spans (e.g., `npm test`, `tsconfig.json`), not as links, and no unpublished internal code files are incorrectly linked.
+
+Accuracy vs implemented functionality (programmatic API):
+- user-docs/api.md documents the public API:
+  - getServiceHealth(): string → implemented in src/index.ts; always returns 'ok'. Tests in src/index.test.ts confirm this.
+  - initializeTemplateProject(name: string): Promise<string> → implemented in src/initializer.ts; trims name, rejects on empty, scaffolds project and returns absolute path, matching the docs.
+  - initializeTemplateProjectWithGit(name: string): Promise<{ projectDir: string; git: GitInitResult }> → implemented in src/initializer.ts; uses scaffoldProject then initializeGitRepository; Git failures are captured in GitInitResult instead of causing rejection, as described.
+  - GitInitResult type in docs matches the exported interface GitInitResult in src/initializer.ts (fields: projectDir, initialized, stdout, stderr, errorMessage).
+- Overall, the API reference is aligned with the actual code, with accurate parameter and return descriptions and realistic error behavior.
+
+Accuracy vs implemented functionality (template & generated projects):
+- README and user-docs/testing.md correctly distinguish between this template repo and projects generated from it:
+  - README’s Quick Start (`npm init @voder-ai/fastify-ts my-api`) matches the package.json bin config and the intended usage.
+  - README describes generated-project scripts dev, build, and start; these exist in src/template-files/package.json.template and match the documented behavior (dev → dev-server.mjs, build → tsc to dist, start → node dist/src/index.js).
+  - user-docs/testing.md explicitly states that generated projects currently do not include Vitest or test scripts by default; this matches template-files (no tests shipped in the generated project).
+
+Key documentation inaccuracies / staleness:
+- Security headers in generated projects:
+  - README ("What’s Included → Implemented") and user-docs/SECURITY.md both claim that @fastify/helmet is registered by default in both the internal stub server and freshly generated projects.
+  - Implementation:
+    - Internal stub server (src/server.ts) does register helmet via app.register(helmet); tests in src/server.test.ts validate headers such as Content-Security-Policy, X-Frame-Options, HSTS, etc.
+    - Generated project entrypoint (src/template-files/index.ts.template) does NOT import or register @fastify/helmet; it only uses Fastify({ logger: true }) and defines / and /health routes.
+  - Net effect: docs overstate capabilities for generated projects; users will not see the documented security headers unless they wire up helmet themselves. This is a notable currency issue in a security-sensitive area.
+- Logging configuration in generated projects:
+  - user-docs/api.md ("Logging and Log Levels") states that generated projects use environment-driven log levels: debug in non-production, info in production, and LOG_LEVEL overrides.
+  - Implementation:
+    - Stub server (buildServer in src/server.ts) implements exactly this logic (NODE_ENV + LOG_LEVEL) and is thoroughly tested in src/server.test.ts.
+    - Generated project template (index.ts.template) uses Fastify({ logger: true }), which does not apply the documented NODE_ENV/LOG_LEVEL semantics.
+  - Thus, logging behavior is correctly documented for the stub server but misrepresents the state of a freshly generated project.
+
+Versioning & CHANGELOG alignment:
+- The project uses semantic-release:
+  - .releaserc.json present, package.json includes "release": "semantic-release" and devDependency "semantic-release".
+  - package.json.version is intentionally "0.0.0", which is correct for semantic-release-managed projects.
+- CHANGELOG.md explicitly documents the release strategy and explains that the version field is not authoritative, directing users to GitHub Releases and npm.
+- README “Releases and Versioning” section mirrors this explanation correctly and links to the same GitHub Releases and npm URLs.
+- This is a high-quality, accurate description of versioning and release behavior.
+
+License consistency:
+- Root LICENSE is standard MIT with copyright © 2025 voder.ai.
+- package.json has "license": "MIT" (valid SPDX identifier).
+- There is only one package.json and one LICENSE, so there are no cross-package discrepancies.
+- License declarations and text are fully aligned.
+
+Code documentation & API examples:
+- Public functions in src/index.ts and src/initializer.ts include JSDoc with @returns and @param details; user-docs/api.md adds clear prose and runnable TS/JS examples for each function.
+- Types are strongly documented in TypeScript, and user-docs/api.md exposes the relevant type information (e.g., GitInitResult structure and logging semantics) to consumers.
+- user-docs/testing.md provides command-level examples and explains how to interpret coverage, covering both behavior and type-level tests.
+
+Traceability annotations:
+- Named functions and significant logic throughout src/ and scripts/ are annotated with @supports linking to story/decision markdown files and specific requirement IDs, e.g.:
+  - getServiceHealth → @supports docs/decisions/0001-typescript-esm.accepted.md REQ-TSC-BOOTSTRAP.
+  - buildServer and startServer → multiple @supports referencing server, security, and logging requirements.
+  - Template initializer functions and dev-server.mjs helpers also use @supports consistently.
+- Test files such as src/index.test.ts and src/server.test.ts include @supports in file headers and use requirement IDs in describe/it names.
+- Annotation format is consistent and parseable, fulfilling code-traceability requirements from a documentation standpoint.
+
+Separation of user vs project docs:
+- User-facing docs (README.md, CHANGELOG.md, LICENSE, user-docs/*) do not link to internal docs/ or prompts/ paths.
+- Internal code and scripts may reference docs/ paths in comments or runtime error messages (e.g., check-node-version.mjs), but those are not part of the published documentation corpus and do not violate the rules.
+- docs/, prompts/, .voder/ are correctly excluded from the npm package (not in package.json.files), so internal documentation is not unintentionally published.
+- next_steps([
+- 1. Decide whether to bring generated projects up to the documented security and logging behavior or to adjust the docs to match current behavior.
+   - Option A (preferred): Update src/template-files/index.ts.template to import and register @fastify/helmet and to configure Fastify logging using NODE_ENV and LOG_LEVEL the same way buildServer does. This makes the current docs accurate without changing their wording.
+   - Option B: If you want generated projects to remain minimal, rewrite the relevant sections of README and user-docs/SECURITY.md to explain that Helmet and environment-driven logging are implemented in the internal stub server and provide step-by-step examples for how to add them to generated projects instead of claiming they’re already present.
+
+- 2. Clarify the distinction between the internal stub server and generated projects in the docs.
+   - Add a small subsection (either in README or a new user-docs/generated-project.md) that explicitly lists:
+     - Stub server behavior (GET /health, helmet, structured logging, env-based log levels).
+     - Generated project behavior (GET /, optionally /health, which plugins are actually registered).
+   - Link to this from README’s “Generated project endpoint” and from SECURITY.md so users understand exactly what they get after running npm init.
+
+- 3. Update logging documentation to be unambiguously accurate.
+   - In user-docs/api.md, rewrite the “Logging and Log Levels” section to clearly state where the described log-level behavior is implemented:
+     - Either “Both the stub server and generated projects are configured as follows…” (after implementing matching behavior in index.ts.template), or
+     - “The internal stub server is configured as follows; you can copy this pattern into your generated project by configuring Fastify({ logger: { level: … } }) as shown.”
+
+- 4. Keep security overview tightly coupled to current behavior.
+   - After aligning generated-project behavior (or adjusting docs), re-review user-docs/SECURITY.md to ensure each “currently implemented” bullet is literally true.
+   - If future security features are added (e.g., environment validation, CORS, stricter headers), update SECURITY.md and README concurrently so there is no drift between code and documentation.
+
+- 5. Optionally add a brief CLI usage section.
+   - If src/cli.ts supports flags beyond the default project name, document those options in README or user-docs/api.md so users don’t have to inspect the code to discover them.
+   - Keep this section synchronized with any future CLI enhancements.
+
 
 **Next Steps:**
-- Do not change dependency versions now: `dry-aged-deps` reports `<safe-updates>0</safe-updates>`, so there are no mature, safe upgrade candidates. Wait for future runs to surface packages with `<filtered>false</filtered>` and `<current> < latest>` before upgrading.
-- After future upgrades (when allowed by `dry-aged-deps`), ensure `package-lock.json` is regenerated via the normal npm workflow and remains committed (`git ls-files package-lock.json` should still list it).
-- Continue to use `npm install`, `npm test`, and `npm audit` as part of your regular workflow to immediately catch any new installation problems, test breakages, or reported vulnerabilities introduced by future updates.
-- When `dry-aged-deps` eventually lists safe updates (`<filtered>false</filtered>`), upgrade those dependencies to the `<latest>` version indicated, rerun `npm install`, then rerun tests and audit to confirm continued compatibility and security.
+- 1. Decide whether to bring generated projects up to the documented security and logging behavior or to adjust the docs to match current behavior.
+   - Option A (preferred): Update src/template-files/index.ts.template to import and register @fastify/helmet and to configure Fastify logging using NODE_ENV and LOG_LEVEL the same way buildServer does. This makes the current docs accurate without changing their wording.
+   - Option B: If you want generated projects to remain minimal, rewrite the relevant sections of README and user-docs/SECURITY.md to explain that Helmet and environment-driven logging are implemented in the internal stub server and provide step-by-step examples for how to add them to generated projects instead of claiming they’re already present.
+2. Clarify the distinction between the internal stub server and generated projects in the docs.
+   - Add a small subsection (either in README or a new user-docs/generated-project.md) that explicitly lists stub server vs generated project behavior (endpoints, plugins, logging). Link to it from README and SECURITY.md so users understand exactly what they get after running npm init.
+3. Update logging documentation to be unambiguously accurate.
+   - In user-docs/api.md, rewrite the “Logging and Log Levels” section to clearly state where the described log-level behavior is implemented, or implement matching behavior in the generated index.ts.template so the current text becomes correct.
+4. Keep SECURITY.md tightly coupled to current behavior.
+   - After you align code and docs, re-review SECURITY.md so that every “currently implemented” bullet is literally true for both stub and generated projects, or clearly scoped to one or the other.
+5. Optionally add a brief CLI usage section.
+   - If src/cli.ts supports flags beyond the project name, document those options briefly in README or user-docs/api.md so users can discover them without reading the code.
 
-## SECURITY ASSESSMENT (92% ± 18% COMPLETE)
-- Current security posture is strong: no known dependency vulnerabilities, no hardcoded secrets, secure handling of environment files, secure-by-default Fastify/Helmet configuration in both the library and the generated template, and a CI/CD pipeline that includes security checks and uses secrets correctly. Remaining items are mostly hardening opportunities (broadening audit scope) rather than concrete issues.
-- No existing security incidents found: there is no docs/security-incidents directory and no *.disputed.md, *.resolved.md, *.known-error.md files under docs, so there are no legacy vulnerabilities to re-validate or ignore.
-- Dependency scans are clean: `npm audit --json` reports zero vulnerabilities of any severity across 790 dependencies (55 prod, 736 dev, 54 optional).
-- Safety filter in place: `npx dry-aged-deps` reports no outdated packages with mature (>=7 days) updates, so there are no pending safe updates being ignored, and the project adheres to the dry-aged-deps safety policy.
-- No disputed vulnerabilities: since there are no *.disputed.md files, it is correct that there is no audit-filter configuration like .nsprc, audit-ci.json, or audit-resolve.json; nothing needs to be suppressed.
-- Secrets are handled correctly in this repo: `.gitignore` explicitly ignores .env and related files, `git ls-files .env` and `git log --all --full-history -- .env` both return empty, and there are no committed .env* files, so local env files are used in the approved way without being tracked.
-- Search for hardcoded credentials in source and scripts (API keys, secrets, passwords, tokens, Authorization headers) returned no matches, indicating no obvious secret exposure in code.
-- Runtime server code (`src/server.ts`) uses Fastify and `@fastify/helmet` with default options, exposes only a minimal `/health` JSON endpoint, and does not render user-controlled content into HTML/JS, resulting in low exposure to XSS or injection risks.
-- Template project main entry (`src/template-files/src/index.ts.template`) also uses Fastify + Helmet, returns only simple JSON on `/` and `/health`, and configures structured logging without exposing sensitive data, giving generated projects a secure-by-default starting point.
-- There is no database access or raw SQL anywhere in the codebase or templates, so SQL injection is not applicable to current functionality; there are also no templating engines or HTML rendering paths.
-- Initializer code (`src/initializer.ts`) uses `execFile('git', ['init'], { cwd })` without interpolating user input into shell commands, and only uses the provided project name for directory and JSON fields, avoiding command-injection risks.
-- The dev-server script (`src/template-files/dev-server.mjs`) validates the PORT environment variable strictly, uses `spawn` with argument arrays rather than shell strings, and accesses only local resources (filesystem, TCP ports), so it does not introduce obvious remote attack vectors.
-- The Node version check script (`scripts/check-node-version.mjs`) enforces Node >= 22.0.0 at install time, aligning with `"engines": { "node": ">=22.0.0" }` in package.json and helping ensure a modern, secure runtime.
-- CI/CD pipeline (`.github/workflows/ci-cd.yml`) runs on every push to main, executes `npm audit --omit=dev --audit-level=high` before build/test, then runs lint, type-check, build, tests, format:check, and a non-blocking `npx dry-aged-deps` report, aligning with automated security scanning requirements.
-- Release step uses `npx semantic-release` with `NPM_TOKEN` and `GITHUB_TOKEN` from GitHub Actions secrets, followed by a post-release smoke test that installs the freshly published package using the NPM auth token and validates `getServiceHealth() === 'ok'`, confirming published artifacts are healthy.
-- No conflicting dependency automation tools are present: there is no `.github/dependabot.yml`, no `dependabot.yaml`, and no `renovate.json`, so dependency management relies on `dry-aged-deps` plus manual updates, avoiding operational confusion.
-- Local Husky hooks enforce `npm run format` + `npm run lint` on pre-commit and full build/test/lint/type-check/format:check on pre-push, which indirectly supports security by preventing broken or obviously unsafe changes from being pushed.
-- Minor gap: the CI `npm audit` step currently omits dev dependencies and only fails on high severity issues, so moderate or dev-only vulnerabilities would not block the pipeline despite being in scope per the stated security policy.
+## DEPENDENCIES ASSESSMENT (99% ± 19% COMPLETE)
+- Dependencies are in excellent condition. All installed packages are on the latest safe, mature versions according to dry-aged-deps, the lockfile is tracked in git, installs are clean with no deprecation warnings, and npm audit reports zero vulnerabilities. No immediate dependency work is required.
+- dry-aged-deps maturity check:
+- Command: `npx dry-aged-deps --format=xml`
+- Result summary:
+  - `<total-outdated>3</total-outdated>`
+  - `<safe-updates>0</safe-updates>`
+  - All listed packages have `<filtered>true</filtered>` with `<filter-reason>age</filter-reason>`
+- Interpretation: there are newer versions for `@eslint/js`, `@types/node`, and `eslint`, but all are too new (< 7 days) and therefore not considered safe. Since `safe-updates` is 0, there are no required upgrades; for all unfiltered (safe) versions, the current versions are effectively latest.
+- Package management & lockfile: 
+- `package.json` present with clear separation between `dependencies` (runtime: `fastify`, `@fastify/helmet`) and `devDependencies` (tooling stack: TypeScript, ESLint, Vitest, Prettier, semantic-release, dry-aged-deps, etc.).
+- Lockfile `package-lock.json` present and confirmed tracked in git via `git ls-files package-lock.json` (output: `package-lock.json`).
+- Scripts in `package.json` provide a single contract for tooling: `build`, `test`, `lint`, `type-check`, `format`, `format:check`, `release`, etc., matching best practices.
+- Installation and deprecation state:
+- Command: `npm install`
+- Output: installation completes successfully with `up to date, audited 745 packages in 1s`.
+- No `npm WARN deprecated` lines or other warnings; indicates no direct or transitive dependencies currently flagged as deprecated by npm and no install-time issues.
+- Security context:
+- Command: `npm audit --json`
+- Output: all severity counts (`info`, `low`, `moderate`, `high`, `critical`) are 0 and `total` is 0.
+- Confirms no known vulnerabilities in current dependency set; while audit status doesn’t drive the score when mature versions are used, it corroborates that current versions are safe.
+- Dependency tree health:
+- Command: `npm ls`
+- Output shows a coherent tree including `fastify@5.6.2`, `@fastify/helmet@13.0.2`, and all dev tools (`eslint`, `@eslint/js`, `typescript`, `vitest`, `semantic-release`, etc.) with no errors, unmet peer dependency warnings, or conflict messages.
+- Exit code 0 implies no circular dependency or resolution issues at the project level.
+- Release tooling alignment:
+- `semantic-release` and `@semantic-release/exec` configured (with `.releaserc.json` in repo), which pairs well with the dependency strategy and will allow smooth, automated release of future dependency updates identified by dry-aged-deps.
 
 **Next Steps:**
-- Broaden CI dependency auditing to better match the security policy by updating the `npm audit` step in `.github/workflows/ci-cd.yml` to scan all dependencies (remove `--omit=dev`) and fail on at least `--audit-level=moderate`, ensuring moderate-severity and dev-dependency issues are caught before release.
-- Continue to use `npx dry-aged-deps` as the authoritative source for safe dependency upgrades, and when security advisories appear in the future, prefer upgrading only to versions that dry-aged-deps marks as mature, documenting any accepted residual risk as formal security incidents when applicable.
-- Add a short security section to user-facing documentation (README or user-docs) for template consumers, explaining that Helmet is preconfigured, `.env` files are gitignored by default, and that TLS/HTTPS termination is expected to be handled by the deployment environment, helping users preserve the secure defaults.
-- Optionally enhance automated tests to verify key security headers set by Helmet (for both the library server and a generated template project), so that any future removal or misconfiguration of Helmet is detected via failing tests.
-- Keep the `check-node-version` script and `package.json` `engines.node` field in sync with your Node version support policy when it changes, ensuring users remain on security-supported Node versions without confusing mismatches.
+- No immediate action is required: dependencies are already at the latest safe versions as determined by `npx dry-aged-deps --format=xml` (`<safe-updates>0</safe-updates>`).
+- For future assessments, when `dry-aged-deps` reports any package with `<filtered>false</filtered>` and `<current>` < `<latest>`, upgrade that package to the exact `<latest>` version returned by the tool (ignoring semver ranges), then run `npm install` to update `package-lock.json`.
+- After any such upgrade, re-run the project’s quality scripts to validate compatibility: `npm run build`, `npm test`, `npm run lint`, `npm run type-check`, and `npm run format:check`. Ensure `package-lock.json` remains tracked in git using `git ls-files package-lock.json`.
+- Continue relying on the existing automated assessment cycle to surface new safe, mature dependency updates; no additional scheduled checks or manual monitoring processes are needed.
+
+## SECURITY ASSESSMENT (88% ± 18% COMPLETE)
+- No known vulnerable dependencies, a very small and hardened runtime surface, and a CI/CD pipeline that enforces production dependency security checks on every push to main give this project a strong security posture for its current scope. The main issues are a mismatch between documentation and the generated project regarding automatic @fastify/helmet usage, and the absence of a .env.example template; these are integrity and best‑practice gaps rather than active vulnerabilities.
+- Dependency security is clean for the current lockfile: `npm audit --json` shows 0 vulnerabilities across all severities, and `npm audit --omit=dev --audit-level=high` finds no high/critical production issues. Both production and dev dependency graphs are currently free of known CVEs according to npm.
+- `npx dry-aged-deps --format=json` reports `totalOutdated: 0` and `safeUpdates: 0` for both prod and dev, meaning there are no mature (≥7-day) upgrades being missed and no outdated dependencies that would be safer to upgrade right now.
+- CI/CD is configured as a single unified pipeline (`.github/workflows/ci-cd.yml`) triggered on `push` to `main`, running `npm ci`, `npm audit --omit=dev --audit-level=high`, lint, type-check, build, tests, formatting, then a non-blocking `dry-aged-deps` run and finally `semantic-release` plus a post-release smoke test. High-severity production dependency vulnerabilities will therefore block releases automatically.
+- There are no existing security incident records (`docs/security-incidents/` does not exist), and the audit output plus dry-aged-deps results confirm that there are currently no moderate or higher vulnerabilities that would require documentation or acceptance under the project’s security policy.
+- Secret handling is configured correctly: `.env` and related env files are gitignored; `.env` exists locally but `git ls-files .env` and `git log --all --full-history -- .env` both return empty, showing it is neither tracked nor present in history. A targeted grep for common secret patterns across `src`, `scripts`, `docs`, and `user-docs` only finds documentation examples, not real credentials or hardcoded keys.
+- The internal stub server (`src/server.ts`) uses Fastify with `@fastify/helmet` registered globally and only exposes `GET /health` returning a static JSON object. There are no databases, no file uploads, and no user-controlled data processing, which keeps the attack surface extremely small while still benefiting from standard security headers.
+- For generated projects, the initializer includes `@fastify/helmet` as a runtime dependency in the scaffolded `package.json`, but the `src/index.ts.template` used for new projects does not actually import or register Helmet. This contradicts ADR 0006 and `user-docs/SECURITY.md`, which claim that generated projects apply Helmet by default; the result is a weaker-than-documented default security header configuration, though still low risk for the current Hello World API scope.
+- Configuration and environment usage in the template are minimal (primarily `PORT` and `NODE_ENV`/`LOG_LEVEL` for the internal stub server). ADR 0010 and related stories describe future env validation and secure config handling but those features are not yet implemented, which is consistent with the current code and does not create an immediate vulnerability.
+- CI uses `GITHUB_TOKEN` and `NPM_TOKEN` via GitHub Actions secrets; there are no hardcoded tokens in the repo. There is no Dependabot or Renovate configuration present, and no related steps in workflows, so there are no conflicting dependency update automation tools.
+- Security documentation is strong overall: `docs/security-practices.md`, ADR 0015 (dependency scanning), ADR 0006 (Helmet), and `user-docs/SECURITY.md` accurately describe current practices and future plans, except for the specific misstatement that generated projects already apply Helmet by default.
+
+**Next Steps:**
+- Align the generated project with the documented Helmet behavior: update `src/template-files/index.ts.template` (or equivalent bootstrap file) to import and register `@fastify/helmet` for new projects, then ensure existing generated-project tests verify that security headers are present. If you intentionally do not want Helmet by default, instead correct ADR 0006 and `user-docs/SECURITY.md` to state that generated projects must opt in.
+- Add a `.env.example` file at the repository root containing only safe placeholder values (e.g. `NODE_ENV=development`, `LOG_LEVEL=debug`, `PORT=3000`) so contributors know which env vars are expected without exposing secrets. Keep `.env` gitignored as it is.
+- Optionally introduce a dedicated secret-scanning step in CI (e.g. via `secretlint` or a similar tool wired through `package.json` scripts and the existing workflow) to provide defense-in-depth against accidental credential commits, while keeping scans non-interactive and fast.
+- As new endpoints or configuration-heavy features are implemented in generated projects, enforce input validation (e.g. Fastify schemas for request bodies and params) and environment-variable validation (e.g. Fastify env plugin or a config library) to maintain strong security as scope expands. This isn’t required for the current Hello World endpoints but should be applied immediately when new features land.
 
 ## VERSION_CONTROL ASSESSMENT (90% ± 19% COMPLETE)
-- Version control for this project is in very good shape. The repo uses trunk-based development on main, has a single unified CI/CD workflow with full quality gates, automated semantic-release publishing to npm, post-release smoke tests, and well-configured Husky pre-commit and pre-push hooks. .gitignore and tracked files avoid built artifacts and CI reports, and .voder handling follows the required pattern. No high-penalty VERSION_CONTROL violations were found under the mandated scoring rules.
+- Version control and CI/CD for this project are in excellent shape. The repository is on a trunk-based workflow using the main branch only, with all commits pushed and no uncommitted changes outside of `.voder/` (which is intentionally mutable for assessments). A single unified GitHub Actions workflow (`.github/workflows/ci-cd.yml`) runs on every push to `main`, performing linting, type-checking, build, tests, formatting checks, dependency security scanning via `npm audit`, and a dependency freshness report. It then executes `semantic-release` to automate versioning, GitHub releases, and npm publishing, followed by an automated post-release smoke test that installs the published package and verifies a health-check function. Actions are on current major versions (`actions/checkout@v4`, `actions/setup-node@v4`), and logs show no deprecation warnings. `.gitignore` correctly excludes build outputs like `dist/`, `lib/`, and `build/`, while the repository contains only source and template files (no built artifacts, generated reports, or generated test projects). The `.voder/traceability/` directory is ignored while the rest of `.voder/` is tracked, matching the specified policy. Husky-based Git hooks are configured and automatically installed via the `prepare` script: the pre-commit hook runs fast, local formatting and linting, and the pre-push hook runs the full local quality gate (build, test, lint, type-check, format check), closely mirroring CI checks. CI history shows stable, recent successful runs. Since there are no high-penalty violations as defined in the scoring rubric, the baseline score of 90% remains unchanged.
 - PENALTY CALCULATION:
 - Baseline: 90%
-- No high-penalty VERSION_CONTROL violations detected: -0%
 - Total penalties: 0% → Final score: 90%
-- CI/CD pipeline configuration
-- - Single workflow: .github/workflows/ci-cd.yml with job quality-and-deploy; runs on push to branches: [main] only (trunk-based CI).
-- - Uses up-to-date GitHub Actions: actions/checkout@v4 and actions/setup-node@v4; workflow logs show no deprecation warnings or deprecated syntax.
-- - Quality gates cover: npm ci, npm audit --omit=dev --audit-level=high (security scanning), npm run lint, npm run type-check, npm run build, npm test, npm run format:check, plus non-blocking npx dry-aged-deps --format=table for dependency freshness.
-- - Automated publishing via semantic-release: npx semantic-release step configured with .releaserc.json (branches: ["main"], npm, GitHub, exec plugins). Publishing is automatic on every push to main once checks pass; no manual triggers, no tag-based gating, no workflow_dispatch or approval steps.
-- - Post-release verification: Post-release smoke test step (conditional on a release) installs the package from npm using NODE_AUTH_TOKEN and verifies getServiceHealth() === 'ok'. This provides automated post-publish validation.
-- - CI history: Last 10 runs of "CI/CD Pipeline" on main are almost all success; latest run (ID 20210528988) succeeded with all steps green, confirming a stable pipeline.
-- Repository status and structure
-- - Git status: git status -sb shows only modified .voder/history.md and .voder/last-action.md; these are explicitly excluded from assessment, so the working tree is effectively clean for project code.
-- - Push status: ## main...origin/main with no ahead/behind markers indicates all commits are pushed to origin; no dangling local-only commits.
-- - Current branch: main (git branch --show-current), aligning with trunk-based development requirements.
-- .gitignore and .voder rules
-- - .gitignore includes .voder/traceability/ and several .voder-*.json/report paths, but does NOT ignore the .voder/ directory itself. This matches the requirement: transient traceability outputs ignored, history/progress files tracked.
-- - .voder files under version control: README.md, history.md, implementation-progress.md, last-action.md, plan.md, plus progress logs and chart image. This is exactly the intended pattern (history/progress tracked, transient analysis outputs ignored).
-- .gitignore completeness and build artifacts
-- - .gitignore ignores common noise: node_modules, logs, coverage, caches, OS/editor files, tmp folders, and CI artifact directories (ci/, jscpd-report/).
-- - Build outputs ignored: lib/, build/, dist/ are all ignored. find_files for dist/* and build/* returned no tracked files, and git ls-files output contained no lib/, dist/, build/, or out/ paths.
-- - No tracked generated reports: find_files for *-report.*, *-output.*, *-results.* returned nothing, and git ls-files showed no such files (aside from allowed .voder-* JSON entries, which are already ignored in .gitignore).
-- - Type declarations: scripts/check-node-version.d.ts and a few *.d.ts under src/template-files appear to be manually maintained type stubs, not build outputs from tsc, and are part of the source. There is no evidence of compiled .d.ts from a src/ build tree being committed.
-- Generated projects and test artifacts
-- - No generated test projects are committed. git ls-files shows only test files (e.g., src/generated-project-production.test.ts) and template sources under src/template-files/, but no directories like cli-test-project/, test-project-*, or generated-*/ that would indicate committed initializer outputs.
-- - CI logs confirm generator tests use temporary directories under /tmp/... and then clean up, matching ADR 0014-generated-test-projects-not-committed.accepted.md.
-- Commit history and branching model
-- - Recent commits (git log --oneline -n 10) use Conventional Commits (docs:, chore:, ci:, test:, feat:). There are no merge commits or feature-branch merge patterns evident; commits appear to be pushed directly to main, consistent with trunk-based development.
-- - Commits are small and focused (e.g., "ci: align audit flags and dependency freshness tooling", "test: add generated project logging configuration tests"), which supports good repository hygiene and semantic-release automation.
-- Pre-commit and pre-push hooks
-- - Husky v9 configured via "prepare": "husky" in package.json; CI logs show husky running during npm ci without deprecation warnings (no "install command is DEPRECATED" messages).
-- .husky/pre-commit:
--   - Runs: npm run format, then npm run lint.
--   - Satisfies requirements:
--     • Formatting with auto-fix (npm run format → prettier --write .).
--     • Linting (npm run lint → eslint .).
--   - These are fast checks, suitable for pre-commit and aligned with the spec that pre-commit runs quick, basic quality gates.
-- - .husky/pre-push:
--   - Runs: npm run build, npm test, npm run lint, npm run type-check, npm run format:check.
--   - This matches the CI workflow’s core quality steps (build, test, lint, type-check, formatting check) and provides comprehensive local gating before pushes, as required.
--   - No slow, redundant checks in pre-commit; heavy checks are correctly located in pre-push and CI.
-- Hook vs CI parity and security checks
-- - Core quality checks (build, test, lint, type-check, format:check) are present in both pre-push and CI, satisfying the parity requirement for functionality-related checks.
-- - CI adds security-specific checks (npm audit --omit=dev --audit-level=high and dry-aged-deps). These are appropriate to keep in CI; adding at least npm audit to a documented local script or optional pre-push step would further tighten parity but is not mandated as a high-penalty violation.
-- Continuous deployment and release strategy
-- - package.json includes "release": "semantic-release" and devDependency semantic-release@25.0.2, with .releaserc.json configured for the main branch.
-- - Workflow "Release" step runs npx semantic-release with NPM_TOKEN and GITHUB_TOKEN from secrets. Logs show it detecting last tag v1.6.0 and evaluating commits to decide whether to release. This is fully automated, with releases on main based on commit content, matching the continuous deployment requirement.
-- - No tag-based triggers or manual workflow_dispatch are used; publishing happens in the same workflow run that executes quality gates, with no manual approval gates.
-- Post-deployment verification
-- - The Post-release smoke test step (conditional on steps.release.outputs.released == 'true') installs the just-published package from npm, imports it, and verifies getServiceHealth() returns 'ok'. This gives automated, end-to-end verification of published artifacts.
-- Overall assessment vs. criteria
-- - CI/CD: Properly configured, single unified workflow, up-to-date actions, full quality gates, security scanning, automated publishing, and post-release verification – all with no detected deprecations.
-- - Repo status: Clean (ignoring .voder changes), all commits pushed, on main branch.
-- - Repo structure: .gitignore is appropriate; no built artifacts, no generated reports, no committed generated projects, correct handling of .voder/traceability/.
-- - Trunk-based development: Direct commits to main with semantic-release-based automated versioning and deployment.
-- - Hooks: Modern Husky-based pre-commit and pre-push hooks exist, meet the required checks, are fast, and align well with CI checks.
 
 **Next Steps:**
-- Optionally add a local security check script parallel to CI
-- - Consider adding a script such as "security:check": "npm audit --omit=dev --audit-level=high" and either wiring it into pre-push or documenting it for manual pre-push use. This would catch most dependency issues before they reach CI, tightening local/CI parity for security without significantly increasing friction.
-- Keep hooks aligned with CI as checks evolve
-- - When adding or changing CI checks (e.g., new lint rules, extra static analysis), update both the GitHub Actions workflow and Husky hooks together so build, test, lint, type-check, and formatting checks remain consistent across local and CI environments.
-- Monitor performance of hooks as the project grows
-- - If npm run format or npm run lint in pre-commit ever become noticeably slow, consider scoping pre-commit formatting to staged files only (e.g., via lint-staged or a custom script) while keeping full checks in pre-push and CI to preserve fast feedback.
-- Continue to avoid committing generated artifacts and projects
-- - When adding new initializers or templates under src/template-files/, ensure tests keep using temporary directories (fs.mkdtemp, cleanup with fs.rm) and that no generated project directories are added to git. This maintains the current clean state and avoids the high-penalty violation for generated projects tracked in git.
-- Periodically review GitHub Actions versions for deprecations
-- - The workflow already uses actions/checkout@v4 and actions/setup-node@v4 with no deprecation warnings. As GitHub releases new major versions or announces deprecations, plan focused ci: commits to bump actions and verify the pipeline remains green.
+- Optionally extend the pre-push hook to include the same dependency security audit as CI (e.g., `npm audit --omit=dev --audit-level=high`) so that pushes fail locally when they would fail in the pipeline, as long as the added runtime remains acceptable for developer workflow.
+- Keep an eye on future GitHub Actions and Node.js releases (especially new major versions of `actions/checkout`, `actions/setup-node`, and `semantic-release`) and plan periodic upgrades to stay ahead of platform changes and avoid future deprecations.
+- Continue to ensure that generated projects used in tests remain ephemeral (in temp directories) and that no build outputs, reports, or test artifacts are added to version control, preserving the current clean repository state.
+- Make sure updates to `.voder/history.md` and related progress documents are regularly committed (when they contain meaningful changes) so that the repository’s history accurately reflects assessment and implementation progress for collaborators.
 
-## FUNCTIONALITY ASSESSMENT (88% ± 95% COMPLETE)
-- 1 of 8 stories incomplete. Earliest failed: docs/stories/004.0-DEVELOPER-TESTS-RUN.story.md
+## FUNCTIONALITY ASSESSMENT (100% ± 95% COMPLETE)
+- All 8 stories complete and validated
 - Total stories assessed: 8 (0 non-spec files excluded)
-- Stories passed: 7
-- Stories failed: 1
-- Earliest incomplete story: docs/stories/004.0-DEVELOPER-TESTS-RUN.story.md
-- Failure reason: This is a valid implementation story and is not just documentation. The current implementation does NOT fully satisfy all acceptance criteria and requirements for 004.0-DEVELOPER-TESTS-RUN.
-
-Key failures:
-- REQ-TEST-ALL-PASS / Acceptance "All Tests Pass": The latest `npm test -- --reporter=verbose` run exits with a non-zero status. One test fails: `src/generated-project-logging.test.ts` in the case `[REQ-LOG-LEVEL-CONFIG] suppresses info-level request logs when LOG_LEVEL=error`, with the error `Server process exited early with code 1`. This directly violates the requirement that all tests pass on first run.
-- REQ-TEST-COVERAGE / Acceptance "Test Coverage Report": `npm run test:coverage` currently exits with code 127 and the error `sh: vitest: command not found`, so coverage cannot be generated in the expected way. Although `vitest.config.mts` defines coverage reporting and thresholds, the configured coverage command does not run successfully in this environment, so the story’s coverage requirement is not met in practice.
-
-Criteria that appear satisfied based on current evidence:
-- REQ-TEST-FAST-EXEC / "Fast Test Execution": The Vitest summary for `npm test` shows `Duration 3.66s`, which is under the 5-second target (on this machine) even though there is a failing test.
-- REQ-TEST-WATCH-MODE and "Watch Mode Available" + "Fast Feedback Loop": Watch mode is documented (`npm test -- --watch`), and Vitest natively supports watch with fast re-runs. However, this was not executed here due to its interactive nature; we rely on configuration and documentation rather than a live run.
-- REQ-TEST-TYPESCRIPT / "TypeScript Test Support": Multiple `.test.ts` files run under Vitest without a separate compilation step, and the type-only tests in `src/index.test.d.ts` (annotated with `@supports ... REQ-TEST-TYPESCRIPT`) are validated via `npm run type-check` rather than a separate manual compile.
-- "Multiple Test File Formats": The repo includes `.test.ts` (e.g., `cli.test.ts`, `initializer.test.ts`), `.test.js` (e.g., `check-node-version.test.js`, `index.test.js`), and `.test.d.ts`/type-test files (`index.test.d.ts`, `dev-server-test-types.d.ts`), satisfying the format variety requirement.
-- REQ-TEST-VITEST-CONFIG: `vitest.config.mts` includes both TS and JS test patterns and uses the v8 coverage provider, supporting ESM and CommonJS-style tests.
-- REQ-TEST-CLEAR-OUTPUT / "Clear Test Output": The verbose Vitest output clearly lists each test file, test name, pass/fail status, and a detailed error trace for the failing test.
-- REQ-TEST-EXAMPLES: There are behavior tests for the server (`server.test.ts`), CLI/initializer, dev server, and generated-project behavior, plus type-level tests for exported types.
-
-Because `npm test` currently fails and `npm run test:coverage` cannot run successfully, the story’s core goals (all tests pass, coverage report generated) are not met. Therefore the correct assessment for this story at this time is FAILED.
+- Stories passed: 8
+- Stories failed: 0
 
 **Next Steps:**
-- Complete story: docs/stories/004.0-DEVELOPER-TESTS-RUN.story.md
-- This is a valid implementation story and is not just documentation. The current implementation does NOT fully satisfy all acceptance criteria and requirements for 004.0-DEVELOPER-TESTS-RUN.
-
-Key failures:
-- REQ-TEST-ALL-PASS / Acceptance "All Tests Pass": The latest `npm test -- --reporter=verbose` run exits with a non-zero status. One test fails: `src/generated-project-logging.test.ts` in the case `[REQ-LOG-LEVEL-CONFIG] suppresses info-level request logs when LOG_LEVEL=error`, with the error `Server process exited early with code 1`. This directly violates the requirement that all tests pass on first run.
-- REQ-TEST-COVERAGE / Acceptance "Test Coverage Report": `npm run test:coverage` currently exits with code 127 and the error `sh: vitest: command not found`, so coverage cannot be generated in the expected way. Although `vitest.config.mts` defines coverage reporting and thresholds, the configured coverage command does not run successfully in this environment, so the story’s coverage requirement is not met in practice.
-
-Criteria that appear satisfied based on current evidence:
-- REQ-TEST-FAST-EXEC / "Fast Test Execution": The Vitest summary for `npm test` shows `Duration 3.66s`, which is under the 5-second target (on this machine) even though there is a failing test.
-- REQ-TEST-WATCH-MODE and "Watch Mode Available" + "Fast Feedback Loop": Watch mode is documented (`npm test -- --watch`), and Vitest natively supports watch with fast re-runs. However, this was not executed here due to its interactive nature; we rely on configuration and documentation rather than a live run.
-- REQ-TEST-TYPESCRIPT / "TypeScript Test Support": Multiple `.test.ts` files run under Vitest without a separate compilation step, and the type-only tests in `src/index.test.d.ts` (annotated with `@supports ... REQ-TEST-TYPESCRIPT`) are validated via `npm run type-check` rather than a separate manual compile.
-- "Multiple Test File Formats": The repo includes `.test.ts` (e.g., `cli.test.ts`, `initializer.test.ts`), `.test.js` (e.g., `check-node-version.test.js`, `index.test.js`), and `.test.d.ts`/type-test files (`index.test.d.ts`, `dev-server-test-types.d.ts`), satisfying the format variety requirement.
-- REQ-TEST-VITEST-CONFIG: `vitest.config.mts` includes both TS and JS test patterns and uses the v8 coverage provider, supporting ESM and CommonJS-style tests.
-- REQ-TEST-CLEAR-OUTPUT / "Clear Test Output": The verbose Vitest output clearly lists each test file, test name, pass/fail status, and a detailed error trace for the failing test.
-- REQ-TEST-EXAMPLES: There are behavior tests for the server (`server.test.ts`), CLI/initializer, dev server, and generated-project behavior, plus type-level tests for exported types.
-
-Because `npm test` currently fails and `npm run test:coverage` cannot run successfully, the story’s core goals (all tests pass, coverage report generated) are not met. Therefore the correct assessment for this story at this time is FAILED.
-- Evidence: [
-  {
-    "type": "story-file",
-    "description": "Story file exists and matches the provided specification.",
-    "path": "docs/stories/004.0-DEVELOPER-TESTS-RUN.story.md"
-  },
-  {
-    "type": "test-command",
-    "description": "npm test script definition uses Vitest.",
-    "path": "package.json",
-    "contentSnippet": "\"scripts\": {\"test\": \"vitest run\",\"test:coverage\": \"vitest run --coverage src/check-node-version.test.js src/cli.test.ts src/dev-server.test.ts src/generated-project-production-npm-start.test.ts src/index.test.js src/index.test.ts src/initializer.test.ts src/repo-hygiene.generated-projects.test.ts src/server.test.ts\", ...}"
-  },
-  {
-    "type": "test-run",
-    "description": "Full test suite run via npm test (non-coverage) currently has a failing test.",
-    "command": "npm test -- --reporter=verbose",
-    "outputSnippet": [
-      "> @voder-ai/create-fastify-ts@0.0.0 test",
-      "> vitest run --reporter=verbose",
-      "✕ src/generated-project-logging.test.ts > Generated project logging configuration (Story 008.0) [REQ-LOG-LEVEL-CONFIG] > [REQ-LOG-LEVEL-CONFIG] suppresses info-level request logs when LOG_LEVEL=error",
-      "Error: Server process exited early with code 1. stdout:",
-      "Test Files  1 failed | 9 passed | 1 skipped (11)",
-      "Tests      1 failed | 55 passed | 3 skipped (59)",
-      "Duration   3.66s (transform 1.58s, setup 0ms, import 2.04s, tests 8.55s, environment 1ms)"
-    ]
-  },
-  {
-    "type": "coverage-run",
-    "description": "Coverage run via npm run test:coverage fails because vitest binary is not found.",
-    "command": "npm run test:coverage",
-    "outputSnippet": [
-      "> @voder-ai/create-fastify-ts@0.0.0 test:coverage",
-      "> vitest run --coverage src/check-node-version.test.js src/cli.test.ts src/dev-server.test.ts src/generated-project-production-npm-start.test.ts src/index.test.js src/index.test.ts src/initializer.test.ts src/repo-hygiene.generated-projects.test.ts src/server.test.ts",
-      "Stderr:",
-      "sh: vitest: command not found",
-      "",
-      "npm run test:coverage exited with code 127."
-    ]
-  },
-  {
-    "type": "coverage-config",
-    "description": "Vitest configuration defines coverage reporting and global thresholds for lines, statements, branches, and functions.",
-    "path": "vitest.config.mts",
-    "contentSnippet": [
-      "export default defineConfig({",
-      "  test: {",
-      "    include: ['src/**/*.test.ts', 'src/**/*.test.js'],",
-      "    exclude: ['dist/**', 'node_modules/**'],",
-      "    coverage: {",
-      "      provider: 'v8',",
-      "      reportsDirectory: 'coverage',",
-      "      reporter: ['text', 'html'],",
-      "      exclude: ['src/template-files/**'],",
-      "      lines: 80,",
-      "      statements: 80,",
-      "      branches: 80,",
-      "      functions: 80,",
-      "    },",
-      "  },",
-      "});"
-    ]
-  },
-  {
-    "type": "test-files",
-    "description": "Multiple test file formats exist, including .test.ts, .test.js, and .test.d.ts / type-level tests.",
-    "dir": "src",
-    "files": [
-      "check-node-version.test.js",
-      "cli.test.ts",
-      "dev-server-test-types.d.ts",
-      "dev-server.test-helpers.ts",
-      "dev-server.test.ts",
-      "generated-project-logging.test.ts",
-      "generated-project-production-npm-start.test.ts",
-      "generated-project-production.test.ts",
-      "index.test.d.ts",
-      "index.test.js",
-      "index.test.ts",
-      "initializer.test.ts",
-      "repo-hygiene.generated-projects.test.ts",
-      "server.test.ts"
-    ]
-  },
-  {
-    "type": "ts-type-tests",
-    "description": "Type-level tests demonstrate TypeScript test support and are explicitly tied to this story.",
-    "path": "src/index.test.d.ts",
-    "contentSnippet": [
-      "/**",
-      " * @file Type-level tests for getServiceHealth.",
-      " * @supports docs/stories/004.0-DEVELOPER-TESTS-RUN.story.md REQ-TEST-EXAMPLES REQ-TEST-TYPESCRIPT",
-      " */",
-      "import type { getServiceHealth } from './index.js';",
-      "type Equal<A, B> = ...",
-      "export type GetServiceHealthReturnsString = Expect<",
-      "  Equal<ReturnType<typeof getServiceHealth>, string>",
-      ">;"
-    ]
-  },
-  {
-    "type": "esm-cjs-support",
-    "description": "Vitest config includes both TS and JS test files, supporting ESM and CommonJS-style tests.",
-    "path": "vitest.config.mts",
-    "contentSnippet": [
-      "test: {",
-      "  include: ['src/**/*.test.ts', 'src/**/*.test.js'],",
-      "  exclude: ['dist/**', 'node_modules/**'],",
-      "}"
-    ]
-  },
-  {
-    "type": "documentation",
-    "description": "README documents test commands, coverage, and watch mode.",
-    "path": "README.md",
-    "contentSnippet": [
-      "### Testing",
-      "- `npm test` runs the Vitest test suite once.",
-      "- `npm test -- --watch` runs the suite in watch mode and is intended for local development only (not CI).",
-      "- `npm run test:coverage` runs the core test suites with coverage reporting enabled (excluding the heaviest generated-project E2E suites) and enforces global coverage thresholds.",
-      "- `npm run type-check` runs TypeScript in `noEmit` mode and also validates `.test.d.ts` type-level tests.",
-      "The template includes example `.test.ts`, `.test.js`, and `.test.d.ts` files so you can see patterns for both behavior-focused tests and type-level tests."
-    ]
-  },
-  {
-    "type": "testing-docs",
-    "description": "User testing guide explains test commands, coverage metrics, and watch behavior.",
-    "path": "user-docs/testing.md",
-    "contentSnippet": [
-      "npm test",
-      "npm test -- --watch",
-      "npm run test:coverage",
-      "npm run type-check",
-      "Runs `vitest run` once in non-watch mode.",
-      "Runs Vitest in watch mode, re-running affected tests when you change source or test files.",
-      "Runs the full Vitest suite with coverage reporting enabled (v8 provider).",
-      "Prints a summary table showing coverage for statements, branches, functions, and lines.",
-      "Enforces global coverage thresholds (around 80% for each metric)."
-    ]
-  }
-]
+- All stories complete - ready for delivery
