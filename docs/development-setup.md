@@ -227,6 +227,12 @@ This project combines trunk-based development with automated semantic versioning
 
 For the rationale behind this approach and how it supports continuous deployment, see `docs/decisions/003-continuous-deployment-semantic-release-trunk-based.accepted.md`.
 
+## Voder Metadata and Version Control
+
+The `.voder` directory is part of the tracked project state and is committed to git, with the exception of `.voder/traceability/` and other explicitly ignored report artifacts. Contributors MUST NOT introduce or reintroduce ignore rules that exclude the entire `.voder` directory (for example, `/.voder` in `.gitignore` or similar tooling configuration).
+
+Treat `.voder` like `docs/`: it is considered internal documentation and governance metadata and must remain under version control so that its evolution is reviewable and auditable. When adding or updating ignore rules (for git, editors, or other tools), ensure they do not exclude the `.voder/` directory itself, in line with the project’s version-control policy.
+
 ## Testing Strategy and Expectations
 
 The current test suite is intentionally small but representative:
