@@ -86,7 +86,7 @@ export function getNodeVersionCheckResult(
     `@voder-ai/create-fastify-ts requires Node.js >= ${minimum.raw}, but found ${current.raw}.`,
     'Please upgrade your local Node.js installation to meet this requirement before running `npm install` or `npm ci` in this repository.',
     '',
-    'This requirement is part of the template\'s documented support policy for Node.js 22 and newer.',
+    "This requirement is part of the template's documented support policy for Node.js 22 and newer.",
     'For more details, see the public documentation on GitHub:',
     '  https://github.com/voder-ai/create-fastify-ts',
   ];
