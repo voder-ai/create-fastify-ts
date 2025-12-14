@@ -55,81 +55,153 @@ Guidelines:
 
 ### Initializer Tests
 
-Since this project is distributed as an npm initializer (`npm init @voder-ai/fastify-ts`), it's critical to test the actual initialization and project creation process.
+Since this project is distributed as an npm initializer (`npm init @voder-ai/fastify-ts`), it's critical to test the actual initialization and project creation process. The test strategy uses **two complementary but separate test suites** to validate the npm init flow:
 
-Add or update initializer tests when:
+**Test Execution Strategy:**
 
-- You modify the template structure or file generation logic.
-- You change the initialization script or its dependencies.
-- You add or remove files from the template package.
-- You update package.json generation or dependency installation logic.
+- **Integration tests** (`npm-init-e2e.test.ts`) run as part of the standard test suite (`npm test`)
+  - They test against local code before publishing
+  - They MUST pass before any release can happen
+  - They provide fast feedback during development
 
-Guidelines:
+- **Smoke tests** (`npm-init-smoke.test.ts`) run separately from the standard test suite
+  - They are skipped by default in `npm test` (require `SMOKE_TEST=true` environment variable)
+  - They run via `npm run test:smoke` or in CI/CD after a release completes
+  - They MUST NOT block releases (to avoid the chicken-and-egg problem where a bad release prevents fixing itself)
+  - They validate the published package on npm registry, which doesn't exist until after release
 
-- Create automated tests that run the full initialization process:
-  ```bash
-  npm init @voder-ai/fastify-ts test-project
-  cd test-project
-  npm install
-  npm run lint
-  npm test
-  npm run build
-  ```
-- Always create test projects inside OS temporary directories using `fs.mkdtemp` and `os.tmpdir()`.
-- Never commit initializer-generated projects (such as full `my-api/` trees) to the repository; tests must create and delete them at runtime instead.
-- Prefer helper utilities (like `src/dev-server.test-helpers.ts` and the helpers in `src/initializer.test.ts` / `src/cli.test.ts`) that encapsulate temporary project creation and cleanup.
-- Test both successful creation and error cases (existing directory, invalid project names, etc.).
-- Verify the generated project structure matches expectations (required files exist, correct content).
-- Run the generated project's own test suite to ensure the template is functional.
-- Test with different options/templates if your initializer supports them.
-- Clean up test projects after test completion to avoid filesystem clutter.
-- Consider using a temporary directory for each test run to ensure isolation.
+#### Integration Tests (Pre-Publish)
 
-Example test structure:
+These tests validate the `npm init @voder-ai/fastify-ts` flow **against the local codebase** before publishing. They provide fast feedback during development.
+
+**When to add or update:**
+
+- You modify the template structure or file generation logic
+- You change the initialization script or its dependencies
+- You add or remove files from the template package
+- You update package.json generation or dependency installation logic
+
+**Implementation approach:**
+
+- Run the CLI directly from `dist/cli.js` to simulate npm init flow
+- Test against local codebase before publishing
+- Verify the generated project structure and behavior
+- Run the generated project's test suite to ensure template functionality
+
+**Guidelines:**
+
+- Always create test projects inside OS temporary directories using `fs.mkdtemp` and `os.tmpdir()`
+- Never commit initializer-generated projects to the repository
+- Test both successful creation and error cases (existing directory, invalid project names, etc.)
+- Verify the generated project structure matches expectations (required files exist, correct content)
+- Clean up test projects after test completion
+- These tests run as part of the standard test suite (`npm test`)
+- Use standard `.test.ts` naming convention (e.g., `npm-init-e2e.test.ts`)
+
+#### Smoke Tests (Post-Publish)
+
+These tests validate the `npm init @voder-ai/fastify-ts` flow **against the published npm package** after release. They verify the real end-user experience.
+
+**When to run:**
+
+- Automatically as part of the CI/CD pipeline after semantic-release publishes
+- Manually to verify a specific published version works correctly
+- As a separate monitoring/validation step, NOT as part of the release process
+
+**Implementation approach:**
+
+- Create a temporary directory
+- Run `npm init @voder-ai/fastify-ts` without any local references (pulls from npm registry)
+- Verify basic project creation succeeds
+- Optionally verify the generated project can install dependencies and run tests
+
+**Guidelines:**
+
+- Run in a completely clean environment (no symlinks to local code)
+- Test the exact command developers will use
+- Keep assertions minimal but meaningful (project created, key files exist, basic structure correct)
+- **CRITICAL: These tests MUST NOT be part of the regular test suite (`npm test`)**
+  - Smoke tests validate the published package, which doesn't exist until after release
+  - If smoke tests were in `npm test`, a bad release would prevent releasing a fix (chicken-and-egg problem)
+  - Smoke tests use `.smoke.test.ts` naming convention (e.g., `npm-init.smoke.test.ts`)
+  - Test script excludes `**/*.smoke.test.ts` pattern from regular test runs
+  - Use `npm run test:smoke` to run them explicitly
+- These tests run in CI/CD **after** semantic-release completes, not as a gate before release
+- Failure indicates a publishing/distribution problem or registry propagation issue, not necessarily a code problem
+- Smoke test failures should trigger alerts/notifications but should not block subsequent releases
+
+**Example integration test structure** (tests against local codebase):
 
 ```ts
+// npm-init-e2e.test.ts
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import { execSync } from 'node:child_process';
 
-describe('npm init @voder-ai/fastify-ts', () => {
+describe('npm init @voder-ai/fastify-ts (E2E integration)', () => {
   let tmpDir: string;
+  const cliPath = path.join(process.cwd(), 'dist/cli.js');
 
   beforeEach(async () => {
-    tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'fastify-ts-init-'));
+    tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'fastify-ts-e2e-'));
   });
 
   afterEach(async () => {
     await fs.rm(tmpDir, { recursive: true, force: true });
   });
 
-  it('creates a working project with all required files', async () => {
-    // Run initializer
-    execSync('npm init @voder-ai/fastify-ts test-app', { cwd: tmpDir });
+  it('[REQ-INIT-E2E-INTEGRATION] creates a working project with all required files', async () => {
+    // Run CLI directly from dist folder
+    execSync(`node ${cliPath} test-app`, { cwd: tmpDir, encoding: 'utf-8' });
 
     const projectDir = path.join(tmpDir, 'test-app');
 
     // Verify structure
-    expect(fs.existsSync(path.join(projectDir, 'package.json'))).toBe(true);
-    expect(fs.existsSync(path.join(projectDir, 'tsconfig.json'))).toBe(true);
-    expect(fs.existsSync(path.join(projectDir, 'src/index.ts'))).toBe(true);
+    await expect(fs.access(path.join(projectDir, 'package.json'))).resolves.toBeUndefined();
+    await expect(fs.access(path.join(projectDir, 'tsconfig.json'))).resolves.toBeUndefined();
+    await expect(fs.access(path.join(projectDir, 'src/index.ts'))).resolves.toBeUndefined();
 
-    // Install and test
-    execSync('npm install', { cwd: projectDir, stdio: 'inherit' });
-    execSync('npm test', { cwd: projectDir, stdio: 'inherit' });
-    execSync('npm run build', { cwd: projectDir, stdio: 'inherit' });
+    // Install and build
+    execSync('npm install', { cwd: projectDir, encoding: 'utf-8' });
+    execSync('npm run build', { cwd: projectDir, encoding: 'utf-8' });
 
     // Verify build output
-    expect(fs.existsSync(path.join(projectDir, 'dist')).toBe(true);
+    await expect(fs.access(path.join(projectDir, 'dist/src/index.js'))).resolves.toBeUndefined();
+  });
+});
+```
+
+**Example smoke test structure** (tests against published package):
+
+```ts
+// npm-init.smoke.test.ts - Note the .smoke.test.ts suffix!
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import { execSync } from 'node:child_process';
+
+describe('[REQ-INIT-E2E-SMOKE] npm init smoke tests (published package)', () => {
+  let tmpDir: string;
+
+  beforeEach(async () => {
+    tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'fastify-ts-smoke-'));
   });
 
-  it('fails gracefully when directory already exists', () => {
-    const projectDir = path.join(tmpDir, 'existing-app');
-    fs.mkdirSync(projectDir, { recursive: true });
+  afterEach(async () => {
+    await fs.rm(tmpDir, { recursive: true, force: true });
+  });
 
-    expect(() => {
-      execSync('npm init @voder-ai/fastify-ts existing-app', { cwd: tmpDir });
-    }).toThrow();
+  it('[REQ-INIT-E2E-SMOKE] creates a working project from published package', async () => {
+    // Run npm init against published package - pulls from npm registry
+    execSync('npm init @voder-ai/fastify-ts test-app', { cwd: tmpDir, encoding: 'utf-8' });
+
+    const projectDir = path.join(tmpDir, 'test-app');
+
+    // Verify basic structure
+    await expect(fs.access(path.join(projectDir, 'package.json'))).resolves.toBeUndefined();
+    await expect(fs.access(path.join(projectDir, 'tsconfig.json'))).resolves.toBeUndefined();
+    await expect(fs.access(path.join(projectDir, 'src/index.ts'))).resolves.toBeUndefined();
   });
 });
 ```

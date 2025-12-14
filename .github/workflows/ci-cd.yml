@@ -64,7 +64,7 @@ jobs:
             echo "released=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Post-release smoke test
+      - name: Post-release smoke test (API check)
         if: steps.release.outputs.released == 'true'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -93,3 +93,10 @@ jobs:
           });
           EOF
         shell: bash
+
+      - name: Post-release smoke test (E2E npm init)
+        if: steps.release.outputs.released == 'true'
+        run: |
+          echo "Waiting 60 seconds for npm registry propagation..."
+          sleep 60
+          npm run test:smoke

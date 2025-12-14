@@ -1,15 +1,26 @@
 ## NOW
 
-- [ ] Stop tracking the duplication report JSON file by removing `report/jscpd-report.json` from the tracked project files and adding an ignore rule so future duplication reports are treated as generated artifacts rather than committed source.
+- [ ] Implement ADR 0016: Migrate smoke tests to `.smoke.test.ts` naming convention
+  - Rename `src/npm-init-smoke.test.ts` → `src/npm-init.smoke.test.ts`
+  - Remove `describeOrSkip` conditional logic and environment variable checks from smoke test file
+  - Update `package.json` test script to exclude `**/*.smoke.test.ts` pattern
+  - Update `package.json` test:smoke script to run `**/*.smoke.test.ts` files
+  - Update `.github/workflows/ci-cd.yml` to remove `SMOKE_TEST=true` environment variable (if present)
+  - Update `docs/testing-strategy.md` to document the `.smoke.test.ts` convention and rationale
+  - Verify `npm test` excludes smoke tests completely (no "skipped" output)
+  - Verify `npm run test:smoke` runs only smoke tests
 
 ## NEXT
 
-- [ ] Extend the pre-push hook configuration so that it also runs the dependency security audit, matching the audit step that already runs in the continuous integration workflow.
-- [ ] Extend the pre-push hook configuration so that it also runs the lint and format smoke test, ensuring local pushes exercise the same lint/format safety net as the continuous integration workflow.
-- [ ] Update the version-control or development-setup documentation to describe the expected local workflow, including the full set of checks that run automatically before pushes and how they align with the continuous integration pipeline.
+- [ ] Run full quality gates (lint, format, type-check, test, build) to validate ADR 0016 implementation
+- [ ] Commit changes with message following conventional commits (e.g., `test: migrate smoke tests to .smoke.test.ts convention per ADR 0016`)
+- [ ] Update history.md with summary of ADR 0016 implementation and smoke test isolation
+- [ ] Consider promoting ADR 0016 from proposed to accepted after successful production validation
+- [ ] Review existing CLI and initializer tests for any remaining duplication with npm init E2E tests
 
 ## LATER
 
-- [ ] Introduce an ignore rule and convention for any future generated analysis reports (such as coverage or duplication outputs) so they are never accidentally committed, and update contributor documentation to clarify this policy.
-- [ ] Add a brief maintenance guideline that any new quality checks added to the continuous integration workflow must also be wired into the pre-push hook, keeping local and remote quality gates in sync over time.
-- [ ] If duplication checking becomes part of the standard workflow, add a dedicated script and optional pre-push hook step for running the duplication check, while keeping its reports untracked and ignored.
+- [ ] Consider adding additional npm init E2E test scenarios (invalid project names, error handling edge cases)
+- [ ] Add metrics/reporting for npm init test execution times to catch performance regressions
+- [ ] Explore testing npm init with different Node.js versions to validate cross-version compatibility
+- [ ] Consider whether other test types (performance, security) would benefit from similar naming conventions (e.g., `.perf.test.ts`, `.security.test.ts`)
