@@ -1,16 +1,15 @@
 ## NOW
 
-- [ ] Add environment-driven log level configuration to the generated project’s Fastify server template so that the logger level is controlled by a LOG_LEVEL environment variable with sensible defaults, and update or add tests to verify that changing LOG_LEVEL actually affects the runtime log level as required by the logging story.
+- [ ] Update the project’s development dependencies so that the code-duplication tool version matches the latest safe release identified by the dependency freshness report, ensuring the package metadata and lockfile are consistent and all existing tests and quality checks still pass with the new version.
 
 ## NEXT
 
-- [ ] Introduce development-time pretty logging for generated projects by integrating pino-pretty into the dev server path so that running the dev script produces human-readable structured logs while keeping production logs as raw JSON.
-- [ ] Extend the generated project README to include a dedicated logging section that explains available log levels, how to configure LOG_LEVEL, how to add custom log messages (including request-scoped logging), and the difference between development and production log formats.
-- [ ] Add a focused test suite that validates the dev-time pretty logging behavior and request-context logging examples, with traceability annotations referencing the logging story and its REQ-LOG-* requirements.
-- [ ] Update the logging story file to mark the newly satisfied acceptance criteria as complete and document how the implementation (code and tests) fulfills each requirement.
+- [ ] Add the dependency freshness tool itself as an explicit development dependency so that the CI pipeline uses the locally declared version instead of installing it on the fly, keeping dependency versions controlled by package metadata.
+- [ ] Adjust the CI dependency audit step to use the current recommended flags for excluding development dependencies, removing obsolete warnings while preserving the existing high-severity production audit behavior.
+- [ ] Ensure that any new or updated development dependencies introduced for tooling (such as jscpd and dry-aged-deps) are covered by the existing scripts and documentation so contributors know how and when these tools run.
 
 ## LATER
 
-- [ ] Provide additional user documentation that outlines recommended patterns for integrating generated project logs with common aggregation tools such as CloudWatch, Datadog, or ELK, using concrete JSON log examples from the template.
-- [ ] Refine logging-related helper utilities and test fixtures to reduce duplication and make it easy to add further logging features or stories (for example, correlation IDs or structured error fields) without rewriting test scaffolding.
-- [ ] Consider adding optional configuration hooks in the generated project template that allow teams to plug in their own Pino transports or redact rules while preserving the documented defaults and keeping the template simple for new users.
+- [ ] Document a lightweight dependency management policy that explains how to interpret the dependency freshness report, when to apply safe updates to development and runtime dependencies, and how those changes are validated through the existing quality pipeline.
+- [ ] Periodically expand coverage of the dependency freshness tooling to include any new subprojects or packages added in the future, keeping the same pattern of safe, incremental upgrades validated by tests.
+- [ ] Consider adding a short developer-facing guide that illustrates common dependency update workflows in this project (for example, updating a dev tool vs a runtime library) and how those map to commit types and CI expectations.
