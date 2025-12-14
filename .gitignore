@@ -145,7 +145,6 @@ ci/
 jscpd-report/
 
 # Voder and tooling-generated assessment reports (not for version control)
-.voder/
 .voder-code-quality-slices.json
 .voder-eslint-report.json
 .voder-secretlint.json
