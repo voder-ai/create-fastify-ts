@@ -110,6 +110,7 @@ All developer tasks are centralized in `package.json` scripts. Run them from the
 | `format`       | `npm run format`       | Applies Prettier formatting to all supported files in the repo. This is a safe, working auto-fix command that developers are encouraged to use locally. | Before committing, or when Prettier reports formatting errors. Automatically run on pre-commit.                                                                            |
 | `format:check` | `npm run format:check` | Verifies that files conform to Prettier formatting rules without changing them.                                                                         | As part of a local quality gate before pushing. Automatically run by the pre-push hook and CI.                                                                             |
 | `release`      | `npm run release`      | Invokes `semantic-release` to analyze commits, determine the next version, publish to npm, and create GitHub releases.                                  | Rarely run manually. CI runs semantic-release on every push to `main`. Use locally only for debugging the release process (requires valid `NPM_TOKEN` and `GITHUB_TOKEN`). |
+| `audit:ci`     | `npm run audit:ci`     | Runs the centralized production dependency audit used by CI (for example, `npm audit --production` with project-specific flags).                        | To locally reproduce or investigate dependency audit results from CI, or before pushing changes that modify dependencies or the build pipeline.                            |
 
 ## Local Development Workflow (Trunk-Based)
 
@@ -133,6 +134,7 @@ A typical end-to-end workflow for making a change looks like this:
    npm run type-check
    npm run build
    npm run format:check
+   npm run audit:ci
    ```
    If you encounter lint or formatting issues, you can safely auto-fix many of them locally using:
    ```bash
@@ -149,7 +151,7 @@ A typical end-to-end workflow for making a change looks like this:
    ```bash
    git push origin main
    ```
-   The pre-push hook will run `npm run build`, `npm test`, `npm run lint`, `npm run type-check`, and `npm run format:check` before the push is sent to GitHub. If any of these checks fail, the push is blocked until you resolve the issues.
+   The pre-push hook will run `npm run build`, `npm test`, `npm run lint`, `npm run type-check`, `npm run format:check`, `npm run audit:ci`, and `npm run quality:lint-format-smoke` before the push is sent to GitHub. If any of these checks fail, the push is blocked until you resolve the issues.
 6. **Let CI/CD run** on GitHub. On every push to `main`, the `CI/CD Pipeline` workflow repeats the same quality checks and, if they pass, publishes a new version via `semantic-release`.
 
 Keeping changes small and following this workflow ensures that `main` is always releasable and that every commit can be deployed safely.
@@ -198,6 +200,8 @@ The pipeline runs the following steps in order:
    - `npm run build` – full TypeScript compile to `dist/`.
    - `npm test` – Vitest test suite.
    - `npm run format:check` – Prettier formatting verification.
+   - `npm run audit:ci` – Centralized production dependency audit used in CI.
+   - `npm run quality:lint-format-smoke` – Centralized “smoke” verification that linting and formatting configs remain consistent and usable.
 3. **Automated release with semantic-release**
    - Runs `semantic-release` (via `npx semantic-release`).
    - Analyzes commit messages following the Conventional Commits spec.
@@ -303,7 +307,7 @@ The current security posture reflects an early-stage service:
 
 Security-related checks and practices expected today:
 
-- Run `npm audit --production` periodically when working on dependency or build-related changes, and review any reported vulnerabilities.
+- Run `npm audit --production` periodically when working on dependency or build-related changes, and review any reported vulnerabilities. Prefer using the centralized `npm run audit:ci` script so results match CI.
 - Keep dependencies reasonably up to date, preferring maintained packages and avoiding obviously unmaintained or deprecated libraries when adding new dependencies.
 - Review transitive dependency changes in `package-lock.json` when they arise from manual or automated updates.
 

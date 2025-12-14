@@ -1,15 +1,15 @@
 ## NOW
 
-- [ ] Make the hot-reload behavior test for the dev server pass by updating the test in the dev-server test suite so that it reliably detects the server restart on a compiled output change within an appropriate timeout while still asserting both the restart log message and a clean, graceful shutdown after the restart.
+- [ ] Stop tracking the duplication report JSON file by removing `report/jscpd-report.json` from the tracked project files and adding an ignore rule so future duplication reports are treated as generated artifacts rather than committed source.
 
 ## NEXT
 
-- [ ] If the updated test reveals an actual defect in the dev server’s hot-reload logic, adjust the hot-reload implementation so that changing the compiled output file always triggers a single restart with clear logging and no orphaned processes, then re-run the test to confirm it passes.
-- [ ] Update the dev-server story to reflect that the hot-reload acceptance criteria are now fully validated by the passing test, including any notes about restart timing and graceful shutdown behavior.
-- [ ] Ensure the entire dev-server test suite, including the hot-reload scenario, runs consistently without flakiness in the normal test environment so that story 003.0 can be considered complete and stable.
+- [ ] Extend the pre-push hook configuration so that it also runs the dependency security audit, matching the audit step that already runs in the continuous integration workflow.
+- [ ] Extend the pre-push hook configuration so that it also runs the lint and format smoke test, ensuring local pushes exercise the same lint/format safety net as the continuous integration workflow.
+- [ ] Update the version-control or development-setup documentation to describe the expected local workflow, including the full set of checks that run automatically before pushes and how they align with the continuous integration pipeline.
 
 ## LATER
 
-- [ ] Add additional dev-server tests that exercise more complex change scenarios, such as multiple rapid changes to the compiled output file, to demonstrate that hot reload behaves sensibly under repeated edits.
-- [ ] Extend documentation for contributors to explain how the dev server’s hot-reload mechanism works and how to diagnose or adjust it if future changes introduce timing or process-lifecycle issues.
-- [ ] Consider adding a lightweight smoke test that runs only the dev-server hot-reload scenario, providing a quick sanity check when modifying dev-server or watcher-related code.
+- [ ] Introduce an ignore rule and convention for any future generated analysis reports (such as coverage or duplication outputs) so they are never accidentally committed, and update contributor documentation to clarify this policy.
+- [ ] Add a brief maintenance guideline that any new quality checks added to the continuous integration workflow must also be wired into the pre-push hook, keeping local and remote quality gates in sync over time.
+- [ ] If duplication checking becomes part of the standard workflow, add a dedicated script and optional pre-push hook step for running the duplication check, while keeping its reports untracked and ignored.

@@ -142,6 +142,7 @@ tmp_jest_output.json
 # Ignore CI artifact reports
 
 ci/
+report/
 jscpd-report/
 
 # Voder and tooling-generated assessment reports (not for version control)
