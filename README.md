@@ -105,7 +105,7 @@ For template releases, see:
 
 ## API Reference
 
-For details on the programmatic API (including `getServiceHealth`, `initializeTemplateProject`, and `initializeTemplateProjectWithGit`), see the [API Reference](user-docs/api.md).
+For details on the programmatic API (including `initializeTemplateProject` and `initializeTemplateProjectWithGit`), see the [API Reference](user-docs/api.md).
 
 ## Security
 

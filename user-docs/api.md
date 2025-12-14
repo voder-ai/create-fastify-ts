@@ -8,7 +8,6 @@ Import from the package root using standard ES module syntax:
 
 ```ts
 import {
-  getServiceHealth,
   initializeTemplateProject,
   initializeTemplateProjectWithGit,
   type GitInitResult,
@@ -19,30 +18,12 @@ or in JavaScript:
 
 ```js
 import {
-  getServiceHealth,
   initializeTemplateProject,
   initializeTemplateProjectWithGit,
 } from '@voder-ai/create-fastify-ts';
 ```
 
 ## Functions
-
-### `getServiceHealth(): string`
-
-Returns a simple string representing the current health of the service wiring.
-
-- **Returns**: the string `"ok"`.
-- **Errors**: does not throw under normal conditions.
-
-Example:
-
-```ts
-import { getServiceHealth } from '@voder-ai/create-fastify-ts';
-
-if (getServiceHealth() === 'ok') {
-  console.log('Service wiring looks good');
-}
-```
 
 ### `initializeTemplateProject(projectName: string): Promise<string>`
 
