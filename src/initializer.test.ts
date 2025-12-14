@@ -62,8 +62,7 @@ function assertBasicPackageJsonShape(pkg: any, projectName: string): void {
   // [REQ-INIT-ESMODULES]
   expect(pkg.type).toBe('module');
 
-  // Placeholder scripts that will be implemented in later stories.
-  // [REQ-INIT-NO-SCRIPTS-YET]
+  // Basic scripts are present; detailed behavior is validated in other story-specific tests.
   expect(typeof pkg.scripts.dev).toBe('string');
   expect(typeof pkg.scripts.build).toBe('string');
   expect(typeof pkg.scripts.start).toBe('string');

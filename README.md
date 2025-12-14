@@ -12,7 +12,11 @@ cd my-api
 npm install
 ```
 
-The generated `package.json` includes a working `dev` script that starts the development server, while the `build` and `start` scripts remain placeholders that currently print TODO messages and exit with a non-zero status; real build and start workflows will be implemented in future stories/versions of this template.
+The generated `package.json` includes a working `dev` script that starts the development server from TypeScript sources, plus production-ready `build` and `start` scripts:
+
+- `npm run dev` runs the dev server with hot reload via `dev-server.mjs`
+- `npm run build` compiles TypeScript to JavaScript into a `dist/` directory and emits `.d.ts` files and sourcemaps
+- `npm start` runs the compiled Fastify server from `dist/src/index.js` without any watch or hot-reload behavior
 
 In the generated project, when `src/index.ts` is compiled and run, it starts a Fastify server that listens on port `3000` (or the value of the `PORT` environment variable if set) and serves a Hello World JSON response on `GET /`.
 
@@ -29,6 +33,8 @@ Requires Node.js 22 or newer (LTS recommended); attempting to install dependenci
 - **Vitest**: Lightning-fast test framework
 - **ESLint + Prettier**: Code quality and formatting
 - **Hello World endpoint**: `GET /` returns a simple JSON payload in the generated project
+- **Dev server**: `npm run dev` starts a TypeScript-aware dev server with hot reload
+- **Production build & start**: `npm run build` + `npm start` run the compiled server from `dist/`
 
 ### Planned Enhancements
 
@@ -38,7 +44,6 @@ These features are planned and not yet implemented in the current template:
 - **Structured Logging**: Pino for JSON logs
 - **Environment Variable Validation**: Strict runtime configuration validation
 - **CORS Configuration**: Opt-in, configurable CORS for APIs
-- **Automated Releases**: Semantic-release with trunk-based development
 
 ## Development
 
@@ -104,7 +109,6 @@ Currently implemented:
 
 Planned security-related enhancements (not yet implemented):
 
-- Security headers via @fastify/helmet
 - Environment variable validation
 - CORS opt-in configuration
 - Structured logging with Pino (ensuring no sensitive data in logs)

@@ -16,6 +16,8 @@ import { promisify } from 'node:util';
 
 const execFile = promisify(execFileCallback);
 
+const NODE_TYPES_VERSION = '^24.10.2';
+
 /**
  * Shape of the generated package.json file for a new project.
  */
@@ -60,7 +62,12 @@ export interface GitInitResult {
 /**
  * Create the in-memory representation of package.json for a new project.
  *
- * @supports docs/stories/001.0-DEVELOPER-TEMPLATE-INIT.story.md REQ-INIT-FILES-MINIMAL REQ-INIT-ESMODULES REQ-INIT-TYPESCRIPT docs/stories/005.0-DEVELOPER-SECURITY-HEADERS.story.md REQ-SEC-HELMET-DEFAULT
+ * This shape mirrors the on-disk package.json.template used for scaffolding and
+ * acts as a fallback when direct template copying is not available.
+ *
+ * @supports docs/stories/001.0-DEVELOPER-TEMPLATE-INIT.story.md REQ-INIT-FILES-MINIMAL REQ-INIT-ESMODULES REQ-INIT-TYPESCRIPT
+ * @supports docs/stories/005.0-DEVELOPER-SECURITY-HEADERS.story.md REQ-SEC-HELMET-DEFAULT
+ * @supports docs/stories/006.0-DEVELOPER-PRODUCTION-BUILD.story.md REQ-BUILD-TSC REQ-START-PRODUCTION REQ-START-NO-WATCH REQ-START-PORT REQ-START-LOGS
  * @param projectName - The npm package name for the new project.
  * @returns A plain object ready to be stringified to package.json.
  */
@@ -72,12 +79,10 @@ function createTemplatePackageJson(projectName: string): TemplatePackageJson {
     version: '0.0.0',
     private: true,
     type: 'module',
-    // Placeholder scripts: these will be fully wired up in later stories.
     scripts: {
       dev: 'node dev-server.mjs',
-      build: "echo 'TODO: implement build pipeline in story 006.0-DEVELOPER-BUILD' && exit 1",
-      start:
-        "echo 'TODO: implement production start in story 003.0-DEVELOPER-DEV-SERVER' && exit 1",
+      build: 'tsc -p tsconfig.json',
+      start: 'node dist/src/index.js',
     },
     // Minimal runtime dependency required by the template-init story.
     dependencies: {
@@ -87,6 +92,7 @@ function createTemplatePackageJson(projectName: string): TemplatePackageJson {
     // TypeScript is required for the initialized project.
     devDependencies: {
       typescript: '^5.9.3',
+      '@types/node': NODE_TYPES_VERSION,
     },
   };
 }
@@ -149,7 +155,18 @@ async function scaffoldProject(trimmedName: string): Promise<string> {
   // directories will be added in later stories.
   await fs.mkdir(projectDir, { recursive: true });
 
-  const pkgJson = createTemplatePackageJson(trimmedName);
+  const templateDir = getTemplateFilesDir();
+
+  const packageJsonTemplatePath = path.join(templateDir, 'package.json.template');
+  let pkgJson: TemplatePackageJson;
+  try {
+    const templateContents = await fs.readFile(packageJsonTemplatePath, 'utf8');
+    const replaced = templateContents.replaceAll('{{PROJECT_NAME}}', trimmedName);
+    pkgJson = JSON.parse(replaced) as TemplatePackageJson;
+  } catch {
+    pkgJson = createTemplatePackageJson(trimmedName);
+  }
+
   const pkgJsonPath = path.join(projectDir, 'package.json');
 
   // Write package.json with a trailing newline for POSIX friendliness.
@@ -157,7 +174,6 @@ async function scaffoldProject(trimmedName: string): Promise<string> {
   await fs.writeFile(pkgJsonPath, fileContents, 'utf8');
 
   // Copy additional minimal project files from template assets.
-  const templateDir = getTemplateFilesDir();
 
   // Ensure src directory exists before writing src/index.ts.
   const srcDir = path.join(projectDir, 'src');
