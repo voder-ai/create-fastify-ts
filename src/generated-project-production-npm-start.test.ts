@@ -114,9 +114,14 @@ afterEach(async () => {
 });
 
 describe.skip('Generated project production start via npm (Story 006.0) [REQ-START-PRODUCTION]', () => {
-  // This mirrors the node-based production start test. Contributors can enable it
-  // locally by changing `describe.skip` above to `describe` to exercise `npm start`
-  // end-to-end in their environment.
+  // This mirrors the node-based production start test in src/generated-project-production.test.ts
+  // but goes one step further by exercising `npm install`, `npm run build`, and `npm start`.
+  // It is intentionally skipped by default as a heavier E2E; the always-on runtime smoke test
+  // in src/generated-project-production.test.ts already verifies that the compiled server
+  // can start from dist/ and respond on /health.
+  //
+  // Contributors can temporarily enable this suite by changing `describe.skip` to `describe`
+  // in environments that tolerate longer-running tests.
   it('starts the compiled server from dist/ with npm start and responds on /health', async () => {
     const projectName = 'prod-start-api';
     const projectDir = await initializeTemplateProject(projectName);

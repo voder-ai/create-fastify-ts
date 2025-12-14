@@ -2,8 +2,10 @@
  * Tests for production build and start behavior in a generated project.
  *
  * These tests exercise Story 006.0 requirements by scaffolding a new project,
- * installing dependencies, running the build, and then starting the compiled
- * server to verify the /health endpoint.
+ * running a TypeScript build with tsc, and then (in a fast runtime smoke test)
+ * starting the compiled server from dist/ to verify the /health endpoint.
+ * Additional, heavier E2E suites are provided as optional, skipped-by-default
+ * tests for environments that can tolerate longer runs.
  *
  * @supports docs/stories/006.0-DEVELOPER-PRODUCTION-BUILD.story.md REQ-BUILD-TSC REQ-BUILD-OUTPUT-DIST REQ-BUILD-DECLARATIONS REQ-BUILD-SOURCEMAPS REQ-BUILD-ESM REQ-START-PRODUCTION REQ-START-NO-WATCH REQ-START-PORT REQ-START-LOGS
  */
@@ -101,7 +103,7 @@ async function startCompiledServerViaNode(
     }, 10_000);
 
     const interval = setInterval(() => {
-      const match = stdout.match(/Server listening at (http:\/\/[^\s]+)/);
+      const match = stdout.match(/Server listening at (http:\/\/[^"\s]+)/);
       console.log('[generated-project-production] current stdout from server:', stdout);
       if (match) {
         clearInterval(interval);
@@ -196,7 +198,44 @@ describe('Generated project production build (Story 006.0) [REQ-BUILD-TSC]', () 
   }, 120_000);
 });
 
-// NOTE: The node-based production start E2E can be enabled by changing describe.skip to describe in environments where longer-running E2Es are acceptable.
+describe('Generated project production runtime smoke test (Story 006.0) [REQ-START-PRODUCTION]', () => {
+  it('[REQ-START-PRODUCTION] starts compiled server from dist/src/index.js with src/ removed and responds on /health using an ephemeral port', async () => {
+    // Remove the src directory to prove the production server runs purely from dist/.
+    const srcDir = path.join(projectDir, 'src');
+    await fs.rm(srcDir, { recursive: true, force: true });
+
+    const { child, healthUrl, stdout } = await startCompiledServerViaNode(projectDir, {
+      PORT: '0',
+    });
+
+    try {
+      // 10 seconds is treated as an upper bound for a healthy response for the tiny template project,
+      // aligning with the "Fast Build" / "Server Responds" expectations in Story 006.0.
+      console.log(
+        '[generated-project-production] waiting for health endpoint at',
+        healthUrl.toString(),
+      );
+      const health = await waitForHealth(healthUrl, 10_000);
+      console.log('[generated-project-production] received health response', health);
+      expect(health.statusCode).toBe(200);
+      expect(() => JSON.parse(health.body)).not.toThrow();
+      expect(JSON.parse(health.body)).toEqual({ status: 'ok' });
+
+      // Encode the "No Source References" acceptance criterion by asserting that server
+      // startup logs do not reference TypeScript source files or the src/ tree.
+      expect(stdout).not.toMatch(/\.ts\b/);
+      expect(stdout).not.toMatch(/\bsrc\//);
+    } finally {
+      child.kill('SIGINT');
+    }
+  }, 10_000);
+});
+
+// NOTE: This node-based production start E2E is intentionally skipped by default.
+// The "Generated project production runtime smoke test" above provides a fast,
+// always-on verification that the compiled server can start from dist/ and
+// respond on /health. You can temporarily enable this heavier E2E by changing
+// `describe.skip` to `describe` in environments that tolerate longer-running tests.
 describe.skip('Generated project production start via node (Story 006.0) [REQ-START-PRODUCTION]', () => {
   it('starts the compiled server from dist/src/index.js and responds on /health', async () => {
     console.log('[generated-project-production] starting production start via node test');
