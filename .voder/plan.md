@@ -1,13 +1,13 @@
 ## NOW
 
-- [ ] Extend the existing repository-hygiene test so it asserts that additional common generated-project directory names do not exist at the repository root, preventing those generated projects from ever being accidentally committed again.
+- [ ] Ensure the lint auto-fix and format auto-fix commands work end‑to‑end by correcting any broken tooling configuration or dependencies so that running the lint auto-fix command and the format auto-fix command on deliberately misformatted code successfully rewrites the files without errors.
 
 ## NEXT
 
-- [ ] Update the development setup documentation to clearly state that any sample or generated projects used for manual testing must be created only in temporary or external directories and must never be added to version control.
-- [ ] Broaden the ignore rules for generated projects to cover a small, well-defined set of common generated-project directory patterns that match the new hygiene tests, ensuring consistent prevention at both the .gitignore and test levels.
+- [ ] Update the developer documentation (including the lint/format story if needed) so it clearly describes the now-working lint and format auto-fix commands and how contributors should use them in their workflow.
+- [ ] Add or adjust a small safeguard (for example, a dedicated check in the quality scripts or a lightweight test) that exercises the lint and format auto-fix commands in a controlled way to prevent them from silently regressing in future changes.
 
 ## LATER
 
-- [ ] Add a brief section to the relevant architecture or process decision record documenting the repository hygiene policy for generated projects and how the tests and ignore rules enforce it.
-- [ ] Introduce a concise contributor checklist in the development documentation that reiterates key version-control rules, including not committing build artifacts, coverage outputs, or any generated sample projects.
+- [ ] Gradually introduce any additional linting rules or formatting conventions required by future stories using the prescribed one-rule-at-a-time, suppress-then-fix workflow.
+- [ ] Extend contributor guidance to include recommended editor integrations for ESLint and Prettier so that most formatting and lint issues are prevented before running the command-line tools.

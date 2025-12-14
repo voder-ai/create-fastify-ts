@@ -98,16 +98,16 @@ All developer tasks are centralized in `package.json` scripts. Run them from the
 
 ### Script reference
 
-| Script         | How to run             | What it does                                                                                                           | When to use locally                                                                                                                                                        |
-| -------------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `build`        | `npm run build`        | Compiles TypeScript using `tsc -p tsconfig.json` into `dist/`. Produces the code that is published and smoke‑tested.   | Before publishing or debugging build issues. Automatically run by the pre-push hook and CI.                                                                                |
-| `test`         | `npm test`             | Runs the Vitest suite once in non-watch CI mode.                                                                       | To verify unit/integration tests pass for your changes. Automatically run by the pre-push hook and CI.                                                                     |
-| `lint`         | `npm run lint`         | Runs ESLint across the project using the flat config in `eslint.config.js`.                                            | To check for lint issues before committing. Automatically run on each commit and push.                                                                                     |
-| `lint:fix`     | `npm run lint:fix`     | Runs ESLint with automatic fixes where possible.                                                                       | To automatically fix simple linting problems before a commit.                                                                                                              |
-| `type-check`   | `npm run type-check`   | Runs the TypeScript compiler in `--noEmit` mode for pure type checking (no files written to `dist/`).                  | To verify type safety without doing a full build. Automatically run by the pre-push hook and CI.                                                                           |
-| `format`       | `npm run format`       | Applies Prettier formatting to all supported files in the repo.                                                        | Before committing, or when Prettier reports formatting errors. Automatically run on pre-commit.                                                                            |
-| `format:check` | `npm run format:check` | Verifies that files conform to Prettier formatting rules without changing them.                                        | As part of a local quality gate before pushing. Automatically run by the pre-push hook and CI.                                                                             |
-| `release`      | `npm run release`      | Invokes `semantic-release` to analyze commits, determine the next version, publish to npm, and create GitHub releases. | Rarely run manually. CI runs semantic-release on every push to `main`. Use locally only for debugging the release process (requires valid `NPM_TOKEN` and `GITHUB_TOKEN`). |
+| Script         | How to run             | What it does                                                                                                                                            | When to use locally                                                                                                                                                        |
+| -------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `build`        | `npm run build`        | Compiles TypeScript using `tsc -p tsconfig.json` into `dist/`. Produces the code that is published and smoke‑tested.                                    | Before publishing or debugging build issues. Automatically run by the pre-push hook and CI.                                                                                |
+| `test`         | `npm test`             | Runs the Vitest suite once in non-watch CI mode.                                                                                                        | To verify unit/integration tests pass for your changes. Automatically run by the pre-push hook and CI.                                                                     |
+| `lint`         | `npm run lint`         | Runs ESLint across the project using the flat config in `eslint.config.js`.                                                                             | To check for lint issues before committing. Automatically run on each commit and push.                                                                                     |
+| `lint:fix`     | `npm run lint:fix`     | Runs ESLint with automatic fixes where possible. This is a safe, working auto-fix command that developers can run locally at any time.                  | To automatically fix simple linting problems before a commit.                                                                                                              |
+| `type-check`   | `npm run type-check`   | Runs the TypeScript compiler in `--noEmit` mode for pure type checking (no files written to `dist/`).                                                   | To verify type safety without doing a full build. Automatically run by the pre-push hook and CI.                                                                           |
+| `format`       | `npm run format`       | Applies Prettier formatting to all supported files in the repo. This is a safe, working auto-fix command that developers are encouraged to use locally. | Before committing, or when Prettier reports formatting errors. Automatically run on pre-commit.                                                                            |
+| `format:check` | `npm run format:check` | Verifies that files conform to Prettier formatting rules without changing them.                                                                         | As part of a local quality gate before pushing. Automatically run by the pre-push hook and CI.                                                                             |
+| `release`      | `npm run release`      | Invokes `semantic-release` to analyze commits, determine the next version, publish to npm, and create GitHub releases.                                  | Rarely run manually. CI runs semantic-release on every push to `main`. Use locally only for debugging the release process (requires valid `NPM_TOKEN` and `GITHUB_TOKEN`). |
 
 ## Local Development Workflow (Trunk-Based)
 
@@ -131,6 +131,11 @@ A typical end-to-end workflow for making a change looks like this:
    npm run type-check
    npm run build
    npm run format:check
+   ```
+   If you encounter lint or formatting issues, you can safely auto-fix many of them locally using:
+   ```bash
+   npm run lint:fix
+   npm run format
    ```
 4. **Stage and commit your changes** using a Conventional Commit message (see below):
    ```bash
