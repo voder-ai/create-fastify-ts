@@ -198,7 +198,7 @@ For example, a helper to create a test Fastify instance with all plugins registe
 Coverage in this project is measured at two levels:
 
 1. **Fast core coverage (`npm run test:coverage`)**
-2. **Extended coverage (generated-project E2E suites, via a dedicated script to be introduced)**
+2. **Extended coverage (generated-project E2E suites, via `npm run test:coverage:extended`)**
 
 ### Core coverage: `npm run test:coverage`
 
@@ -226,21 +226,19 @@ When interpreting core coverage:
 
 ### Extended coverage: generated-project E2E suites
 
-In addition to core coverage, there will be an **extended coverage script** (for example, `npm run test:coverage:generated` or a similar name) that:
+In addition to core coverage, there is an **extended coverage script**, `npm run test:coverage:extended`, that:
 
 - Uses the initializer to **generate one or more full projects** in temporary directories.
 - Runs the generated projects’ own test suites, including:
   - Production‑mode server tests.
   - Logging/observability and startup behavior tests.
   - Any other E2E or system tests shipped in the template.
-- Aggregates or reports coverage from those generated projects separately from the core run.
+- Runs these heavier tests with coverage enabled and reports that coverage separately from the core run.
 
 The extended coverage run is:
 
 - **Slower and more resource-intensive** than `npm run test:coverage`.
-- Intended for:
-  - CI pipelines (e.g., nightly or pre-release checks).
-  - Manual verification that template changes still produce robust, production-ready projects.
+- Typically run **manually** or in **non-gating CI contexts** (for example, nightly jobs or pre-release pipelines), rather than as part of the fastest feedback loop.
 
 When considering extended coverage:
 

@@ -42,7 +42,7 @@ npm run type-check
   - Intentionally **excludes** the heaviest generated-project E2E suites so that core coverage stays **fast and stable** enough for regular CI and pre-push use.
   - Prints a summary table showing coverage for **statements**, **branches**, **functions**, and **lines**.
   - Enforces global coverage thresholds (around 80% for each metric). If coverage drops below these thresholds, the command will fail.
-  - An additional, **slower extended coverage** command (to be introduced) will include coverage for the generated-project E2E suites and other heavier paths; see **Extended coverage for generated projects** below.
+  - Extended coverage, including generated-project E2E suites, is provided by the separate `npm run test:coverage:extended` command; see **Extended coverage for generated projects** below.
 
 - **`npm run type-check`**
   - Runs `tsc --noEmit` to type-check your project without generating build output.
@@ -133,7 +133,7 @@ The template configures global thresholds (in `vitest.config.mts`) so that cover
 The template’s coverage strategy is intentionally split into:
 
 - **Fast core coverage** (`npm run test:coverage`): Focuses on the template repository itself (unit tests and primary integration tests), keeping CI runs and local checks fast and reliable.
-- **Optional extended coverage** (a slower command to be introduced): Will run the heaviest generated-project E2E suites and related tests, providing coverage data for the full generator experience without slowing down the default pipeline.
+- **Optional extended coverage** (`npm run test:coverage:extended`): Runs the heaviest generated-project E2E suites, including the production/logging E2E suites and related tests, providing coverage data for the full generator experience without slowing down the default pipeline.
 
 This separation ensures that Story **004.0-DEVELOPER-TESTS-RUN** is satisfied: developers have a fast, always-on coverage check for the core template, plus an explicit, opt-in extended coverage path that verifies generated-project behavior when needed.
 
