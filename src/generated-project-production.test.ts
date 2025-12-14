@@ -203,12 +203,18 @@ describe.skip('Generated project production start via node (Story 006.0) [REQ-ST
     const { child, healthUrl } = await startCompiledServerViaNode(projectDir, {
       PORT: '0',
     });
-    console.log('[generated-project-production] compiled server reported health URL', healthUrl.toString());
+    console.log(
+      '[generated-project-production] compiled server reported health URL',
+      healthUrl.toString(),
+    );
 
     try {
       // 10 seconds is treated as an upper bound for a healthy response for the tiny template project,
       // aligning with the "Fast Build" / "Server Responds" expectations in Story 006.0.
-      console.log('[generated-project-production] waiting for health endpoint at', healthUrl.toString());
+      console.log(
+        '[generated-project-production] waiting for health endpoint at',
+        healthUrl.toString(),
+      );
       const health = await waitForHealth(healthUrl, 10_000);
       console.log('[generated-project-production] received health response', health);
       expect(health.statusCode).toBe(200);
