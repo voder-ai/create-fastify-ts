@@ -54,7 +54,7 @@ This decision is confirmed through:
 - **package.json**: Contains `@fastify/helmet` as a dependency
 - **Server initialization**: Helmet plugin registered with `fastify.register(helmet)`
 - **HTTP responses**: Security headers present in all HTTP responses
-- **Tests**: Integration tests verify security headers are set correctly
+- **Tests**: Integration test in `src/generated-project-security-headers.test.ts` verifies security headers are set correctly on the `/health` endpoint of a generated project
 - **Documentation**: Security documentation explains which headers are set and why
 - **Customization**: Template includes examples of customizing helmet configuration
 
