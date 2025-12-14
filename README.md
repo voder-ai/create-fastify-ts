@@ -75,6 +75,10 @@ npm run build
 
 The template includes example `.test.ts`, `.test.js`, and `.test.d.ts` files so you can see patterns for both behavior-focused tests and type-level tests. For more details, see the [Testing Guide](user-docs/testing.md).
 
+## Configuration
+
+For details on how environment variables such as `PORT`, `NODE_ENV`, and `LOG_LEVEL` affect both the internal stub server and the servers in generated projects, see the [Configuration Guide](user-docs/configuration.md).
+
 ### Generated project endpoints
 
 A freshly generated project exposes two HTTP endpoints by default:
