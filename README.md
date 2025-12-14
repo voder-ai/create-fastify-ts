@@ -35,8 +35,8 @@ Requires Node.js 22 or newer (LTS recommended); attempting to install dependenci
 - **Hello World endpoint**: `GET /` returns a simple JSON payload in the generated project
 - **Dev server**: `npm run dev` starts a TypeScript-aware dev server with hot reload
 - **Production build & start**: `npm run build` + `npm start` run the compiled server from `dist/`
-- **Security Headers**: `@fastify/helmet` registered by default in the Fastify server generated into `src/index.ts` for new projects; the internal stub server used only for this template's own tests (`src/server.ts`) uses the same configuration.
-- **Structured Logging**: Fastify's integrated Pino logger with environment-driven log levels implemented in the generated project's `src/index.ts`; the internal stub server (`src/server.ts`) uses the same pattern for template self-tests, and the dev server (`npm run dev`) pipes logs through `pino-pretty` for human-readable local output while production (`npm start`) keeps JSON log lines.
+- **Security Headers**: `@fastify/helmet` registered by default in the Fastify server generated into `src/index.ts` for new projects.
+- **Structured Logging**: Fastify's integrated Pino logger with environment-driven log levels implemented in the generated project's `src/index.ts`; the dev server (`npm run dev`) pipes logs through `pino-pretty` for human-readable local output while production (`npm start`) keeps JSON log lines.
 
 ### Planned Enhancements
 
@@ -77,7 +77,7 @@ The template includes example `.test.ts`, `.test.js`, and `.test.d.ts` files so 
 
 ## Configuration
 
-For details on how environment variables such as `PORT`, `NODE_ENV`, and `LOG_LEVEL` affect both the internal stub server and the servers in generated projects, see the [Configuration Guide](user-docs/configuration.md).
+For details on how environment variables such as `PORT`, `NODE_ENV`, and `LOG_LEVEL` affect servers in generated projects, see the [Configuration Guide](user-docs/configuration.md).
 
 ### Generated project endpoints
 
@@ -87,8 +87,6 @@ A freshly generated project exposes two HTTP endpoints by default:
 - `GET /health` → `{ "status": "ok" }`
 
 These routes live in the generated project's `src/index.ts`. The root route provides a simple starting point for your API, and the `/health` route is a lightweight health check that is safe to call from your deployment environment or uptime monitors.
-
-Inside this template repository there is also a small internal Fastify **stub server** (`src/server.ts`) used only for wiring and security tests. That stub server exposes a single `GET /health` endpoint and is not copied into generated projects.
 
 ## Releases and Versioning
 
@@ -113,8 +111,8 @@ For details on the programmatic API (including `getServiceHealth`, `initializeTe
 
 Currently implemented:
 
-- Security headers via `@fastify/helmet` in the Fastify server generated into `src/index.ts` for new projects; the internal stub server (`src/server.ts`) used only for this template's tests also registers Helmet with the same defaults.
-- Structured logging using Fastify's default Pino integration in generated projects (`src/index.ts`), with JSON logs when you run the compiled server directly or with `npm start`; `npm run dev` uses the same structured logs but formats them via `pino-pretty` for easier local reading. The internal stub server mirrors this logging configuration but is not part of generated projects.
+- Security headers via `@fastify/helmet` in the Fastify server generated into `src/index.ts` for new projects.
+- Structured logging using Fastify's default Pino integration in generated projects (`src/index.ts`), with JSON logs when you run the compiled server directly or with `npm start`; `npm run dev` uses the same structured logs but formats them via `pino-pretty` for easier local reading.
 
 Planned security-related enhancements (not yet implemented):
 

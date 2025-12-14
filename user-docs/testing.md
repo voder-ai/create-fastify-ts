@@ -53,8 +53,8 @@ npm run type-check
 The template includes examples of three complementary test file formats:
 
 - **Behavior tests in TypeScript (`.test.ts`)**
-  - Example: `src/server.test.ts`, `src/initializer.test.ts`.
-  - Use Vitest to exercise runtime behavior: HTTP routes, CLI flows, project initialization, and dev server behavior.
+  - Example: `src/initializer.test.ts`, `src/cli.test.ts`.
+  - Use Vitest to exercise runtime behavior: CLI flows, project initialization, and dev server behavior.
 
 - **Behavior tests in JavaScript (`.test.js`)**
   - Example: `src/index.test.js`, `src/check-node-version.test.js`.

@@ -35,7 +35,7 @@ Add or update integration tests when:
 
 Guidelines:
 
-- Use Fastify's `app.inject()` (as in `src/server.test.ts`) to exercise routing, validation, and error handling.
+- Use Fastify's `app.inject()` to exercise routing, validation, and error handling in generated projects.
 - Assert on HTTP status codes, response headers, and JSON payloads.
 - Cover both happy paths and common error cases (validation failures, unsupported methods, malformed bodies).
 
@@ -51,7 +51,7 @@ Add or update E2E-style tests when:
 Guidelines:
 
 - Prefer a small number of stable E2E tests over a large, slow suite.
-- Reuse helpers like `startServer()` to keep setup consistent.
+- Reuse helpers from test-helpers modules to keep setup consistent.
 
 ### Initializer Tests
 

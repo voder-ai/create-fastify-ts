@@ -5,10 +5,10 @@ This document describes the initial project structure and tooling.
 ## Project Structure
 
 - `src/`
-  - `index.ts` – small TypeScript entry module exposing `getServiceHealth()` used for basic wiring tests.
+  - `index.ts` – small TypeScript entry module exposing `getServiceHealth()` and template initializer functions.
   - `index.test.ts` – verifies the TypeScript + ESM wiring by calling `getServiceHealth()`.
-  - `server.ts` – Fastify-aware server stub that currently exposes a `/health` endpoint only.
-  - `server.test.ts` – exercises the Fastify server stub via `app.inject()` against `/health`.
+  - `initializer.ts` – implements project scaffolding logic for `npm init @voder-ai/fastify-ts`.
+  - `cli.ts` – command-line interface entry point for the initializer.
 - `docs/` – architecture decision records and user stories that drive implementation.
 
 ## Tooling Overview
@@ -240,10 +240,12 @@ Treat `.voder` like `docs/`: it is considered internal documentation and governa
 
 ## Testing Strategy and Expectations
 
-The current test suite is intentionally small but representative:
+The test suite covers multiple areas:
 
 - `src/index.test.ts` validates the TypeScript and ESM wiring by importing the public entry point and asserting that `getServiceHealth()` returns `"ok"`.
-- `src/server.test.ts` builds the Fastify server via `buildServer()`, calls `/health` using `app.inject()`, and asserts on the HTTP response shape and payload.
+- `src/initializer.test.ts` tests project scaffolding and template file generation.
+- `src/cli.test.ts` tests the command-line interface behavior.
+- `src/generated-project*.test.ts` files test the actual generated projects in temporary directories.
 
 Tests are run locally with:
 
@@ -311,13 +313,3 @@ Contributor responsibilities for security:
 - Treat security warnings from npm, GitHub, or other tooling (e.g., Dependabot alerts) as defects that must be triaged and addressed, not as optional advice.
 
 The CI/CD pipeline now includes a dedicated dependency vulnerability audit step using `npm audit --production --audit-level=high`, and a non-blocking `dry-aged-deps` freshness report that highlights stale dependencies without failing the build. For details on how these checks are wired into the pipeline and how to interpret their output, see `docs/decisions/0015-dependency-security-scanning-in-ci.accepted.md`.
-
-## Fastify Server Stub
-
-The current Fastify setup in `src/server.ts` is intentionally minimal:
-
-- Creates a Fastify instance with logging enabled.
-- Registers a `GET /health` route that returns `{ "status": "ok" }`.
-- Exports a `buildServer()` helper for tests and a `startServer()` helper for future runtime startup.
-
-This stub satisfies the Fastify ADR while keeping business logic out of the initial bootstrap. Future stories (for example, the PNG upload endpoint) will extend this server module with additional routes and plugins.

@@ -741,3 +741,39 @@ After pushing both sets of commits, I confirmed via the provided tooling:
 
 No production behavior was changed except for the **Node version error message text**; all other changes are documentation and README/template text alignment with the already-implemented code.
 ---
+
+## Stub Server Removal
+
+- Investigated the purpose of `src/server.ts` (internal Fastify stub server) and `src/server.test.ts` (test suite for the stub server).
+
+- Found that the stub server existed only to test security headers (`@fastify/helmet`) and logging configuration in isolation, but:
+  - The stub server was not part of generated projects.
+  - Generated project tests did not verify these features.
+  - The stub server tests were redundant since the patterns they tested were already implemented and working in generated projects.
+
+- Removed the stub server infrastructure:
+  - **Deleted files**:
+    - `src/server.ts` – Fastify stub server with `buildServer()` and `startServer()` functions.
+    - `src/server.test.ts` – Test suite validating security headers, log level configuration, and `/health` endpoint.
+
+  - **Updated `package.json`**:
+    - Removed `server.test.ts` from `test:coverage` and `test:coverage:extended` script patterns.
+
+  - **Updated documentation** (8 files modified):
+    - `README.md` – Removed stub server references from "What's Included", security section, and examples.
+    - `docs/development-setup.md` – Removed stub server from project structure and testing sections.
+    - `docs/testing-strategy.md` – Removed `server.test.ts` reference, changed to generic helpers reference.
+    - `user-docs/configuration.md` – Removed internal stub server sections and references.
+    - `user-docs/api.md` – Removed stub server logging documentation.
+    - `user-docs/testing.md` – Changed example from `server.test.ts` to `initializer.test.ts`/`cli.test.ts`.
+    - `user-docs/SECURITY.md` – Removed stub server from capabilities and security headers sections.
+
+- Quality checks after removal:
+  - All tests still passing (43 tests, 3 skipped).
+  - No lint, type-check, or format errors.
+  - Build successful.
+  - Confirmed all stub server references removed via grep searches.
+
+- This refactoring eliminated redundant test infrastructure while maintaining full test coverage via the existing generated-project tests and helpers.
+
+---

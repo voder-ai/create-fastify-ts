@@ -4,12 +4,7 @@ Created autonomously by [voder.ai](https://voder.ai).
 
 This guide summarizes the runtime configuration knobs that are **implemented today** in the Fastify TypeScript template and in the projects it generates.
 
-There are two main contexts to keep in mind:
-
-- The **internal stub server** used only inside this repository (`src/server.ts`). It exists to validate security and logging behavior but is not shipped as part of generated projects.
-- The **generated project server** (`src/index.ts` in a new project created via `npm init @voder-ai/fastify-ts`). This is the server you actually run in your own application.
-
-Unless explicitly noted otherwise, configuration options in this guide apply to **generated projects**. Where the internal stub server behaves the same way, that is called out for completeness.
+Configuration options in this guide apply to **generated projects** created via `npm init @voder-ai/fastify-ts`. The generated project server lives in `src/index.ts` and respects the following environment variables.
 
 ---
 
@@ -56,15 +51,11 @@ The dev server script copied into generated projects (`dev-server.mjs`) implemen
 
 These behaviors are implemented in `src/template-files/dev-server.mjs` and apply only when you use `npm run dev` in a generated project.
 
-### Internal stub server (`src/server.ts`)
-
-The internal Fastify stub server used by this template’s own tests does **not** read `PORT` itself. Instead, tests call `startServer(port)` with an explicit port number. This stub server is not part of generated projects.
-
 ---
 
 ## LOG_LEVEL and NODE_ENV
 
-Both the generated project server (`src/index.ts`) and the internal stub server (`src/server.ts`) use the same algorithm to determine the log level for Fastify’s integrated Pino logger.
+The generated project server (`src/index.ts`) uses the following algorithm to determine the log level for Fastify's integrated Pino logger.
 
 ### Log level selection
 
@@ -135,10 +126,8 @@ The **format** of the logs depends on how you start the server rather than on ad
   - When you run `npm start` (which executes `node dist/src/index.js`) or invoke the compiled server directly, logs are emitted as **structured JSON** lines from Pino.
   - This format is ideal for log aggregation tools and production monitoring.
 - **Generated projects – development (`npm run dev`):**
-  - The dev server (`dev-server.mjs`) starts the compiled server with Node’s `-r pino-pretty` flag in non‑production environments.
+  - The dev server (`dev-server.mjs`) starts the compiled server with Node's `-r pino-pretty` flag in non‑production environments.
   - The underlying log data is the same, but output is formatted into **human-readable text** for easier local debugging.
-- **Internal stub server:**
-  - Uses the same Pino logger configuration as the generated project server and emits JSON logs; it is only used inside this repository’s tests.
 
 There is currently no separate environment variable to switch between JSON and pretty-printed logs; the choice is driven by which script you run (`npm start` vs `npm run dev`) and `NODE_ENV`.
 
