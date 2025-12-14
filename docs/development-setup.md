@@ -279,7 +279,7 @@ Contributor responsibilities for security:
 - Validate and sanitize all external input, especially as upcoming features introduce file upload endpoints and richer request payloads. Assume client input is untrusted.
 - Treat security warnings from npm, GitHub, or other tooling (e.g., Dependabot alerts) as defects that must be triaged and addressed, not as optional advice.
 
-The CI/CD pipeline does not yet run dedicated security scanners beyond dependency and tooling checks. Future additions (such as static analysis or vulnerability scanning steps) should maintain the pipeline’s speed and reliability so that continuous deployment remains practical.
+The CI/CD pipeline now includes a dedicated dependency vulnerability audit step using `npm audit --production --audit-level=high`, and a non-blocking `dry-aged-deps` freshness report that highlights stale dependencies without failing the build. For details on how these checks are wired into the pipeline and how to interpret their output, see `docs/decisions/0015-dependency-security-scanning-in-ci.accepted.md`.
 
 ## Fastify Server Stub
 

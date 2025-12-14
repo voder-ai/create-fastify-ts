@@ -1,176 +1,85 @@
 # Last Action Executed (Agentic)
 
-**Action:** Used tool: list_directory with input: {"dirPath":"."}
-Used tool: find_files with input: {"pattern":"cli-api","directory":"."}
-Used tool: find_files with input: {"pattern":"cli-test-from-dist","directory":"."}
-Used tool: find_files with input: {"pattern":"cli-test-project","directory":"."}
-Used tool: find_files with input: {"pattern":"manual-cli","directory":"."}
-Used tool: find_files with input: {"pattern":"test-project-exec-assess","directory":"."}
-Used tool: find_files with input: {"pattern":"*.test.*","directory":"src"}
-Used tool: list_directory with input: {"dirPath":"cli-api"}
-Used tool: list_directory with input: {"dirPath":"cli-test-from-dist"}
-Used tool: list_directory with input: {"dirPath":"cli-test-project"}
-Used tool: list_directory with input: {"dirPath":"manual-cli"}
-Used tool: list_directory with input: {"dirPath":"test-project-exec-assess"}
-Used tool: search_file_content with input: {"filePath":"src/cli.test.ts","pattern":"cli-api","isRegex":false}
-Used tool: read_file with input: {"filePath":"src/cli.test.ts","startLine":200,"endLine":320}
-Used tool: run_command with input: {"command":"grep","args":["-R","cli-api","."]}
-Used tool: run_command with input: {"command":"grep","args":["-R","cli-test-from-dist","."]}
-Used tool: run_command with input: {"command":"grep","args":["-R","cli-test-project","."]}
-Used tool: run_command with input: {"command":"grep","args":["-R","manual-cli","."]}
-Used tool: run_command with input: {"command":"grep","args":["-R","test-project-exec-assess","."]}
+**Action:** Used tool: get_git_status with input: {}
+Used tool: read_file with input: {"filePath":".gitignore"}
+Used tool: list_directory with input: {"dirPath":"docs"}
+Used tool: find_files with input: {"pattern":"*CONTRIBUT*","directory":"."}
+Used tool: check_file_exists with input: {"filePath":".voder"}
+Used tool: list_directory with input: {"dirPath":".voder"}
+Used tool: modify_file with input: {"filePath":".gitignore","instruction":"In the section labeled `# Voder and tooling-generated assessment reports (not for version control)`, remove the line that ignores the entire `.voder/` directory. Keep the other ignore patterns, including `.voder/traceability/`, unchanged."}
+Used tool: list_directory with input: {"dirPath":".voder"}
+Used tool: search_file_content with input: {"filePath":".voder/.voderignore","pattern":".voder","isRegex":false}
+Used tool: list_directory with input: {"dirPath":".github"}
+Used tool: list_directory with input: {"dirPath":"docs/decisions"}
+Used tool: find_files with input: {"pattern":"*.md","directory":".voder"}
 Used tool: get_git_status with input: {}
-Used tool: read_file with input: {"filePath":"src/dev-server.test.ts","startLine":1,"endLine":400}
-Used tool: read_file with input: {"filePath":"src/dev-server.test-helpers.ts","startLine":1,"endLine":400}
-Used tool: search_file_content with input: {"filePath":"src/initializer.test.ts","pattern":"cli-api","isRegex":false}
-Used tool: search_file_content with input: {"filePath":"src","pattern":"manual-cli","isRegex":false}
-Used tool: search_file_content with input: {"filePath":"src","pattern":"cli-test-project","isRegex":false}
-Used tool: search_file_content with input: {"filePath":"src","pattern":"test-project-exec-assess","isRegex":false}
-Used tool: read_file with input: {"filePath":"src/cli.test.ts","startLine":1,"endLine":260}
-Used tool: read_file with input: {"filePath":"src/cli.test.ts","startLine":260,"endLine":360}
-Used tool: read_file with input: {"filePath":"src/initializer.test.ts","startLine":1,"endLine":260}
-Used tool: run_command with input: {"command":"rm","args":["-rf","cli-api","cli-test-from-dist","cli-test-project","manual-cli","test-project-exec-assess"]}
-Used tool: modify_file with input: {"filePath":"src/cli.test.ts","instruction":"In the describe('CLI initializer (Story 001.0)') block, update the three projectName constants so they no longer reference the committed example directories.\n- In the first test ('creates a new project directory when invoked with a project name (with git available)'), change `const projectName = 'cli-api';` to `const projectName = 'cli-integration-project';`.\n- In the second test ('scaffolds the project without git initialization when git is not available'), change `const projectName = 'cli-api-no-git';` to `const projectName = 'cli-integration-no-git';`.\n- In the skipped E2E test, change `const projectName = 'cli-api-dev';` to `const projectName = 'cli-integration-dev';`.\nDo not alter any other code."}
 Used tool: run_command with input: {"command":"npm","args":["run","build"]}
 Used tool: run_command with input: {"command":"npm","args":["test"]}
 Used tool: run_command with input: {"command":"npm","args":["run","lint"]}
 Used tool: run_command with input: {"command":"npm","args":["run","type-check"]}
 Used tool: run_command with input: {"command":"npm","args":["run","format:check"]}
-Used tool: run_command with input: {"command":"npm","args":["run","format","--","src/cli.test.ts"]}
-Used tool: run_command with input: {"command":"npm","args":["run","format:check"]}
-Used tool: get_git_status with input: {}
 Used tool: git_add_all with input: {}
-Used tool: git_commit with input: {"message":"test: decouple CLI tests from committed example projects"}
-Used tool: run_command with input: {"command":"npm","args":["run","build"]}
-Used tool: run_command with input: {"command":"npm","args":["test"]}
-Used tool: run_command with input: {"command":"npm","args":["run","lint"]}
-Used tool: run_command with input: {"command":"npm","args":["run","type-check"]}
-Used tool: run_command with input: {"command":"npm","args":["run","format:check"]}
+Used tool: git_commit with input: {"message":"chore: stop ignoring voder directory in git"}
 Used tool: git_push with input: {}
 Used tool: get_github_pipeline_status with input: {}
-Used tool: wait_for_github_workflow with input: {"runId":20206544328,"timeout":600000}
-Used tool: run_command with input: {"command":"grep","args":["-R","cli-api","src"]}
-Used tool: run_command with input: {"command":"grep","args":["-R","cli-test-from-dist","src"]}
-Used tool: run_command with input: {"command":"grep","args":["-R","cli-test-project","src"]}
-Used tool: run_command with input: {"command":"grep","args":["-R","manual-cli","src"]}
-Used tool: run_command with input: {"command":"grep","args":["-R","test-project-exec-assess","src"]}
-Used tool: remove_file with input: {"filePath":"cli-api"}
-Used tool: remove_file with input: {"filePath":"cli-test-from-dist"}
-Used tool: remove_file with input: {"filePath":"cli-test-project"}
-Used tool: remove_file with input: {"filePath":"manual-cli"}
-Used tool: remove_file with input: {"filePath":"test-project-exec-assess"}
-Used tool: get_git_status with input: {}
+Used tool: wait_for_github_workflow with input: {"runId":20207068149,"timeout":600000}
+Used tool: read_file with input: {"filePath":"docs/development-setup.md"}
+Used tool: generate_file with input: {"filePath":".voder/README.md","content":"# .voder Directory\n\nThis directory contains internal metadata and tooling state used by the voder.ai assistant to assess and evolve this repository.\n\n## Version Control Policy\n\n- The **.voder directory itself is tracked** in git so that key metadata files can evolve alongside the codebase.\n- The **.voder/traceability/** subdirectory contains generated reports and derived data and **must remain ignored** from version control.\n- Additional transient or large report files under .voder should also be ignored on a case-by-case basis via `.gitignore` patterns (for example, JSON snapshots or HTML reports), but the directory structure and stable markdown metadata files should be committed.\n\n## Developer Guidance\n\n- Do **not** add ignore rules that exclude the entire `.voder/` directory.\n- When adding new persistent metadata under `.voder/`, prefer human-readable formats (Markdown or JSON) that can be reviewed in code review.\n- Treat `.voder` contents as part of the project’s internal documentation and governance, similar to `docs/`.\n"}
+Used tool: modify_file with input: {"filePath":"docs/development-setup.md","instruction":"After the \"Versioning and Branching Strategy\" section and before the \"Testing Strategy and Expectations\" section, add a new H2 section titled \"Voder Metadata and Version Control\". In that section, document that the `.voder` directory is tracked in git (except for `.voder/traceability/` and other explicitly ignored report artifacts), that contributors MUST NOT re-add ignore rules for the entire `.voder` directory, and that `.voder` should be treated like `docs/` as part of the tracked internal documentation and governance. Also include a short note that new ignore rules must not exclude `.voder/`, aligning with the project's version-control policy."}
 Used tool: git_add_all with input: {}
-Used tool: git_commit with input: {"message":"chore: remove committed generated test projects"}
 Used tool: run_command with input: {"command":"npm","args":["run","build"]}
 Used tool: run_command with input: {"command":"npm","args":["test"]}
 Used tool: run_command with input: {"command":"npm","args":["run","lint"]}
 Used tool: run_command with input: {"command":"npm","args":["run","type-check"]}
 Used tool: run_command with input: {"command":"npm","args":["run","format:check"]}
+Used tool: run_command with input: {"command":"npm","args":["run","format","--","docs/development-setup.md"]}
+Used tool: run_command with input: {"command":"npm","args":["run","format:check"]}
+Used tool: git_commit with input: {"message":"docs: document voder directory version-control policy"}
 Used tool: git_push with input: {}
 Used tool: get_github_pipeline_status with input: {}
-Used tool: wait_for_github_workflow with input: {"runId":20206627759,"timeout":600000}
-Used tool: read_file with input: {"filePath":"docs/testing-strategy.md","startLine":1,"endLine":260}
-Used tool: run_command with input: {"command":"git","args":["ls-files","dist","dist/**"]}
-Used tool: run_command with input: {"command":"git","args":["ls-files","coverage","coverage/**"]}
-Used tool: run_command with input: {"command":"git","args":["ls-files","*.log"]}
-Used tool: run_command with input: {"command":"git","args":["ls-files","*coverage*"]}
-Used tool: run_command with input: {"command":"git","args":["ls-files"]}
-Used tool: generate_file with input: {"filePath":"docs/decisions/0014-generated-test-projects-not-committed.accepted.md","content":"# 0014 - Generated test projects must not be committed\n\n- Status: accepted\n- Date: 2025-12-14\n\n## Context\n\nThis repository provides an npm initializer (`npm init @voder-ai/fastify-ts`) that scaffolds new Fastify + TypeScript projects. During early development, several example or test projects generated by the initializer (for example `cli-api/`, `cli-test-from-dist/`, `cli-test-project/`, `manual-cli/`, and `test-project-exec-assess/`) were committed to the repository.\n\nWhile these directories were useful during initial bring-up and manual testing, keeping generated projects under version control has several drawbacks:\n\n- They are **not source of truth** for the initializer behaviour; the real contract is the template files in `src/template-files/` and the initializer/CLI code.\n- They quickly become **stale** as the initializer evolves, creating confusion for contributors and assessors.\n- They **pollute quality checks** (linters, formatters, duplication detectors) with duplicated boilerplate.\n- They violate the general guidance for generators and initializers: tests should create projects in **temporary directories** and clean them up, not rely on committed generated trees.\n\n## Decision\n\n1. **Generated test projects must never be committed to the repository.**\n   - Directories such as `cli-api/`, `cli-test-from-dist/`, `cli-test-project/`, `manual-cli/`, and `test-project-exec-assess/` are considered *generated artifacts* and must not live in git.\n   - Any future generated project used for testing must follow the same rule.\n\n2. **Tests must create their own projects in temporary directories.**\n   - Initializer tests (`src/initializer.test.ts`) and CLI tests (`src/cli.test.ts`) already follow this pattern by using `fs.mkdtemp(os.tmpdir() + ...)` and cleaning up with `fs.rm(..., { recursive: true, force: true })`.\n   - Dev-server tests use `src/dev-server.test-helpers.ts` to create synthetic projects in OS temp directories.\n   - This pattern is the canonical approach for all tests that need a scaffolded project.\n\n3. **Automated checks will guard against regressions.**\n   - A small repository-hygiene test will fail if any of the known generated-project directory names appear at the repository root.\n   - This ensures that accidentally re-committing generated projects is immediately caught during `npm test` and in CI.\n\n## Consequences\n\n- The working tree remains focused on **source, configuration, and intentional fixtures** only.\n- Tests are responsible for creating any temporary projects they need, using OS temporary directories and cleaning up after themselves.\n- Contributors have clear guidance: if they need an example project for documentation, it must be a small, manually maintained example (under a dedicated `examples/` or `fixtures/` directory) and **not** a full initializer output committed wholesale.\n\n## Requirements\n\n- **REQ-NO-GENERATED-PROJECTS**: No initializer-generated test projects (such as `cli-api/`, `cli-test-from-dist/`, `cli-test-project/`, `manual-cli/`, `test-project-exec-assess/`) may be committed to the repository. Tests must create such projects in temporary directories at runtime and remove them when finished.\n"}
-Used tool: generate_file with input: {"filePath":"src/repo-hygiene.generated-projects.test.ts","content":"/**\n * Repository hygiene tests to prevent committing generated initializer projects.\n *\n * These tests enforce ADR 0014 by asserting that known generated-project\n * directory names do not exist at the repository root. Tests that need\n * scaffolded projects must create them in OS temporary directories instead.\n *\n * @supports docs/decisions/0014-generated-test-projects-not-committed.accepted.md REQ-NO-GENERATED-PROJECTS\n */\nimport { describe, it, expect } from 'vitest';\nimport fs from 'node:fs/promises';\nimport path from 'node:path';\nimport { fileURLToPath } from 'node:url';\n\nconst thisFilePath = fileURLToPath(import.meta.url);\nconst thisDir = path.dirname(thisFilePath);\nconst repoRoot = path.resolve(thisDir, '..');\n\nconst DISALLOWED_PROJECT_DIRS = [\n  'cli-api',\n  'cli-test-from-dist',\n  'cli-test-project',\n  'manual-cli',\n  'test-project-exec-assess',\n];\n\ndescribe('Repository hygiene (generated projects)', () => {\n  it('[REQ-NO-GENERATED-PROJECTS] should not contain known generated project directories at repo root', async () => {\n    const existing: string[] = [];\n\n    await Promise.all(\n      DISALLOWED_PROJECT_DIRS.map(async dirName => {\n        const fullPath = path.join(repoRoot, dirName);\n\n        try {\n          const stat = await fs.stat(fullPath);\n          if (stat.isDirectory()) {\n            existing.push(dirName);\n          }\n        } catch {\n          // If the path does not exist, this is the desired state.\n        }\n      }),\n    );\n\n    expect(\n      existing,\n      existing.length\n        ? `Generated project directories must not be committed, but found: ${existing.join(', ')}`\n        : undefined,\n    ).toEqual([]);\n  });\n});\n"}
-Used tool: modify_file with input: {"filePath":"docs/testing-strategy.md","instruction":"In the \"Initializer Tests\" section, update the guidance to explicitly require use of OS temporary directories and to forbid committing generated projects, and adjust the code example accordingly.\n\n1. After the bullet list that starts with \"Create automated tests that run the full initialization process:\" and its fenced bash block, insert a new bullet list item emphasising OS temp dirs and non-committed projects. For example, add:\n\n- Always create test projects inside OS temporary directories using `fs.mkdtemp` and `os.tmpdir()`.\n- Never commit initializer-generated projects (such as full `my-api/` trees) to the repository; tests must create and delete them at runtime instead.\n- Prefer helper utilities (like `src/dev-server.test-helpers.ts` and the helpers in `src/initializer.test.ts` / `src/cli.test.ts`) that encapsulate temporary project creation and cleanup.\n\n2. Replace the TypeScript example under \"Example test structure:\" so that it uses `fs.mkdtemp` and `os.tmpdir()` instead of a hard-coded `../tmp-init-tests` directory, and shows cleanup via `fs.rm` with `{ recursive: true, force: true }`. The new example should look like:\n\n```ts\nimport fs from 'node:fs/promises';\nimport os from 'node:os';\nimport path from 'node:path';\n\ndescribe('npm init @voder-ai/fastify-ts', () => {\n  let tmpDir: string;\n\n  beforeEach(async () => {\n    tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'fastify-ts-init-'));\n  });\n\n  afterEach(async () => {\n    await fs.rm(tmpDir, { recursive: true, force: true });\n  });\n\n  it('creates a working project with all required files', async () => {\n    // Run initializer\n    execSync('npm init @voder-ai/fastify-ts test-app', { cwd: tmpDir });\n\n    const projectDir = path.join(tmpDir, 'test-app');\n\n    // Verify structure\n    expect(fs.existsSync(path.join(projectDir, 'package.json'))).toBe(true);\n    expect(fs.existsSync(path.join(projectDir, 'tsconfig.json'))).toBe(true);\n    expect(fs.existsSync(path.join(projectDir, 'src/index.ts'))).toBe(true);\n\n    // Install and test\n    execSync('npm install', { cwd: projectDir, stdio: 'inherit' });\n    execSync('npm test', { cwd: projectDir, stdio: 'inherit' });\n    execSync('npm run build', { cwd: projectDir, stdio: 'inherit' });\n\n    // Verify build output\n    expect(fs.existsSync(path.join(projectDir, 'dist'))).toBe(true);\n  });\n\n  it('fails gracefully when directory already exists', () => {\n    const projectDir = path.join(tmpDir, 'existing-app');\n    fs.mkdirSync(projectDir, { recursive: true });\n\n    expect(() => {\n      execSync('npm init @voder-ai/fastify-ts existing-app', { cwd: tmpDir });\n    }).toThrow();\n  });\n});\n```\n\nKeep the rest of the document unchanged."}
-Used tool: run_command with input: {"command":"npm","args":["run","format","--","docs/decisions/0014-generated-test-projects-not-committed.accepted.md","src/repo-hygiene.generated-projects.test.ts","docs/testing-strategy.md"]}
-Used tool: run_command with input: {"command":"npm","args":["run","build"]}
-Used tool: run_command with input: {"command":"npm","args":["test"]}
-Used tool: run_command with input: {"command":"npm","args":["run","lint"]}
-Used tool: run_command with input: {"command":"npm","args":["run","type-check"]}
-Used tool: run_command with input: {"command":"npm","args":["run","format:check"]}
+Used tool: wait_for_github_workflow with input: {"runId":20207103590,"timeout":600000}
+Used tool: get_github_run_details with input: {"runId":20207103590}
+Used tool: get_github_workflow_logs with input: {"runId":20207103590}
 Used tool: get_git_status with input: {}
-Used tool: git_add_all with input: {}
-Used tool: git_commit with input: {"message":"test: enforce no committed generated test projects"}
 Used tool: run_command with input: {"command":"npm","args":["run","build"]}
 Used tool: run_command with input: {"command":"npm","args":["test"]}
 Used tool: run_command with input: {"command":"npm","args":["run","lint"]}
 Used tool: run_command with input: {"command":"npm","args":["run","type-check"]}
 Used tool: run_command with input: {"command":"npm","args":["run","format:check"]}
+Used tool: git_add_all with input: {}
+Used tool: git_commit with input: {"message":"style: format development setup documentation"}
 Used tool: git_push with input: {}
 Used tool: get_github_pipeline_status with input: {}
-Used tool: wait_for_github_workflow with input: {"runId":20206827015,"timeout":600000}
+Used tool: wait_for_github_workflow with input: {"runId":20207119970,"timeout":600000}
 
 **Response:**
 
 ```
-Here’s what I implemented for the **##NOW** and **##NEXT** sections, plus the updated plan with checkboxes.
+Here’s what’s been done to execute the **NOW** and **NEXT** sections, plus the updated plan with checkboxes.
 
 ---
 
-## What I changed
+## Changes Implemented
 
-### 1) Decouple tests from committed generated projects (##NOW)
+### 1) Stop ignoring `.voder/` in git (**NOW**)
 
-**Files touched**
+**Goal:**  
+“Adjust the repository’s ignore configuration so that the `.voder` directory itself is no longer ignored while ensuring that only the `.voder/traceability/` subdirectory remains excluded from version control.”
 
-- `src/cli.test.ts`
+**What I did:**
 
-**Changes**
+- Edited **`.gitignore`**:
+  - Removed the line that ignored the entire `.voder/` directory.
+  - Left all the specific voder-related ignore patterns intact, including:
+    - `.voder-code-quality-slices.json`
+    - `.voder-eslint-report.json`
+    - `.voder-secretlint.json`
+    - `.voder-test-output.json`
+    - `.voder-jscpd-report/`
+    - `.voder/traceability/`  ← still ignored as required
+- Verified via `git status` that `.voder/` is now seen by git and no longer globally ignored.
 
-- Updated CLI initializer tests to use project names that are clearly **ephemeral per-test**, not tied to the previous committed example dirs:
-
-  ```ts
-  it('creates a new project directory when invoked with a project name (with git available)', async () => {
-    const projectName = 'cli-integration-project';
-    ...
-  });
-
-  it('scaffolds the project without git initialization when git is not available', async () => {
-    const projectName = 'cli-integration-no-git';
-    ...
-  });
-
-  it.skip('initializes a project and runs the dev server ...', async () => {
-    const projectName = 'cli-integration-dev';
-    ...
-  });
-  ```
-
-- These tests already:
-  - Create a **fresh OS temp directory** with `fs.mkdtemp(path.join(os.tmpdir(), 'fastify-ts-cli-'))`
-  - Change `cwd` into that temp dir
-  - Run the compiled CLI to scaffold a new project under the temp dir
-  - Clean up the temp dir and restore `cwd` in `afterEach`
-
-So they never depended on the previously committed `cli-api/` etc. directories, but now the names no longer even collide, making the separation explicit and removing ambiguity.
-
-**Quality checks**
-
-- `npm run build`
-- `npm test`
-- `npm run lint`
-- `npm run type-check`
-- `npm run format:check`
-
-All passed locally.  
-Committed as:
-
-- `test: decouple CLI tests from committed example projects`
-
-CI/CD GitHub Actions pipeline on `main` completed successfully.
-
----
-
-### 2) Remove committed generated test projects (##NEXT)
-
-**Directories removed**
-
-- `cli-api/`
-- `cli-test-from-dist/`
-- `cli-test-project/`
-- `manual-cli/`
-- `test-project-exec-assess/`
-
-Removed via the file-removal tool and staged/committed in git. A `git ls-files` shows none of these paths remain tracked.
-
-**Quality checks**
+**Quality checks run before committing:**
 
 - `npm run build`
 - `npm test`
@@ -180,261 +89,142 @@ Removed via the file-removal tool and staged/committed in git. A `git ls-files` 
 
 All passed.
 
-Committed as:
+**Commit:**
 
-- `chore: remove committed generated test projects`
+- `chore: stop ignoring voder directory in git`
 
-CI/CD pipeline run (ID `20206627759`) completed with conclusion `success`.
+**CI/CD:**
 
----
+- Push triggered the `CI/CD Pipeline` workflow on GitHub.
+- Workflow run `20207068149` completed **successfully**.
 
-### 3) Scan for tracked build artifacts / generated outputs (##NEXT)
-
-**Commands**
-
-- `git ls-files dist dist/**`
-- `git ls-files coverage coverage/**`
-- `git ls-files *.log`
-- `git ls-files *coverage*`
-- `git ls-files`
-
-**Outcome**
-
-- No `dist/`, `coverage/`, log files, or other build artifacts are tracked.
-- Tracked files are only:
-  - Source (`src/**`)
-  - Template assets (`src/template-files/**`)
-  - Config (`tsconfig.json`, `eslint.config.js`, `vitest.config.mts`, etc.)
-  - Documentation (`docs/**`, `user-docs/**`, `README.md`, `CHANGELOG.md`)
-  - Scripts (`scripts/*.mjs`)
-  - Git/CI tooling (.husky, workflow config, etc.)
-
-This satisfies the requirement that only source, configuration, and intentional fixtures are under version control.
-
-(These checks were part of the same quality-pass cycle as above.)
+This fully satisfies the **NOW** item.
 
 ---
 
-### 4) Add internal guideline for generated projects (##NEXT)
+### 2) Ensure `.voder` metadata is tracked & update internal documentation (**NEXT**)
 
-**File added**
+#### 2.1 Ensure `.voder` metadata is in version control
 
-- `docs/decisions/0014-generated-test-projects-not-committed.accepted.md`
+**Goal:**  
+“Ensure that all important metadata files already present under `.voder` (excluding the `traceability` subdirectory) are included in version control so their history is tracked alongside the rest of the project.”
 
-This ADR documents:
+**What I did:**
 
-- **Context**: initializer-generated example projects (`cli-api`, `cli-test-from-dist`, etc.) had been committed and why that’s problematic.
-- **Decision**:
-  1. Generated initializer projects must **never be committed**.
-  2. Tests must create projects in **OS temp directories** and clean them up at runtime.
-  3. A repository-hygiene test will enforce this by failing if known generated-project directories appear at repo root.
-- **Consequences**:
-  - Repo remains focused on source/config/docs.
-  - Any example project that *is* committed must be a small, manually maintained demo, not full initializer output.
-- **Requirement**:
-  - `REQ-NO-GENERATED-PROJECTS` captures this as a machine-checkable rule.
+- With `.gitignore` fixed, ran `git add .` which now includes `.voder/` contents except anything under `.voder/traceability/` (still ignored).
+- Confirmed via `git status` that `.voder/` is now tracked and no longer shows as untracked.
+- Added a stable, human-readable metadata file so that `.voder` is clearly part of the committed state:
+  - Created **`.voder/README.md`** with:
+    - Explanation of what `.voder` is used for.
+    - Explicit statement that `.voder/traceability/` is generated and should remain ignored.
+    - Guidance to keep persistent metadata in `.voder` under version control.
 
-**File updated**
+Result: `.voder` now has committed, reviewable metadata; any existing non-ignored files under `.voder` are tracked, and `.voder/traceability/` remains untracked.
 
-- `docs/testing-strategy.md`
+---
 
-Under **Initializer Tests**, I:
+#### 2.2 Document `.voder` version-control policy in internal docs
 
-- Added explicit guidelines:
+**Goal:**  
+“Document the expected version-control treatment of the `.voder` directory in the internal development documentation, explaining that `.voder` files (except `traceability` outputs) are part of the tracked state and must not be globally ignored.”
+
+**What I did:**
+
+- Updated **`docs/development-setup.md`** by inserting a new section:
 
   ```markdown
-  - Always create test projects inside OS temporary directories using `fs.mkdtemp` and `os.tmpdir()`.
-  - Never commit initializer-generated projects (such as full `my-api/` trees) to the repository; tests must create and delete them at runtime instead.
-  - Prefer helper utilities (like `src/dev-server.test-helpers.ts` and the helpers in `src/initializer.test.ts` / `src/cli.test.ts`) that encapsulate temporary project creation and cleanup.
+  ## Voder Metadata and Version Control
+
+  The `.voder` directory is part of the tracked project state and is committed to git, with the exception of `.voder/traceability/` and other explicitly ignored report artifacts. Contributors MUST NOT introduce or reintroduce ignore rules that exclude the entire `.voder` directory (for example, `/.voder` in `.gitignore` or similar tooling configuration).
+
+  Treat `.voder` like `docs/`: it is considered internal documentation and governance metadata and must remain under version control so that its evolution is reviewable and auditable. When adding or updating ignore rules (for git, editors, or other tools), ensure they do not exclude the `.voder/` directory itself, in line with the project’s version-control policy.
   ```
 
-- Replaced the old example that used a `../tmp-init-tests` directory with a new example that uses OS temp dirs and cleans them up:
+- This sits between “Versioning and Branching Strategy” and “Testing Strategy and Expectations”, aligning it with other development-process documentation.
 
-  ```ts
-  import fs from 'node:fs/promises';
-  import os from 'node:os';
-  import path from 'node:path';
-
-  describe('npm init @voder-ai/fastify-ts', () => {
-    let tmpDir: string;
-
-    beforeEach(async () => {
-      tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'fastify-ts-init-'));
-    });
-
-    afterEach(async () => {
-      await fs.rm(tmpDir, { recursive: true, force: true });
-    });
-
-    it('creates a working project with all required files', async () => {
-      // Run initializer
-      execSync('npm init @voder-ai/fastify-ts test-app', { cwd: tmpDir });
-
-      const projectDir = path.join(tmpDir, 'test-app');
-
-      // Verify structure
-      expect(fs.existsSync(path.join(projectDir, 'package.json'))).toBe(true);
-      expect(fs.existsSync(path.join(projectDir, 'tsconfig.json'))).toBe(true);
-      expect(fs.existsSync(path.join(projectDir, 'src/index.ts'))).toBe(true);
-
-      // Install and test
-      execSync('npm install', { cwd: projectDir, stdio: 'inherit' });
-      execSync('npm test', { cwd: projectDir, stdio: 'inherit' });
-      execSync('npm run build', { cwd: projectDir, stdio: 'inherit' });
-
-      // Verify build output
-      expect(fs.existsSync(path.join(projectDir, 'dist'))).toBe(true);
-    });
-
-    it('fails gracefully when directory already exists', () => {
-      const projectDir = path.join(tmpDir, 'existing-app');
-      fs.mkdirSync(projectDir, { recursive: true });
-
-      expect(() => {
-        execSync('npm init @voder-ai/fastify-ts existing-app', { cwd: tmpDir });
-      }).toThrow();
-    });
-  });
-  ```
-
-This makes the policy explicit and points contributors at the existing helpers (`src/initializer.test.ts`, `src/cli.test.ts`, `src/dev-server.test-helpers.ts`) as canonical patterns.
+This satisfies the documentation part of the NEXT items.
 
 ---
 
-### 5) Validate and rely on test helpers (##NEXT)
+#### 2.3 Add an explicit note to contribution/coding guidelines
 
-**Existing helpers (validated, not changed)**
+**Goal:**  
+“Add a short note to the contribution or coding guidelines stating that new ignore rules must not exclude the `.voder` directory, to prevent accidental reintroduction of the problematic ignore pattern.”
 
-- `src/initializer.test.ts`
-  - Uses `fs.mkdtemp` + `os.tmpdir()` for project roots.
-  - Changes `process.cwd()` into the temp dir in `beforeEach` and restores/cleans up in `afterEach`.
-  - Exercises the initializer directly (`initializeTemplateProject`, `initializeTemplateProjectWithGit`).
+**What I did:**
 
-- `src/cli.test.ts`
-  - Uses `fs.mkdtemp` + `os.tmpdir()` and per-test project names (now clearly non-root).
-  - Spawns the compiled CLI (`dist/cli.js`) in the temp directory.
-  - Contains an (intentionally skipped) full E2E “npm init → npm install → npm run dev → /health” test that also uses the temp dir.
-
-- `src/dev-server.test-helpers.ts`
-  - Provides:
-    - `createServerOnRandomPort`
-    - `createDevServerProcess`
-    - `waitForDevServerMessage`
-    - `sendSigintAndWait`
-    - `createMinimalProjectDir`
-    - `createFakeProjectForHotReload`
-  - All project directories created under OS temp via `fs.mkdtemp(path.join(os.tmpdir(), 'dev-server-project-'))`.
-
-These helpers *already* encapsulate the logic needed for initializer, CLI, and dev-server flows without relying on committed projects. No code changes were required; I verified usage and then referenced them explicitly in the updated testing strategy document.
+- The new **“Voder Metadata and Version Control”** section in `docs/development-setup.md` includes exactly that rule:
+  - Explicit “MUST NOT introduce or reintroduce ignore rules that exclude the entire `.voder` directory”.
+  - Clear guidance that `.voder` should be treated like `docs/` and remain tracked.
+- This document already serves as the main developer-oriented setup/guidelines doc, so this fulfills the guideline requirement without needing a separate CONTRIBUTING file.
 
 ---
 
-### 6) Add automated check to prevent reintroduction (##NEXT)
+### 3) Quality checks & CI after documentation changes
 
-**File added**
+After updating `.voder/README.md` and `docs/development-setup.md`:
 
-- `src/repo-hygiene.generated-projects.test.ts`
+1. **First round of checks & commit**
 
-Key parts:
+   - `npm run build`
+   - `npm test`
+   - `npm run lint`
+   - `npm run type-check`
+   - `npm run format:check` → **failed** due to Prettier issues in `docs/development-setup.md` on the first attempt.
 
-```ts
-/**
- * Repository hygiene tests to prevent committing generated initializer projects.
- *
- * These tests enforce ADR 0014 by asserting that known generated-project
- * directory names do not exist at the repository root. Tests that need
- * scaffolded projects must create them in OS temporary directories instead.
- *
- * @supports docs/decisions/0014-generated-test-projects-not-committed.accepted.md REQ-NO-GENERATED-PROJECTS
- */
-import { describe, it, expect } from 'vitest';
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+   Fix:
 
-const thisFilePath = fileURLToPath(import.meta.url);
-const thisDir = path.dirname(thisFilePath);
-const repoRoot = path.resolve(thisDir, '..');
+   - Ran `npm run format -- docs/development-setup.md` (via `npm run format` which formats the repo, including that file).
+   - Re-ran `npm run format:check` → **passed**.
 
-const DISALLOWED_PROJECT_DIRS = [
-  'cli-api',
-  'cli-test-from-dist',
-  'cli-test-project',
-  'manual-cli',
-  'test-project-exec-assess',
-];
+   Commit:
 
-describe('Repository hygiene (generated projects)', () => {
-  it('[REQ-NO-GENERATED-PROJECTS] should not contain known generated project directories at repo root', async () => {
-    const existing: string[] = [];
+   - `docs: document voder directory version-control policy`
 
-    await Promise.all(
-      DISALLOWED_PROJECT_DIRS.map(async dirName => {
-        const fullPath = path.join(repoRoot, dirName);
+   CI:
 
-        try {
-          const stat = await fs.stat(fullPath);
-          if (stat.isDirectory()) {
-            existing.push(dirName);
-          }
-        } catch {
-          // If the path does not exist, this is the desired state.
-        }
-      }),
-    );
+   - Push triggered workflow run `20207103590`.
+   - This run **failed** at the “Check formatting” step because the remote run happened against the state before the Prettier fix commit landed.
+   - Root cause: intermediate commit pushed before formatting fix; resolved by the next commit below.
 
-    expect(
-      existing,
-      existing.length
-        ? `Generated project directories must not be committed, but found: ${existing.join(', ')}`
-        : undefined,
-    ).toEqual([]);
-  });
-});
-```
+2. **Second round (format-only fix)**
 
-- This test runs as part of `npm test` (Vitest run includes all `src/**/*.test.*`).
-- If any of the old generated directories ever reappears at the repo root, this test will fail locally and in CI.
+   - After formatting, re-ran all local checks to align with pre-push policy:
+     - `npm run build`
+     - `npm test`
+     - `npm run lint`
+     - `npm run type-check`
+     - `npm run format:check` → all **passed**.
 
-**Traceability**
+   Commit:
 
-- Test header uses `@supports docs/decisions/0014-generated-test-projects-not-committed.accepted.md REQ-NO-GENERATED-PROJECTS`, satisfying the traceability requirement.
+   - `style: format development setup documentation`
 
-**Quality checks**
+   CI:
 
-Executed:
-
-- `npm run build`
-- `npm test`
-- `npm run lint`
-- `npm run type-check`
-- `npm run format:check`
-
-All passed.  
-Committed as:
-
-- `test: enforce no committed generated test projects`
-
-CI/CD pipeline run (ID `20206827015`) completed successfully.
+   - Push triggered workflow run `20207119970`.
+   - This run completed with **conclusion: success**.
+   - All quality gates (lint, type-check, build, test, format:check) passed; release & post-release smoke test executed successfully.
 
 ---
 
-## Updated plan with status
+## Updated Plan with Status
 
 ### NOW
 
-- [x] Update any tests that currently rely on committed generated project directories so that they instead create and use temporary scaffolded projects at runtime while still passing, making those committed project trees no longer needed.
-
-  - CLI tests now use clearly non-root project names and continue to create projects only in OS temp directories.
-  - No tests depend on root-level generated project trees anymore.
+- [x] Adjust the repository’s ignore configuration so that the `.voder` directory itself is no longer ignored while ensuring that only the `.voder/traceability/` subdirectory remains excluded from version control.
 
 ### NEXT
 
-- [x] Remove all committed generated test project directories from the repository (such as the CLI example projects) so that no generated project trees remain tracked in version control.
-- [x] Scan the repository for any remaining tracked build artifacts or generated outputs (such as compiled bundles, coverage reports, or temporary logs) and delete or reconfigure them so that only source, configuration, and intentional fixtures are under version control.
-- [x] Introduce or update an internal development guideline document that states generated projects used for testing must be created in temporary directories and must never be committed, explaining the rationale and pointing to existing temp-based test helpers as examples.
-- [x] Ensure test helper utilities used to create temporary projects encapsulate all the logic needed for CLI and initializer end-to-end tests so that future tests never need to depend on pre-generated project trees in the repository.
-- [x] Add a lightweight automated check in the test or lint suite that fails if specific disallowed directories (like previously committed generated project names) appear in the working tree, preventing reintroduction of these artifacts in future changes.
+- [x] Ensure that all important metadata files already present under `.voder` (excluding the `traceability` subdirectory) are included in version control so their history is tracked alongside the rest of the project.
+- [x] Document the expected version-control treatment of the `.voder` directory in the internal development documentation, explaining that `.voder` files (except `traceability` outputs) are part of the tracked state and must not be globally ignored.
+- [x] Add a short note to the contribution or coding guidelines stating that new ignore rules must not exclude the `.voder` directory, to prevent accidental reintroduction of the problematic ignore pattern.
 
-All requested **##NOW** and **##NEXT** tasks are implemented, verified locally, committed with Conventional Commits, pushed to `main`, and validated by the CI/CD pipeline.
+### LATER
+
+- [ ] Extend internal documentation to describe the trunk-based workflow, the role of pre-commit and pre-push hooks, and the expectation that all quality checks pass locally before changes are shared.
+- [ ] Provide guidance for structuring any future example or demo projects under a dedicated, documented fixtures or examples area that remains small and static, avoiding use of committed initializer outputs.
+- [ ] Periodically tidy the repository by pruning obsolete fixtures or legacy directories that no longer support any current stories or tests, keeping version control focused on active source, configuration, and documentation.
+
+All **NOW** and **NEXT** tasks are implemented, validated by local quality checks, and the latest CI/CD pipeline run on `main` is green.
 ```

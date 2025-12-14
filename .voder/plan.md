@@ -1,15 +1,14 @@
 ## NOW
 
-- [ ] Adjust the repository’s ignore configuration so that the `.voder` directory itself is no longer ignored while ensuring that only the `.voder/traceability/` subdirectory remains excluded from version control.
+- [ ] Update the continuous integration workflow so that every change to the main branch runs an automatic dependency vulnerability scan and fails the pipeline when high‑severity issues are detected.
 
 ## NEXT
 
-- [ ] Ensure that all important metadata files already present under `.voder` (excluding the `traceability` subdirectory) are included in version control so their history is tracked alongside the rest of the project.
-- [ ] Document the expected version-control treatment of the `.voder` directory in the internal development documentation, explaining that `.voder` files (except `traceability` outputs) are part of the tracked state and must not be globally ignored.
-- [ ] Add a short note to the contribution or coding guidelines stating that new ignore rules must not exclude the `.voder` directory, to prevent accidental reintroduction of the problematic ignore pattern.
+- [ ] Create an internal architecture decision record that documents the chosen dependency security scanning tool, the severity thresholds that block releases, and how this scan fits into the unified CI/CD pipeline.
+- [ ] Update the internal development documentation to explain that the CI pipeline now enforces a dependency security gate on every main-branch change, including what types of issues will block a merge and how contributors should respond to a failed security check.
+- [ ] Enhance the CI workflow with a non-blocking step that reports safe, mature dependency upgrade opportunities from the aging-based dependency tool so maintainers can easily see recommended updates without breaking the pipeline.
 
 ## LATER
 
-- [ ] Extend internal documentation to describe the trunk-based workflow, the role of pre-commit and pre-push hooks, and the expectation that all quality checks pass locally before changes are shared.
-- [ ] Provide guidance for structuring any future example or demo projects under a dedicated, documented fixtures or examples area that remains small and static, avoiding use of committed initializer outputs.
-- [ ] Periodically tidy the repository by pruning obsolete fixtures or legacy directories that no longer support any current stories or tests, keeping version control focused on active source, configuration, and documentation.
+- [ ] Introduce a broader code-level security scanner into the same CI workflow to catch insecure patterns, hardcoded secrets, and other vulnerabilities beyond dependency issues, keeping it aligned with the existing quality and deployment steps.
+- [ ] Periodically refine the dependency vulnerability thresholds and scanning configuration based on project experience, ensuring the pipeline remains both secure and practical as the dependency landscape evolves.

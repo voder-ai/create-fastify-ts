@@ -25,6 +25,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Dependency vulnerability audit
+        run: npm audit --production --audit-level=high
+
       - name: Lint
         run: npm run lint
 
@@ -39,6 +42,10 @@ jobs:
 
       - name: Check formatting
         run: npm run format:check
+
+      - name: Dependency freshness report (non-blocking)
+        continue-on-error: true
+        run: npx dry-aged-deps --format=table
 
       - name: Release
         id: release

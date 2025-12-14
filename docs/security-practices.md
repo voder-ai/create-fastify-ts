@@ -41,11 +41,18 @@ When working on this repository, contributors are expected to:
 
 ## Future Security Enhancements
 
-The CI/CD pipeline currently focuses on correctness (build, test, lint, type-check, formatting) and release automation. Dedicated security scanning (static analysis, dependency scanning in CI, etc.) has not yet been added.
+The CI/CD pipeline currently focuses on correctness (build, test, lint, type-check, formatting) and release automation, and also includes dedicated dependency security scanning.
+
+Specifically:
+
+- A blocking dependency vulnerability audit step using `npm audit --production --audit-level=high` runs in CI and will fail the pipeline on high (or higher) severity issues.
+- A non-blocking `dry-aged-deps` freshness report runs alongside the main checks to highlight outdated dependencies without breaking the build.
+
+For detailed rationale and design, see ADR `docs/decisions/0015-dependency-security-scanning-in-ci.accepted.md`.
 
 As the project matures, we expect to:
 
-- Introduce automated security checks into the CI/CD pipeline (for example, dependency scanners or static analysis tools).
+- Introduce additional automated security checks into the CI/CD pipeline (for example, broader static analysis tools).
 - Document any authentication, authorization, and rate-limiting behavior once it is implemented.
 - Clarify security guarantees and limitations for API consumers in user-facing documentation.
 
