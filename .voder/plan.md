@@ -1,15 +1,16 @@
 ## NOW
 
-- [ ] Fix dev-server.mjs to wait for initial TypeScript compilation to complete before attempting to start the server, preventing "Cannot find module" errors when running `npm run dev` without a pre-built dist/ folder
+- [ ] Refactor the dev server test file so that all test and describe callbacks comply with the configured maximum function length, removing every max-lines-per-function lint suppression in that file while keeping the existing dev server hot-reload and skip-watch test behaviors and assertions unchanged.
 
 ## NEXT
 
-- [ ] Add test coverage for the initial compilation scenario: create a test that runs `npm run dev` in a generated project without a pre-built dist/ folder and verifies the server starts successfully after TypeScript compilation completes
-- [ ] Update the test to assert that the server responds to requests (e.g., /health endpoint) after the initial compilation, confirming REQ-DEV-INITIAL-COMPILE is satisfied
-- [ ] Verify the fix works by running the new test and manually testing `npm run dev` in a fresh project without running `npm run build` first
+- [ ] Add per-function traceability annotations to all named helpers in the dev server test helpers module so each helper clearly declares which dev-server story requirements it implements.
+- [ ] Add per-function traceability annotations to all named helpers in the generated-project test helpers module so each helper is linked to its corresponding initializer, build, logging, or security story requirements.
+- [ ] Reduce any remaining duplicated health-check or server-start logic across generated-project tests by routing those behaviors through the existing shared helpers, keeping each test file focused on its unique assertions.
+- [ ] Introduce one additional TypeScript-focused ESLint rule from the recommended set (for example, unused variables) into the lint configuration and add targeted suppressions where necessary so that the project’s lint baseline becomes slightly stricter without introducing failing checks.
 
 ## LATER
 
-- [ ] Consider adding a visual indicator or log message when the dev server is waiting for initial TypeScript compilation to complete, improving developer experience and reducing confusion during the first startup
-- [ ] Review other dev-server.mjs timing assumptions and hardcoded delays to ensure robustness across different system speeds and project sizes
-- [ ] Document the expected behavior and timing characteristics of the initial compilation scenario in user-facing documentation or inline comments
+- [ ] Gradually enable further ESLint rules one at a time using the suppress-then-fix pattern to incrementally raise the static-analysis bar while keeping the codebase green at each step.
+- [ ] Extend the duplication-check configuration to report per-file duplication summaries and treat large increases in test-helper duplication as a warning signal to refactor.
+- [ ] Introduce lightweight inline comments on complex test helpers explaining non-obvious behaviors (such as timing assumptions or log-message parsing) to improve long-term maintainability without increasing function complexity.

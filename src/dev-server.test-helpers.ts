@@ -17,6 +17,12 @@ import { fileURLToPath } from 'node:url';
 
 const thisTestDir = path.dirname(fileURLToPath(import.meta.url));
 
+/**
+ * Creates a TCP server bound to a random free port, used for dev-server
+ * port-collision and strict-port-behavior tests.
+ *
+ * @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-PORT-STRICT
+ */
 export function createServerOnRandomPort(): Promise<{ server: net.Server; port: number }> {
   return new Promise((resolve, reject) => {
     const server = net.createServer();
@@ -34,10 +40,22 @@ export function createServerOnRandomPort(): Promise<{ server: net.Server; port: 
   });
 }
 
+/**
+ * Resolves the path to the dev-server script that is executed by tests.
+ * This centralizes the location of the test-only dev-server entrypoint.
+ *
+ * @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-PORT-AUTO REQ-DEV-PORT-STRICT REQ-DEV-TYPESCRIPT-WATCH REQ-DEV-HOT-RELOAD
+ */
 function getDevServerPath(): string {
   return path.resolve(thisTestDir, 'template-files/dev-server.mjs');
 }
 
+/**
+ * Spawns the dev-server Node.js process and captures stdout/stderr streams
+ * for later assertions in tests.
+ *
+ * @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-TYPESCRIPT-WATCH REQ-DEV-HOT-RELOAD REQ-DEV-GRACEFUL-STOP
+ */
 export function createDevServerProcess(
   env: Record<string, string | undefined>,
   options?: { cwd?: string; devServerPath?: string },
@@ -72,6 +90,13 @@ export function createDevServerProcess(
   };
 }
 
+/**
+ * Waits until the dev-server process emits a specific log message on stdout,
+ * with a timeout, and fails early if the process exits before the message
+ * appears.
+ *
+ * @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-HOT-RELOAD REQ-DEV-TYPESCRIPT-WATCH REQ-DEV-INITIAL-COMPILE
+ */
 export async function waitForDevServerMessage(
   child: ChildProcess,
   getStdout: () => string,
@@ -108,6 +133,12 @@ export async function waitForDevServerMessage(
   });
 }
 
+/**
+ * Sends SIGINT to the dev-server process and waits for it to exit,
+ * asserting that it performs a clean and timely shutdown.
+ *
+ * @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-GRACEFUL-STOP
+ */
 export async function sendSigintAndWait(
   child: ChildProcess,
   timeoutMs: number,
@@ -132,6 +163,12 @@ export async function sendSigintAndWait(
   return result as { code: number | null; signal: string | null };
 }
 
+/**
+ * Scaffolds a minimal temporary project directory containing a package.json
+ * and a copied dev-server script, used for end-to-end runtime dev-server tests.
+ *
+ * @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-TYPESCRIPT-WATCH REQ-DEV-HOT-RELOAD REQ-DEV-GRACEFUL-STOP
+ */
 export async function createMinimalProjectDir(): Promise<{
   projectDir: string;
   devServerPath: string;
@@ -160,6 +197,13 @@ export async function createMinimalProjectDir(): Promise<{
   return { projectDir, devServerPath };
 }
 
+/**
+ * Creates a fake project that includes a compiled `dist/src/index.js`
+ * HTTP server, allowing hot-reload behavior to be tested without running
+ * a TypeScript compiler in watch mode.
+ *
+ * @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-HOT-RELOAD
+ */
 export async function createFakeProjectForHotReload(): Promise<{
   projectDir: string;
   indexJsPath: string;

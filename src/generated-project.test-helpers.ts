@@ -14,14 +14,19 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { spawn, type ChildProcess } from 'node:child_process';
-import http from 'node:http';
 import { fileURLToPath } from 'node:url';
 
 import { initializeTemplateProject } from './initializer.js';
+export { waitForHealth } from './generated-project-http-helpers.js';
 
 const thisTestDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRootDir = path.resolve(thisTestDir, '..');
 
+/**
+ * Options for setting up a temporary generated project for end-to-end tests.
+ *
+ * @supports docs/stories/001.0-DEVELOPER-TEMPLATE-INIT.story.md REQ-INIT-E2E-INTEGRATION
+ */
 export interface GeneratedProjectSetupOptions {
   projectName: string;
   /** Prefix for the OS temp directory; helps distinguish different suites. */
@@ -30,6 +35,11 @@ export interface GeneratedProjectSetupOptions {
   logPrefix?: string;
 }
 
+/**
+ * Result describing the paths associated with an initialized generated project.
+ *
+ * @supports docs/stories/001.0-DEVELOPER-TEMPLATE-INIT.story.md REQ-INIT-E2E-INTEGRATION
+ */
 export interface GeneratedProjectSetupResult {
   /** Absolute path to the temporary directory that owns the project. */
   tempDir: string;
@@ -67,9 +77,14 @@ export async function linkRootNodeModulesToProject(
 }
 
 /**
- * Initialize a new generated project in an OS temporary directory and link
- * the root repository's node_modules via a junction/symlink so we can reuse
- * devDependencies without running `npm install` per test project.
+ * Initialize a new generated project in an OS temporary directory by calling
+ * {@link initializeTemplateProject}, then link the root repository's
+ * node_modules directory into the new project so tests can reuse shared
+ * devDependencies without running `npm install`. Returns both the temporary
+ * directory path and the initialized project root path.
+ *
+ * @supports docs/stories/001.0-DEVELOPER-TEMPLATE-INIT.story.md REQ-INIT-E2E-INTEGRATION
+ * @supports docs/stories/006.0-DEVELOPER-PRODUCTION-BUILD.story.md REQ-BUILD-TSC REQ-START-PRODUCTION
  */
 export async function initializeGeneratedProject({
   projectName,
@@ -92,6 +107,11 @@ export async function initializeGeneratedProject({
   }
 }
 
+/**
+ * Result object describing the outcome of running a TypeScript (tsc) build.
+ *
+ * @supports docs/stories/006.0-DEVELOPER-PRODUCTION-BUILD.story.md REQ-BUILD-TSC
+ */
 export interface TscBuildResult {
   exitCode: number | null;
   stdout: string;
@@ -100,7 +120,10 @@ export interface TscBuildResult {
 
 /**
  * Run `tsc -p tsconfig.json` inside the generated project using the root
- * repository's TypeScript binary.
+ * repository's TypeScript binary, capturing stdout, stderr, and the exit code
+ * to help verify a successful production build to dist/.
+ *
+ * @supports docs/stories/006.0-DEVELOPER-PRODUCTION-BUILD.story.md REQ-BUILD-TSC REQ-BUILD-OUTPUT-DIST
  */
 export async function runTscBuildForProject(
   projectDir: string,
@@ -138,66 +161,48 @@ export async function runTscBuildForProject(
 }
 
 /**
- * Remove the temporary directory that owns a generated project. This is
- * intentionally tolerant of missing directories to simplify cleanup in
- * error paths.
+ * Remove the temporary directory that owns a generated project used in tests.
+ * This helper is intentionally tolerant of missing directories to simplify
+ * cleanup in error paths.
+ *
+ * @supports docs/stories/001.0-DEVELOPER-TEMPLATE-INIT.story.md REQ-INIT-E2E-INTEGRATION
  */
 export async function cleanupGeneratedProject(tempDir: string | undefined): Promise<void> {
   if (!tempDir) return;
   await fs.rm(tempDir, { recursive: true, force: true });
 }
 
-async function fetchHealthOnce(url: URL): Promise<{ statusCode: number; body: string }> {
-  return new Promise((resolve, reject) => {
-    const req = http.get(url, res => {
-      let body = '';
-      res.on('data', chunk => {
-        body += chunk.toString();
-      });
-      res.on('end', () => {
-        resolve({ statusCode: res.statusCode ?? 0, body });
-      });
-    });
-
-    req.on('error', reject);
-  });
-}
-
-export async function waitForHealth(
-  url: URL,
-  timeoutMs: number,
-  intervalMs = 500,
-): Promise<{ statusCode: number; body: string }> {
-  const deadline = Date.now() + timeoutMs;
-  while (Date.now() <= deadline) {
-    try {
-      const result = await fetchHealthOnce(url);
-      if (result.statusCode > 0) return result;
-    } catch {
-      // ignore and retry until timeout
-    }
-
-    if (Date.now() > deadline) {
-      throw new Error(`Timed out waiting for health endpoint at ${url.toString()}`);
-    }
-
-    await new Promise(resolve => setTimeout(resolve, intervalMs));
-  }
-
-  throw new Error(`Timed out waiting for health endpoint at ${url.toString()}`);
-}
-
+/**
+ * Structure of the result returned when starting the compiled server for
+ * end-to-end tests, including the child process, derived /health URL, and
+ * accumulated stdout.
+ *
+ * @supports docs/stories/006.0-DEVELOPER-PRODUCTION-BUILD.story.md REQ-START-PRODUCTION
+ */
 export interface StartCompiledServerResult {
   child: ChildProcess;
   healthUrl: URL;
   stdout: string;
 }
 
+/**
+ * Assert that the provided stdout does not contain references to TypeScript
+ * source files or src/ paths, ensuring production logs reference built
+ * artifacts only.
+ *
+ * @supports docs/stories/006.0-DEVELOPER-PRODUCTION-BUILD.story.md REQ-BUILD-OUTPUT-DIST
+ */
 export function assertNoSourceReferencesInLogs(stdout: string): void {
   expect(stdout).not.toMatch(/\.ts\b/);
   expect(stdout).not.toMatch(/\bsrc\//);
 }
 
+/**
+ * Assert that the provided stdout contains at least one structured JSON log
+ * line with a "level" field, indicating JSON log output is enabled.
+ *
+ * @supports docs/stories/008.0-DEVELOPER-LOGS-MONITOR.story.md REQ-LOG-PROD-JSON REQ-LOG-STRUCTURED-JSON
+ */
 export function assertHasJsonLogLine(stdout: string): void {
   const hasJsonLogLine = stdout
     .split('\n')
@@ -205,14 +210,25 @@ export function assertHasJsonLogLine(stdout: string): void {
   expect(hasJsonLogLine).toBe(true);
 }
 
+/**
+ * Assert that the provided stdout does not contain info-level request logs,
+ * verifying that request logging at this level can be disabled via
+ * configuration.
+ *
+ * @supports docs/stories/008.0-DEVELOPER-LOGS-MONITOR.story.md REQ-LOG-LEVEL-CONFIG
+ */
 export function assertNoInfoLevelRequestLogs(stdout: string): void {
   expect(stdout).not.toContain('incoming request');
 }
 
 /**
- * Start the compiled server from dist/src/index.js and wait for it to log
- * its listening URL, returning both the child process and the derived
- * /health URL along with accumulated stdout.
+ * Start the compiled server by invoking `node dist/src/index.js` in the
+ * generated project, wait for it to log the listening URL, and then return
+ * the spawned child process, the derived /health URL, and the accumulated
+ * stdout for further assertions about startup behavior and logging.
+ *
+ * @supports docs/stories/006.0-DEVELOPER-PRODUCTION-BUILD.story.md REQ-START-PRODUCTION REQ-START-PORT REQ-START-LOGS
+ * @supports docs/stories/008.0-DEVELOPER-LOGS-MONITOR.story.md REQ-LOG-STRUCTURED-JSON REQ-LOG-PROD-JSON
  */
 export async function startCompiledServerViaNode(
   projectDir: string,

@@ -1,9 +1,9 @@
 /**
- * Tests for the dev server launcher used in initialized projects.
+ * Tests for the dev server launcher in initialized projects.
  *
- * These tests cover both the port resolution behavior (auto-discovery and
- * strict PORT semantics) and the dev-server runtime behavior (test-mode
- * TypeScript watcher skip and hot-reload of the compiled server).
+ * These tests cover port resolution (auto-discovery and strict PORT semantics)
+ * and dev-server runtime behavior (test-mode TypeScript watcher skip and hot
+ * reload of the compiled server).
  *
  * @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-PORT-AUTO REQ-DEV-PORT-STRICT REQ-DEV-CLEAN-LOGS REQ-DEV-HOT-RELOAD REQ-DEV-GRACEFUL-STOP REQ-DEV-TYPESCRIPT-WATCH REQ-LOG-DEV-PRETTY
  */
@@ -140,6 +140,108 @@ async function runHotReloadScenario(): Promise<void> {
   }
 }
 
+/**
+ * Prepare a fresh generated project and verify dist/ and dev-server.mjs state.
+ *
+ * @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-INITIAL-COMPILE
+ */
+async function prepareInitialCompileProject() {
+  const { initializeGeneratedProject } = await import('./generated-project.test-helpers.js');
+
+  const { tempDir, projectDir } = await initializeGeneratedProject({
+    projectName: 'dev-initial-compile-test',
+    tempDirPrefix: 'dev-initial-compile-',
+    logPrefix: '[dev-initial-compile-test]',
+  });
+
+  const path = await import('node:path');
+  const fs = await import('node:fs/promises');
+  const distPath = path.join(projectDir, 'dist');
+  const distExists = await fs
+    .access(distPath)
+    .then(() => true)
+    .catch(() => false);
+  expect(distExists).toBe(false);
+
+  const devServerPath = path.join(projectDir, 'dev-server.mjs');
+  const devServerExists = await fs
+    .access(devServerPath)
+    .then(() => true)
+    .catch(() => false);
+  expect(devServerExists).toBe(true);
+
+  return { tempDir, projectDir, devServerPath };
+}
+
+/**
+ * Runs the end-to-end scenario for initial TypeScript compilation.
+ *
+ * @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-INITIAL-COMPILE
+ */
+async function runInitialCompilationScenario(): Promise<void> {
+  const { tempDir, projectDir, devServerPath } = await prepareInitialCompileProject();
+
+  const waitForInitialCompilationComplete = async (
+    child: ReturnType<typeof createDevServerProcess>['child'],
+    getStdout: () => string,
+    getStderr: () => string,
+  ) =>
+    waitForDevServerMessage(
+      child,
+      getStdout,
+      getStderr,
+      'dev-server: initial TypeScript compilation complete.',
+      30_000,
+    );
+
+  try {
+    const env: Record<string, string | undefined> = {
+      ...process.env,
+      NODE_ENV: 'production',
+      PORT: '41238',
+    };
+
+    const { child, getStdout, getStderr } = createDevServerProcess(env, {
+      cwd: projectDir,
+      devServerPath,
+    });
+
+    try {
+      await waitForInitialCompilationComplete(child, getStdout, getStderr);
+
+      await waitForDevServerMessage(
+        child,
+        getStdout,
+        getStderr,
+        'dev-server: launching Fastify server from dist/src/index.js...',
+        10_000,
+      );
+
+      await waitForDevServerMessage(child, getStdout, getStderr, 'Server listening at', 10_000);
+
+      const stdout = getStdout();
+      const expectedMessages = [
+        'dev-server: initial TypeScript compilation complete.',
+        'dev-server: launching Fastify server from dist/src/index.js...',
+        'Server listening at',
+      ];
+      for (const message of expectedMessages) {
+        expect(stdout).toContain(message);
+      }
+
+      const { code, signal } = await sendSigintAndWait(child, 10_000);
+      expect(signal === 'SIGINT' || code === 0).toBe(true);
+    } finally {
+      if (!child.killed) {
+        child.kill('SIGINT');
+      }
+    }
+  } finally {
+    const { rm } = await import('node:fs/promises');
+    await rm(tempDir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
 describe('Dev server runtime behavior (Story 003.0)', () => {
   it('honors DEV_SERVER_SKIP_TSC_WATCH in test mode and keeps process running until SIGINT [REQ-DEV-TYPESCRIPT-WATCH] [REQ-DEV-GRACEFUL-STOP]', async () => {
     await runSkipTscWatchScenario();
@@ -188,91 +290,8 @@ describe('Dev server runtime behavior with pino-pretty (Story 008.0)', () => {
   });
 });
 
-// eslint-disable-next-line max-lines-per-function -- Integration test suite with complex setup
 describe('Dev server initial compilation (Story 003.0)', () => {
-  // eslint-disable-next-line max-lines-per-function -- Integration test with setup/teardown logic
   it('waits for initial TypeScript compilation before starting server (no pre-built dist/) [REQ-DEV-INITIAL-COMPILE]', async () => {
-    // Import the generated project helper to create a real project with TypeScript source files
-    const { initializeGeneratedProject } = await import('./generated-project.test-helpers.js');
-
-    const { tempDir, projectDir } = await initializeGeneratedProject({
-      projectName: 'dev-initial-compile-test',
-      tempDirPrefix: 'dev-initial-compile-',
-      logPrefix: '[dev-initial-compile-test]',
-    });
-
-    try {
-      // Verify no dist folder exists (fresh project state)
-      const path = await import('node:path');
-      const fs = await import('node:fs/promises');
-      const distPath = path.join(projectDir, 'dist');
-      const distExists = await fs
-        .access(distPath)
-        .then(() => true)
-        .catch(() => false);
-      expect(distExists).toBe(false);
-
-      // The generated project already has dev-server.mjs from the template
-      const devServerPath = path.join(projectDir, 'dev-server.mjs');
-      const devServerExists = await fs
-        .access(devServerPath)
-        .then(() => true)
-        .catch(() => false);
-      expect(devServerExists).toBe(true);
-
-      // Start dev server WITHOUT DEV_SERVER_SKIP_TSC_WATCH
-      // This will trigger real TypeScript compilation
-      const env: Record<string, string | undefined> = {
-        ...process.env,
-        NODE_ENV: 'production', // Use production to avoid pino-pretty requirement
-        PORT: '41238',
-        // Explicitly NOT setting DEV_SERVER_SKIP_TSC_WATCH
-      };
-
-      const { child, getStdout, getStderr } = createDevServerProcess(env, {
-        cwd: projectDir,
-        devServerPath,
-      });
-
-      try {
-        // Wait for initial compilation to complete
-        await waitForDevServerMessage(
-          child,
-          getStdout,
-          getStderr,
-          'dev-server: initial TypeScript compilation complete.',
-          30_000, // Give TypeScript time to compile
-        );
-
-        // Wait for server to start
-        await waitForDevServerMessage(
-          child,
-          getStdout,
-          getStderr,
-          'dev-server: launching Fastify server from dist/src/index.js...',
-          10_000,
-        );
-
-        // Wait for server listening message (from Fastify)
-        await waitForDevServerMessage(child, getStdout, getStderr, 'Server listening at', 10_000);
-
-        // Verify the output contains the expected messages
-        const stdout = getStdout();
-        expect(stdout).toContain('dev-server: initial TypeScript compilation complete.');
-        expect(stdout).toContain('dev-server: launching Fastify server from dist/src/index.js...');
-        expect(stdout).toContain('Server listening at');
-
-        // Success! Server started after initial compilation
-        const { code, signal } = await sendSigintAndWait(child, 10_000);
-        expect(signal === 'SIGINT' || code === 0).toBe(true);
-      } finally {
-        if (!child.killed) {
-          child.kill('SIGINT');
-        }
-      }
-    } finally {
-      const { rm } = await import('node:fs/promises');
-      await rm(tempDir, { recursive: true, force: true }).catch(() => {});
-    }
-  }, 60_000); // Allow up to 60 seconds for this slower test
+    await runInitialCompilationScenario();
+  }, 60_000);
 });
