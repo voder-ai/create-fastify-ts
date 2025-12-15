@@ -105,7 +105,6 @@ async function runHotReloadScenario(): Promise<void> {
       ...process.env,
       NODE_ENV: 'test',
       DEV_SERVER_SKIP_TSC_WATCH: '1',
-      PORT: '41236',
     };
 
     const { child, getStdout, getStderr } = createDevServerProcess(env, {

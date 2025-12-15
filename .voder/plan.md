@@ -1,13 +1,15 @@
 ## NOW
 
-- [ ] Stop tracking the jscpd duplication report file and ensure it is treated as an ignored generated artifact so it no longer affects formatting checks on a fresh checkout.
+- [ ] Add a dedicated test suite that exercises the HTTP helper functions for generated projects so they are covered for both successful health checks and timeout/error scenarios, increasing coverage for the generated-project HTTP helpers module.
 
 ## NEXT
 
-- [ ] Ensure that with the duplication report ignored, the formatting check on a clean working copy completes successfully without reporting any files, satisfying the story’s requirement that the template is format-clean by default.
-- [ ] If the lint/format story includes explicit checklist items about a clean repository or generated artifacts, update the story file’s checkboxes to reflect that the format check now passes on a fresh checkout.
+- [ ] Ensure the dev-server test helper module has tests that cover its core behaviors, including successful detection of startup log messages and proper handling when expected messages never appear within the timeout window.
+- [ ] Add focused tests for the package-json helper module so that its main functions are executed and validated for both valid input and representative error conditions, raising its line and branch coverage.
+- [ ] Extend the existing coverage test configuration or scripts so that a single coverage run reflects the overall project coverage accurately and can be used as a reliable gate once coverage levels are closer to the target thresholds.
 
 ## LATER
 
-- [ ] Document briefly in the development setup or tooling docs that duplication reports are generated artifacts and are intentionally not tracked, so contributors know how to run and interpret duplication analysis.
-- [ ] Consider refining duplication tooling configuration (such as output paths or additional options) once the lint/format story is fully complete, keeping formatting and version-control behavior stable.
+- [ ] Tighten global coverage thresholds to values that match the improved coverage levels and configure the test runner to fail when coverage drops below those thresholds, enforcing the desired standard.
+- [ ] Add regression tests for any newly identified edge cases in the dev-server and generated-project flows (for example, interrupted builds or partial installs) to further harden the end-to-end behavior.
+- [ ] Document the testing and coverage expectations in the development docs, including which helper modules and edge cases are explicitly covered, so future contributors understand the required level of test completeness.
