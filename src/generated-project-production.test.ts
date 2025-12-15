@@ -60,6 +60,54 @@ describe('Generated project production build (Story 006.0) [REQ-BUILD-TSC]', () 
   }, 120_000);
 });
 
+describe('Generated project production build failures (Story 006.0) [REQ-BUILD-TSC]', () => {
+  it('[REQ-BUILD-TSC] fails the tsc build and reports TypeScript errors when the source contains type errors', async () => {
+    const failureProjectName = 'prod-api-build-failure';
+    const logPrefix = '[generated-project-production-failure]';
+    let failureTempDir: string | undefined;
+
+    try {
+      const init = await initializeGeneratedProject({
+        projectName: failureProjectName,
+        tempDirPrefix: 'fastify-ts-prod-fail-',
+        logPrefix,
+      });
+      failureTempDir = init.tempDir;
+      const failureProjectDir = init.projectDir;
+
+      const indexTsPath = path.join(failureProjectDir, 'src', 'index.ts');
+      const existingIndexTs = await fs.readFile(indexTsPath, 'utf8');
+      const errorIdentifier = 'INTENTIONAL_BUILD_FAILURE_IDENTIFIER';
+      const errorSnippet = `
+/* Intentional TypeScript error for regression test */
+const ${errorIdentifier}: string = 42 as unknown as number;
+`;
+      await fs.writeFile(indexTsPath, existingIndexTs + errorSnippet, 'utf8');
+
+      const { exitCode, stdout, stderr } = await runTscBuildForProject(failureProjectDir, {
+        logPrefix,
+      });
+
+      expect(exitCode).not.toBe(0);
+
+      const combinedOutput = `${stdout}\n${stderr}`;
+      expect(combinedOutput).toMatch(/error TS\d+:/);
+      expect(combinedOutput).toContain('src/index.ts');
+
+      const watcherExitedMessage = 'TypeScript watcher exited before initial compilation completed';
+      if (!combinedOutput.includes(watcherExitedMessage)) {
+        expect(combinedOutput).toContain("Type 'number' is not assignable to type 'string'");
+      } else {
+        expect(combinedOutput).toContain(watcherExitedMessage);
+      }
+    } finally {
+      if (failureTempDir) {
+        await cleanupGeneratedProject(failureTempDir);
+      }
+    }
+  }, 60_000);
+});
+
 describe('Generated project production runtime smoke test (Story 006.0) [REQ-START-PRODUCTION]', () => {
   it('[REQ-START-PRODUCTION] starts compiled server from dist/src/index.js with src/ removed and responds on /health using an ephemeral port', async () => {
     // Remove the src directory to prove the production server runs purely from dist/.

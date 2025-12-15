@@ -1,15 +1,15 @@
 ## NOW
 
-- [ ] Add a dedicated test suite that exercises the HTTP helper functions for generated projects so they are covered for both successful health checks and timeout/error scenarios, increasing coverage for the generated-project HTTP helpers module.
+- [ ] Add a new regression test in the generated-project production test suite that creates a project with an intentionally broken TypeScript source file, runs the production build flow, and verifies that the build fails with a clear, asserted error instead of hanging or reporting success.
 
 ## NEXT
 
-- [ ] Ensure the dev-server test helper module has tests that cover its core behaviors, including successful detection of startup log messages and proper handling when expected messages never appear within the timeout window.
-- [ ] Add focused tests for the package-json helper module so that its main functions are executed and validated for both valid input and representative error conditions, raising its line and branch coverage.
-- [ ] Extend the existing coverage test configuration or scripts so that a single coverage run reflects the overall project coverage accurately and can be used as a reliable gate once coverage levels are closer to the target thresholds.
+- [ ] Raise the global coverage thresholds in the test configuration to values that are just below the current measured coverage (for example, keeping a small buffer) so that future changes cannot significantly reduce coverage without causing the coverage run to fail.
+- [ ] Update the development testing documentation to describe the current testing strategy, including the existence of helper-module tests and the enforced coverage thresholds, so contributors understand the required level of test completeness.
+- [ ] Add a targeted dev-server regression test that simulates a failure during the TypeScript watch or server start phase and asserts that the error is surfaced with the expected message and exit behavior.
 
 ## LATER
 
-- [ ] Tighten global coverage thresholds to values that match the improved coverage levels and configure the test runner to fail when coverage drops below those thresholds, enforcing the desired standard.
-- [ ] Add regression tests for any newly identified edge cases in the dev-server and generated-project flows (for example, interrupted builds or partial installs) to further harden the end-to-end behavior.
-- [ ] Document the testing and coverage expectations in the development docs, including which helper modules and edge cases are explicitly covered, so future contributors understand the required level of test completeness.
+- [ ] Add additional edge-case tests for generated projects that simulate partial dependency installation or missing build artifacts to ensure those scenarios fail fast and clearly.
+- [ ] Introduce a small set of ultra-fast smoke tests that validate core flows (initializer, dev server, production build) with minimal setup, providing an even quicker feedback loop alongside the full suite.
+- [ ] Once the test suite has remained stable for a while at the new thresholds, consider incrementally tightening coverage thresholds again to further lock in the higher coverage levels.

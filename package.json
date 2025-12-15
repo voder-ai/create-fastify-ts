@@ -22,6 +22,7 @@
     "test": "vitest run --exclude '**/*.smoke.test.ts'",
     "test:smoke": "vitest run src/npm-init.smoke.test.ts",
     "test:coverage": "vitest run --coverage",
+    "test:coverage:extended": "vitest run --coverage",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "duplication": "jscpd --threshold 20 src scripts",

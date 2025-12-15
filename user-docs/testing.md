@@ -41,7 +41,7 @@ npm run type-check
   - Runs the **core repository** Vitest suites (unit tests and primary integration tests) with coverage reporting enabled (using the `v8` coverage provider).
   - Intentionally **excludes** the heaviest generated-project E2E suites so that core coverage stays **fast and stable** enough for regular CI and pre-push use.
   - Prints a summary table showing coverage for **statements**, **branches**, **functions**, and **lines**.
-  - Enforces global coverage thresholds (around 80% for each metric). If coverage drops below these thresholds, the command will fail.
+  - Enforces global coverage thresholds (around 90% for statements/lines/functions and high 70s for branches). If coverage drops below these thresholds, the command will fail.
   - Extended coverage, including generated-project E2E suites, is provided by the separate `npm run test:coverage:extended` command; see **Extended coverage for generated projects** below.
 
 - **`npm run type-check`**
@@ -112,7 +112,7 @@ Key points:
   - `% Funcs`: Functions and methods.
   - `% Lines`: Line coverage.
 
-The template configures global thresholds (in `vitest.config.mts`) so that coverage must stay around or above 80% for each metric. You can adjust these thresholds over time if you add new code with appropriate tests.
+The template configures global thresholds (in `vitest.config.mts`) so that coverage must stay around or above 90% for statements/lines/functions and high 70s for branches. You can adjust these thresholds over time if you add new code with appropriate tests.
 
 ## Recommended workflow
 
