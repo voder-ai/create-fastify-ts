@@ -8,7 +8,7 @@
  * @supports docs/stories/004.0-DEVELOPER-TESTS-RUN.story.md REQ-TEST-EXAMPLES REQ-TEST-TYPESCRIPT
  */
 import type { FastifyInstance } from 'fastify';
-import type { buildServer } from './index.ts';
+import type { buildServer } from './index.js';
 
 type Equal<A, B> =
   (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
