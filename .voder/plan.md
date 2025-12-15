@@ -1,16 +1,16 @@
 ## NOW
 
-- [ ] Refactor the dev server test file so that all test and describe callbacks comply with the configured maximum function length, removing every max-lines-per-function lint suppression in that file while keeping the existing dev server hot-reload and skip-watch test behaviors and assertions unchanged.
+- [ ] Change the dev server implementation in the template so that the initial TypeScript compilation is started using the generated project’s local TypeScript compiler directly (without relying on npx), ensuring that when no dist directory exists the dev server successfully runs an initial compile, logs the existing “initial TypeScript compilation complete” message, and keeps the watch process running for subsequent reloads.
 
 ## NEXT
 
-- [ ] Add per-function traceability annotations to all named helpers in the dev server test helpers module so each helper clearly declares which dev-server story requirements it implements.
-- [ ] Add per-function traceability annotations to all named helpers in the generated-project test helpers module so each helper is linked to its corresponding initializer, build, logging, or security story requirements.
-- [ ] Reduce any remaining duplicated health-check or server-start logic across generated-project tests by routing those behaviors through the existing shared helpers, keeping each test file focused on its unique assertions.
-- [ ] Introduce one additional TypeScript-focused ESLint rule from the recommended set (for example, unused variables) into the lint configuration and add targeted suppressions where necessary so that the project’s lint baseline becomes slightly stricter without introducing failing checks.
+- [ ] Update the dev server tests that cover REQ-DEV-INITIAL-COMPILE so they assert the new, robust initial-compilation behavior from a fresh project with no dist directory, including confirmation that the server starts and responds on its health endpoint after the first compile completes.
+- [ ] Verify that all other dev-server behaviors required by the story (port auto/strict handling, hot reload, graceful shutdown, clean logs, TypeScript watch) still pass their existing tests after the implementation change, adjusting only expectations that legitimately changed (such as log wording) while preserving the story’s intent.
+- [ ] Update the developer documentation in the dev-server story and any related docs to reflect the finalized initial-compilation behavior (how `npm run dev` works without a pre-built dist, what logs to expect, and how TypeScript errors are surfaced), and mark the corresponding acceptance criteria as satisfied.
+- [ ] Re-run the full test suite focused on generated projects and dev-server functionality to confirm that Story 003.0 is now fully implemented and behaves correctly across integration and end-to-end scenarios.
 
 ## LATER
 
-- [ ] Gradually enable further ESLint rules one at a time using the suppress-then-fix pattern to incrementally raise the static-analysis bar while keeping the codebase green at each step.
-- [ ] Extend the duplication-check configuration to report per-file duplication summaries and treat large increases in test-helper duplication as a warning signal to refactor.
-- [ ] Introduce lightweight inline comments on complex test helpers explaining non-obvious behaviors (such as timing assumptions or log-message parsing) to improve long-term maintainability without increasing function complexity.
+- [ ] Improve error reporting in the dev server so that TypeScript compiler failures during initial compilation and watch mode produce clear, actionable messages for developers while still satisfying the existing story requirements.
+- [ ] Add a small, self-contained helper module for locating and invoking the local TypeScript CLI that can be reused by other tooling in generated projects if future stories introduce additional TypeScript-driven workflows.
+- [ ] Consider adding an extra smoke-style test that runs the full `npm run dev` command in a generated project (in non-interactive mode) to validate end-to-end that initial compilation and watch startup work in realistic environments beyond the current focused dev-server tests.

@@ -178,7 +178,8 @@ export async function resolveDevServerPort(env) {
  */
 function startTypeScriptWatch(projectRoot, onOutput) {
   return new Promise((resolve, reject) => {
-    const tsc = spawn('npx', ['tsc', '--watch', '--preserveWatchOutput'], {
+    const tscCliPath = path.join(projectRoot, 'node_modules', 'typescript', 'bin', 'tsc');
+    const tsc = spawn(process.execPath, [tscCliPath, '--watch', '--preserveWatchOutput'], {
       cwd: projectRoot,
       stdio: ['inherit', 'pipe', 'pipe'],
     });
