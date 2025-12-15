@@ -5,7 +5,7 @@
  * and dev-server runtime behavior (test-mode TypeScript watcher skip and hot
  * reload of the compiled server).
  *
- * @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-PORT-AUTO REQ-DEV-PORT-STRICT REQ-DEV-CLEAN-LOGS REQ-DEV-HOT-RELOAD REQ-DEV-GRACEFUL-STOP REQ-DEV-TYPESCRIPT-WATCH REQ-LOG-DEV-PRETTY
+ * @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-PORT-AUTO REQ-DEV-PORT-STRICT REQ-DEV-CLEAN-LOGS REQ-DEV-HOT-RELOAD REQ-DEV-GRACEFUL-STOP REQ-DEV-TYPESCRIPT-WATCH REQ-LOG-DEV-PRETTY REQ-DEV-ERROR-DISPLAY
  */
 import { describe, it, expect } from 'vitest';
 import {
@@ -146,6 +146,39 @@ describe('Dev server runtime behavior (Story 003.0)', () => {
 
   it('restarts the compiled server on dist changes (hot-reload watcher) [REQ-DEV-HOT-RELOAD] [REQ-DEV-GRACEFUL-STOP]', async () => {
     await runHotReloadScenario();
+  }, 30_000);
+
+  it('surfaces a clear error when the TypeScript watcher cannot start [REQ-DEV-INITIAL-COMPILE] [REQ-DEV-ERROR-DISPLAY]', async () => {
+    const { projectDir, devServerPath } = await createMinimalProjectDir();
+
+    try {
+      const env: Record<string, string | undefined> = {
+        ...process.env,
+        NODE_ENV: 'test',
+      };
+
+      const { child, getStdout, getStderr } = createDevServerProcess(env, {
+        cwd: projectDir,
+        devServerPath,
+      });
+
+      const result = await new Promise<{ code: number | null; signal: string | null }>(resolve => {
+        child.once('exit', (code, signal) => {
+          resolve({ code, signal });
+        });
+      });
+
+      expect(result.code).not.toBe(0);
+
+      const combinedOutput = `${getStdout()}\n${getStderr()}`;
+      expect(combinedOutput).toContain('dev-server: Failed to start TypeScript watcher:');
+      expect(combinedOutput).toContain(
+        'TypeScript watcher exited before initial compilation completed',
+      );
+    } finally {
+      const { rm } = await import('node:fs/promises');
+      await rm(projectDir, { recursive: true, force: true }).catch(() => {});
+    }
   }, 30_000);
 });
 
