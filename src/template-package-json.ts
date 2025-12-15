@@ -41,7 +41,7 @@ export function createTemplatePackageJson(projectName: string): TemplatePackageJ
     scripts: {
       dev: 'node dev-server.mjs',
       clean:
-        "node -e \"const fs=require('fs'); fs.rmSync('dist', { recursive: true, force: true });\"",
+        "node --input-type=module -e \"import fs from 'node:fs'; fs.rmSync('dist', { recursive: true, force: true });\"",
       build: 'npm run clean && tsc -p tsconfig.json',
       start: 'node dist/src/index.js',
       test: 'vitest run',
