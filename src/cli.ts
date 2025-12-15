@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /**
  * CLI entrypoint for the Fastify TypeScript template.
  *
