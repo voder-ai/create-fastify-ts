@@ -168,19 +168,59 @@ export async function resolveDevServerPort(env) {
  * This relies on the initialized project having TypeScript installed and a
  * tsconfig.json that outputs compiled code to dist/.
  *
- * @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-TYPESCRIPT-WATCH REQ-DEV-ERROR-DISPLAY
+ * Returns a Promise that resolves when the initial compilation completes.
+ *
+ * @param {string} projectRoot
+ * @param {(data: string) => void} onOutput - Callback for all output (for logging/forwarding)
+ * @returns {Promise<import('node:child_process').ChildProcess>} Promise that resolves to the tsc process after initial compilation
+ *
+ * @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-TYPESCRIPT-WATCH REQ-DEV-ERROR-DISPLAY REQ-DEV-INITIAL-COMPILE
  */
-function startTypeScriptWatch(projectRoot) {
-  const tsc = spawn('npx', ['tsc', '--watch', '--preserveWatchOutput'], {
-    cwd: projectRoot,
-    stdio: 'inherit',
-  });
+function startTypeScriptWatch(projectRoot, onOutput) {
+  return new Promise((resolve, reject) => {
+    const tsc = spawn('npx', ['tsc', '--watch', '--preserveWatchOutput'], {
+      cwd: projectRoot,
+      stdio: ['inherit', 'pipe', 'pipe'],
+    });
 
-  tsc.on('error', error => {
-    console.error('dev-server: Failed to start TypeScript watcher:', error);
-  });
+    let initialCompilationComplete = false;
 
-  return tsc;
+    const handleOutput = data => {
+      const text = data.toString();
+      onOutput(text);
+
+      // Detect initial compilation completion
+      // TypeScript outputs "Found X errors. Watching for file changes." after compilation
+      if (
+        !initialCompilationComplete &&
+        /Found \d+ errors?\. Watching for file changes\./.test(text)
+      ) {
+        initialCompilationComplete = true;
+        resolve(tsc);
+      }
+    };
+
+    tsc.stdout?.on('data', handleOutput);
+    tsc.stderr?.on('data', handleOutput);
+
+    tsc.on('error', error => {
+      if (!initialCompilationComplete) {
+        reject(error);
+      } else {
+        console.error('dev-server: TypeScript watcher error:', error);
+      }
+    });
+
+    tsc.on('exit', (code, signal) => {
+      if (!initialCompilationComplete) {
+        reject(
+          new Error(
+            `TypeScript watcher exited before initial compilation completed (code: ${code}, signal: ${signal})`,
+          ),
+        );
+      }
+    });
+  });
 }
 
 /**
@@ -366,31 +406,36 @@ async function main() {
   let tscProcess;
   /** @type {import('node:child_process').ChildProcess | undefined} */
   let serverProcess;
-  /** @type {NodeJS.Timeout | undefined} */
-  let serverStartTimeout;
   /** @type {(() => void) | undefined} */
   let stopHotReload;
 
   if (!skipTscWatch) {
-    tscProcess = startTypeScriptWatch(projectRoot);
+    // Wait for initial TypeScript compilation to complete before starting server
+    try {
+      tscProcess = await startTypeScriptWatch(projectRoot, output => {
+        // Forward TypeScript output to console
+        process.stdout.write(output);
+      });
+      console.log('dev-server: initial TypeScript compilation complete.');
+    } catch (error) {
+      console.error('dev-server: Failed to start TypeScript watcher:', error);
+      process.exit(1);
+    }
   }
 
-  // Give tsc a short head start before launching the server. This does not
-  // guarantee compilation has completed but keeps behavior simple for now.
-  serverStartTimeout = setTimeout(() => {
-    console.log('dev-server: launching Fastify server from dist/src/index.js...');
-    serverProcess = startCompiledServer(projectRoot, env, resolvedPort, mode);
-    stopHotReload = startHotReloadWatcher(
-      projectRoot,
-      env,
-      resolvedPort,
-      mode,
-      () => serverProcess,
-      newServer => {
-        serverProcess = newServer;
-      },
-    );
-  }, 1000);
+  // Start the server now that compilation is complete (or skipped in test mode)
+  console.log('dev-server: launching Fastify server from dist/src/index.js...');
+  serverProcess = startCompiledServer(projectRoot, env, resolvedPort, mode);
+  stopHotReload = startHotReloadWatcher(
+    projectRoot,
+    env,
+    resolvedPort,
+    mode,
+    () => serverProcess,
+    newServer => {
+      serverProcess = newServer;
+    },
+  );
 
   /**
    * Handle shutdown signals and terminate child processes gracefully.
@@ -399,11 +444,6 @@ async function main() {
    */
   function handleSignal(signal) {
     console.log(`dev-server: received ${signal}, shutting down...`);
-
-    if (serverStartTimeout) {
-      globalThis.clearTimeout(serverStartTimeout);
-      serverStartTimeout = undefined;
-    }
 
     if (stopHotReload) {
       try {

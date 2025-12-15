@@ -303,6 +303,7 @@ This repository already includes several shared helpers that you should prefer o
   - Port auto‑discovery and strict `PORT` semantics for the dev server.
   - `DEV_SERVER_SKIP_TSC_WATCH` behavior in test mode.
   - Hot‑reload behavior when compiled files in `dist/src/` change.
+  - **Initial TypeScript compilation scenario** – testing that `npm run dev` works correctly when starting from a fresh project without a pre-built `dist/` folder.
 
 - `src/generated-project.test-helpers.ts` – encapsulates creating full generated projects in OS temp directories, linking `node_modules` from the repo, running `tsc` builds, and starting the compiled server from `dist/src/index.js`. Use these helpers when you need to:
   - Verify production builds and runtime behavior of generated projects (for example, `/health` responses and absence of `src/` in logs).
@@ -313,6 +314,38 @@ When adding new tests that touch the dev server or generated projects:
 - **Do not** shell out directly to `npm init @voder-ai/fastify-ts` or re‑create temp‑project logic unless there is a strong reason.
 - Prefer extending these helpers or adding small, focused utilities next to them so that future tests can share the same behavior.
 - Keep helper APIs small and intention‑revealing (for example, `initializeGeneratedProject`, `runTscBuildForProject`, `startCompiledServerViaNode`). This keeps tests readable and reduces duplication across suites.
+
+#### Testing Dev Server Initial Compilation
+
+A critical scenario that must be tested is **running `npm run dev` without a pre-built `dist/` folder**. This tests the real-world experience of a developer who:
+
+1. Runs `npm init @voder-ai/fastify-ts my-project`
+2. Runs `npm install`
+3. Immediately runs `npm run dev` (without running `npm run build` first)
+
+This scenario is different from the existing dev server tests because:
+
+- **Existing tests use `DEV_SERVER_SKIP_TSC_WATCH: '1'`** which bypasses TypeScript compilation entirely
+- **Existing hot-reload tests pre-create `dist/src/index.js`** before starting the dev server
+- **Neither approach exercises the initial compilation delay** that occurs when starting from scratch
+
+**When to add tests for initial compilation:**
+
+- When modifying `dev-server.mjs` startup logic or timing
+- When changing how TypeScript watch mode initialization works
+- When fixing bugs related to "file not found" errors on first `npm run dev`
+- When adjusting the delay/wait logic before starting the compiled server
+
+**Implementation guidelines:**
+
+- Create a generated project with TypeScript source files but **no `dist/` folder**
+- Run `npm run dev` (or equivalent) **without `DEV_SERVER_SKIP_TSC_WATCH`**
+- Wait for TypeScript compilation to complete (watch for "Found 0 errors" message)
+- Verify the server starts successfully after compilation completes
+- Assert the server responds to requests (e.g., `/health` endpoint)
+- These tests will be slower (3-10 seconds) than tests using `DEV_SERVER_SKIP_TSC_WATCH`
+- Consider running them in a separate test suite or with longer timeouts
+- Clean up test projects in `afterEach` to avoid polluting the repository
 
 ## Evolving Coverage
 
