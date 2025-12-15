@@ -1,5 +1,6 @@
 import js from '@eslint/js';
 import typescriptParser from '@typescript-eslint/parser';
+import tseslintPlugin from '@typescript-eslint/eslint-plugin';
 
 export default [
   {
@@ -26,10 +27,14 @@ export default [
         sourceType: 'module',
       },
     },
+    plugins: {
+      '@typescript-eslint': tseslintPlugin,
+    },
     rules: {
       complexity: 'error',
       'max-lines-per-function': ['error', { max: 80 }],
       'max-lines': ['error', { max: 300 }],
+      '@typescript-eslint/no-unused-vars': 'error',
     },
   },
   {
