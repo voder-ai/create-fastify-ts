@@ -210,6 +210,36 @@ describe('[REQ-INIT-E2E-SMOKE] npm init smoke tests (published package)', () => 
 
 To keep a clear link between requirements, design, and verification:
 
+### Story 004.0 Special Case: Generated Project Validation
+
+**Story 004.0-DEVELOPER-TESTS-RUN** has unique traceability requirements because it describes the **generated project's** testing capabilities, not the template repository's tests.
+
+**Traceability validation for story 004.0 must:**
+
+1. Generate a fresh project using the template initializer
+2. Install dependencies in the generated project
+3. Run `npm test` in the generated project and verify:
+   - All tests pass (REQ-TEST-ALL-PASS)
+   - Execution completes in under 5 seconds (REQ-TEST-FAST-EXEC)
+   - Output is clear and readable (REQ-TEST-CLEAR-OUTPUT)
+4. Verify the generated project has:
+   - A `test` script in `package.json`
+   - Vitest configuration (REQ-TEST-VITEST-CONFIG)
+   - Test examples in the generated code (REQ-TEST-EXAMPLES)
+   - TypeScript test support (REQ-TEST-TYPESCRIPT)
+5. Verify watch mode works: `npm test -- --watch` (REQ-TEST-WATCH-MODE)
+6. Verify coverage works: `npm run test:coverage` or equivalent (REQ-TEST-COVERAGE)
+
+**Common mistake**: Running `npm test` in the template repository validates the template's own tests, but does NOT validate that generated projects meet story 004.0 requirements.
+
+**Implementation notes:**
+
+- The `src/initializer.test.ts` file should verify that generated `package.json` includes a `test` script
+- Integration tests (`npm-init-e2e.test.ts`) should include at least one test that runs `npm test` in a generated project
+- The generated project's test files are in `src/template-files/` and should include examples demonstrating test patterns
+
+### General Traceability Practices
+
 - Use file-level comments to reference the stories or ADRs a test file supports. For example:
 
   ```ts

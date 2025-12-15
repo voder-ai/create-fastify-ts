@@ -67,8 +67,10 @@ function assertBasicPackageJsonShape(pkg: any, projectName: string): void {
   expect(typeof pkg.scripts.build).toBe('string');
   expect(typeof pkg.scripts.start).toBe('string');
   expect(typeof pkg.scripts.clean).toBe('string');
+  expect(typeof pkg.scripts.test).toBe('string');
   expect(pkg.scripts.clean).toContain('fs.rmSync');
   expect(pkg.scripts.build).toContain('npm run clean && tsc -p tsconfig.json');
+  expect(pkg.scripts.test).toContain('vitest');
 
   // Fastify runtime dependency and TypeScript dev dependency.
   // [REQ-INIT-TYPESCRIPT]

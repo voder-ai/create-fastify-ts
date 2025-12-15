@@ -85,6 +85,7 @@ function createTemplatePackageJson(projectName: string): TemplatePackageJson {
         "node -e \"const fs=require('fs'); fs.rmSync('dist', { recursive: true, force: true });\"",
       build: 'npm run clean && tsc -p tsconfig.json',
       start: 'node dist/src/index.js',
+      test: 'vitest run',
     },
     // Minimal runtime dependency required by the template-init story.
     dependencies: {
@@ -97,6 +98,7 @@ function createTemplatePackageJson(projectName: string): TemplatePackageJson {
       typescript: '^5.9.3',
       '@types/node': NODE_TYPES_VERSION,
       'pino-pretty': '^11.0.0',
+      vitest: '^2.1.8',
     },
   };
 }

@@ -57,11 +57,20 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          npx semantic-release
-          if [ -f .semantic-release-version ]; then
+          # Run semantic-release and capture output
+          npx semantic-release > release-output.txt 2>&1 || true
+          cat release-output.txt
+
+          # Extract version from semantic-release output
+          VERSION=$(grep -oP 'Published release \K[0-9]+\.[0-9]+\.[0-9]+' release-output.txt || echo "")
+
+          if [ -n "$VERSION" ]; then
             echo "released=true" >> $GITHUB_OUTPUT
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "Released version: $VERSION"
           else
             echo "released=false" >> $GITHUB_OUTPUT
+            echo "No release published"
           fi
 
       - name: Post-release smoke test (API check)
@@ -96,7 +105,10 @@ jobs:
 
       - name: Post-release smoke test (E2E npm init)
         if: steps.release.outputs.released == 'true'
+        env:
+          PUBLISHED_VERSION: ${{ steps.release.outputs.version }}
         run: |
+          echo "Testing published version: $PUBLISHED_VERSION"
           echo "Waiting 60 seconds for npm registry propagation..."
           sleep 60
           npm run test:smoke

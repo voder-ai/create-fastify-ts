@@ -17,6 +17,15 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import * as os from 'node:os';
 
+// Get the published version from environment (set by CI/CD)
+const PUBLISHED_VERSION = process.env.PUBLISHED_VERSION;
+if (!PUBLISHED_VERSION) {
+  throw new Error('PUBLISHED_VERSION environment variable must be set for smoke tests');
+}
+
+// Construct the versioned package specifier
+const PACKAGE_SPEC = `@voder-ai/fastify-ts@${PUBLISHED_VERSION}`;
+
 /* eslint-disable max-lines-per-function */
 describe('[REQ-INIT-E2E-SMOKE] npm init smoke tests (published package)', () => {
   let tmpDir: string;
@@ -37,8 +46,8 @@ describe('[REQ-INIT-E2E-SMOKE] npm init smoke tests (published package)', () => 
     const projectName = 'smoke-test-project';
     const projectDir = path.join(tmpDir, projectName);
 
-    // Run npm init against published package
-    execSync(`npm init @voder-ai/fastify-ts ${projectName}`, {
+    // Run npm init against specific published version
+    execSync(`npm init ${PACKAGE_SPEC} ${projectName}`, {
       cwd: tmpDir,
       stdio: 'pipe',
       encoding: 'utf-8',
@@ -77,8 +86,8 @@ describe('[REQ-INIT-E2E-SMOKE] npm init smoke tests (published package)', () => 
     const projectName = 'smoke-build-test';
     const projectDir = path.join(tmpDir, projectName);
 
-    // Initialize project
-    execSync(`npm init @voder-ai/fastify-ts ${projectName}`, {
+    // Initialize project with specific version
+    execSync(`npm init ${PACKAGE_SPEC} ${projectName}`, {
       cwd: tmpDir,
       stdio: 'pipe',
       encoding: 'utf-8',
@@ -111,8 +120,8 @@ describe('[REQ-INIT-E2E-SMOKE] npm init smoke tests (published package)', () => 
     const projectName = 'smoke-test-runner';
     const projectDir = path.join(tmpDir, projectName);
 
-    // Initialize project
-    execSync(`npm init @voder-ai/fastify-ts ${projectName}`, {
+    // Initialize project with specific version
+    execSync(`npm init ${PACKAGE_SPEC} ${projectName}`, {
       cwd: tmpDir,
       stdio: 'pipe',
       encoding: 'utf-8',
