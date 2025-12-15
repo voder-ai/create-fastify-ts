@@ -1,6 +1,17 @@
 # Development Setup
 
-This document describes the initial project structure and tooling.
+This document describes the initial project structure, tooling, development workflow, and release process used in this repository.
+
+## Overview
+
+This guide serves as the authoritative reference for how changes are developed, validated, and released.
+
+Core practices:
+
+- Trunk-based development on `main` with small, frequent commits.
+- Conventional Commits as the required commit message format.
+- A single `CI/CD Pipeline` GitHub Actions workflow that runs on every push to `main` and acts as the only quality gate.
+- Automated releases handled by `semantic-release` with no manual tags or version bumps.
 
 ## Project Structure
 

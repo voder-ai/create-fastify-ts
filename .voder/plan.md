@@ -1,15 +1,15 @@
 ## NOW
 
-- [ ] Add a new regression test in the generated-project production test suite that creates a project with an intentionally broken TypeScript source file, runs the production build flow, and verifies that the build fails with a clear, asserted error instead of hanging or reporting success.
+- [ ] Create or update an internal development guide that clearly documents the trunk-based workflow and release process, including that all changes go directly to the main branch using Conventional Commits, the single CI/CD pipeline runs on every push to main, and semantic-release automatically publishes new versions without manual tags or approvals.
 
 ## NEXT
 
-- [ ] Raise the global coverage thresholds in the test configuration to values that are just below the current measured coverage (for example, keeping a small buffer) so that future changes cannot significantly reduce coverage without causing the coverage run to fail.
-- [ ] Update the development testing documentation to describe the current testing strategy, including the existence of helper-module tests and the enforced coverage thresholds, so contributors understand the required level of test completeness.
-- [ ] Add a targeted dev-server regression test that simulates a failure during the TypeScript watch or server start phase and asserts that the error is surfaced with the expected message and exit behavior.
+- [ ] Add a contributor-focused section to the main project documentation that summarizes the expected Git usage (no long-lived feature branches, no manual release tags) and points to the detailed development guide for full workflow details.
+- [ ] Document the behavior and purpose of the pre-commit and pre-push hooks so contributors understand which checks run automatically before commits and pushes and how this aligns with the CI/CD pipeline.
+- [ ] Explicitly state in the contributor documentation that generated sample projects, build artifacts, and temporary test outputs must never be committed, reinforcing the existing tests and ignore rules that enforce this policy.
 
 ## LATER
 
-- [ ] Add additional edge-case tests for generated projects that simulate partial dependency installation or missing build artifacts to ensure those scenarios fail fast and clearly.
-- [ ] Introduce a small set of ultra-fast smoke tests that validate core flows (initializer, dev server, production build) with minimal setup, providing an even quicker feedback loop alongside the full suite.
-- [ ] Once the test suite has remained stable for a while at the new thresholds, consider incrementally tightening coverage thresholds again to further lock in the higher coverage levels.
+- [ ] Introduce a lightweight checklist for adding new features or stories that combines version-control expectations (commit format, branch usage), traceability requirements, and testing expectations into a single reference for contributors.
+- [ ] Optionally enhance the main README with a brief CI/CD overview and a link to the detailed development and release workflow documentation, making the automated release model more visible to new users.
+- [ ] If additional workflows are ever added (for example, for documentation-only checks), keep them documented in the same development guide and ensure they complement, rather than duplicate, the primary CI/CD pipeline.

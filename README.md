@@ -122,6 +122,76 @@ Planned security-related enhancements (not yet implemented):
 
 See [Security Overview](user-docs/SECURITY.md) for detailed security guidance and planned practices.
 
+## Contributing
+
+### Git workflow and commit style
+
+- Work is based on trunk-style development:
+  - `main` is the long-lived trunk branch.
+  - Prefer short-lived, focused branches that are merged quickly.
+  - Avoid long-running feature branches that drift far from `main`.
+- Commit frequently and keep changes small and reviewable.
+- Do **not**:
+  - Create manual release tags.
+  - Manually bump versions in `package.json` or related files (semantic-release owns versioning and tagging).
+- All commits **must** follow the Conventional Commits format:
+  - Examples:
+    - `docs: update development guide`
+    - `chore: update dependencies`
+    - `test: add coverage for health endpoint`
+  - Reserve `feat:` for user-visible behavioral changes only (e.g., new CLI options, new endpoints, or notable behavior that affects template users).
+  - Use other types like `fix:`, `docs:`, `chore:`, `refactor:`, `test:`, etc., as appropriate.
+
+### Git hooks and local quality gates
+
+This repository uses Git hooks to keep quality checks aligned between local development and CI:
+
+- **Pre-commit hook**:
+  - Runs before each commit:
+    - `npm run format`
+    - `npm run lint`
+  - Purpose: ensure consistent formatting and linting for everything you commit.
+
+- **Pre-push hook**:
+  - Runs before each push:
+    - `npm run build`
+    - `npm test`
+    - `npm run lint`
+    - `npm run type-check`
+    - `npm run format:check`
+    - `npm run audit:ci`
+    - `npm run quality:lint-format-smoke`
+  - Purpose: give contributors the same quality gate locally that the CI pipeline enforces, reducing “works on my machine” issues.
+
+### Alignment with CI/CD
+
+- On every push to `main`, a single **CI/CD Pipeline** workflow:
+  - Re-runs the same quality checks used in the pre-push hook (build, tests, lint, format checks, type-checking, audit, and smoke quality checks).
+  - Runs `semantic-release` to:
+    - Analyze Conventional Commit messages.
+    - Determine if a release is needed.
+    - Publish a new version to npm and create Git tags as appropriate.
+- Contributors should **never**:
+  - Create or edit release tags manually.
+  - Manually bump versions for this template; semantic-release manages version numbers and changelogs.
+
+### Repository hygiene
+
+To keep the repository clean and predictable:
+
+- Do **not** commit projects generated for manual testing:
+  - For example, folders created with `npm init @voder-ai/fastify-ts my-api` must stay out of version control.
+  - Use a temporary directory (e.g., inside `tmp/` ignored by Git) for manual CLI testing.
+- Do **not** commit build artifacts or transient outputs:
+  - `dist/` contents
+  - Coverage reports (e.g., `coverage/`)
+  - Other temporary or cache directories already covered by `.gitignore`
+- Automated tests and repository-hygiene checks will fail if:
+  - Generated projects or other transient artifacts are added to version control.
+  - Ignored paths are accidentally committed.
+
+For details on day-to-day development commands, tests, and how continuous deployment works, see the **Development**, **Testing**, and **Releases and Versioning** sections in this README.
+
 ## Attribution
 
 Created autonomously by [voder.ai](https://voder.ai).
