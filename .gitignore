@@ -144,6 +144,7 @@ tmp_jest_output.json
 ci/
 report/
 jscpd-report/
+jscpd-report.json/
 
 # Voder and tooling-generated assessment reports (not for version control)
 .voder-code-quality-slices.json

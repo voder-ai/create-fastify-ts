@@ -1,15 +1,13 @@
 ## NOW
 
-- [ ] Change the dev-server initial compilation test so it no longer relies on a specific hard-coded port and instead uses the dev server’s automatic port selection while still asserting that, after the initial TypeScript compile completes, the server is listening and responds successfully on its health endpoint.
+- [ ] Stop tracking the jscpd duplication report file and ensure it is treated as an ignored generated artifact so it no longer affects formatting checks on a fresh checkout.
 
 ## NEXT
 
-- [ ] Update the npm-init smoke test so that when the published version environment variable is not set, the test suite cleanly skips those smoke scenarios instead of throwing an error during test file loading, while preserving the strict behavior expected in the continuous integration environment.
-- [ ] Add a short section to the development documentation explaining how to run the smoke tests for the published package, including which environment variables must be set and what behavior to expect when they are omitted.
-- [ ] Ensure that all long-running dev-server and generated-project end-to-end tests have clear, bounded timeouts and use existing helper functions for process startup and shutdown so they remain stable and deterministic across different environments.
+- [ ] Ensure that with the duplication report ignored, the formatting check on a clean working copy completes successfully without reporting any files, satisfying the story’s requirement that the template is format-clean by default.
+- [ ] If the lint/format story includes explicit checklist items about a clean repository or generated artifacts, update the story file’s checkboxes to reflect that the format check now passes on a fresh checkout.
 
 ## LATER
 
-- [ ] Introduce a dedicated test profile for the slowest end-to-end scenarios (such as full npm-init flows and dev-server watch behaviors) so contributors can choose between a fast default test run and an exhaustive validation run without changing test code.
-- [ ] Refine dev-server error reporting during initial TypeScript compilation and watch mode so that failures surface concise, developer-friendly messages while keeping the existing behavior verified by the tests.
-- [ ] Extend generated-project smoke coverage with an additional scenario that exercises the development server command in a freshly initialized project, confirming that initial compilation, automatic port selection, and health checks all succeed end to end.
+- [ ] Document briefly in the development setup or tooling docs that duplication reports are generated artifacts and are intentionally not tracked, so contributors know how to run and interpret duplication analysis.
+- [ ] Consider refining duplication tooling configuration (such as output paths or additional options) once the lint/format story is fully complete, keeping formatting and version-control behavior stable.
