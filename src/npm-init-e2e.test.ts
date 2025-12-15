@@ -18,42 +18,62 @@ import {
 } from './generated-project.test-helpers.js';
 import { runCommandInProject } from './run-command-in-project.test-helpers.js';
 
-/* eslint-disable max-lines-per-function */
-describe('npm init @voder-ai/fastify-ts (E2E integration)', () => {
-  let tempDir: string | undefined;
-  let projectDir: string;
-  let cliPath: string;
+let tempDir: string | undefined;
+let projectDir: string;
+let cliPath: string;
 
-  beforeAll(async () => {
-    const buildResult = await runCommandInProject(process.cwd(), 'npm', ['run', 'build']);
-    expect(buildResult.exitCode).toBe(0);
-
+async function ensureTempDir(): Promise<string> {
+  if (!tempDir) {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'fastify-ts-e2e-'));
-    cliPath = path.join(process.cwd(), 'dist/cli.js');
-  });
+  }
+  return tempDir;
+}
 
-  afterAll(async () => {
-    if (tempDir) {
-      await fs.rm(tempDir, { recursive: true, force: true });
-    }
-  });
+async function createProjectViaCli(projectName: string): Promise<string> {
+  const baseDir = await ensureTempDir();
+  const result = await runCommandInProject(baseDir, 'node', [cliPath, projectName]);
+  expect(result.exitCode).toBe(0);
+  return path.join(baseDir, projectName);
+}
 
+async function assertCoreFilesExist(projectRoot: string): Promise<void> {
+  const requiredFiles = [
+    'package.json',
+    'tsconfig.json',
+    'src/index.ts',
+    'README.md',
+    '.gitignore',
+  ];
+
+  for (const file of requiredFiles) {
+    await expect(fs.access(path.join(projectRoot, file))).resolves.toBeUndefined();
+  }
+}
+
+beforeAll(async () => {
+  const buildResult = await runCommandInProject(process.cwd(), 'npm', ['run', 'build']);
+  expect(buildResult.exitCode).toBe(0);
+
+  tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'fastify-ts-e2e-'));
+  cliPath = path.join(process.cwd(), 'dist/cli.js');
+});
+
+afterAll(async () => {
+  if (tempDir) {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+describe('npm init @voder-ai/fastify-ts (basic project creation & directory)', () => {
   it('[REQ-INIT-E2E-INTEGRATION] creates a working project with all required files', async () => {
     if (!tempDir) {
       throw new Error('tempDir not initialized');
     }
 
-    const result = await runCommandInProject(tempDir, 'node', [cliPath, 'test-app']);
-    expect(result.exitCode).toBe(0);
-
-    projectDir = path.join(tempDir, 'test-app');
+    projectDir = await createProjectViaCli('test-app');
 
     // Verify core structure files exist (REQ-INIT-FILES-MINIMAL)
-    await expect(fs.access(path.join(projectDir, 'package.json'))).resolves.toBeUndefined();
-    await expect(fs.access(path.join(projectDir, 'tsconfig.json'))).resolves.toBeUndefined();
-    await expect(fs.access(path.join(projectDir, 'src/index.ts'))).resolves.toBeUndefined();
-    await expect(fs.access(path.join(projectDir, 'README.md'))).resolves.toBeUndefined();
-    await expect(fs.access(path.join(projectDir, '.gitignore'))).resolves.toBeUndefined();
+    await assertCoreFilesExist(projectDir);
 
     // Verify package.json is valid JSON
     const packageJson = JSON.parse(
@@ -64,8 +84,43 @@ describe('npm init @voder-ai/fastify-ts (E2E integration)', () => {
 
     // Verify dev-server.mjs exists
     await expect(fs.access(path.join(projectDir, 'dev-server.mjs'))).resolves.toBeUndefined();
-  }, 60000); // Allow 60s for npm install + init
+  }, 60_000); // Allow 60s for npm install + init
 
+  it('[REQ-INIT-E2E-INTEGRATION] creates project with correct directory name', async () => {
+    if (!tempDir) {
+      throw new Error('tempDir not initialized');
+    }
+
+    const customProjectDir = await createProjectViaCli('my-custom-name');
+
+    // Verify directory was created with correct name (REQ-INIT-DIRECTORY)
+    await expect(fs.access(customProjectDir)).resolves.toBeUndefined();
+
+    // Verify package.json has matching name
+    const packageJson = JSON.parse(
+      await fs.readFile(path.join(customProjectDir, 'package.json'), 'utf-8'),
+    );
+    expect(packageJson.name).toBe('my-custom-name');
+  }, 60_000);
+
+  it('[REQ-INIT-E2E-INTEGRATION] does not include template-specific files in generated project', async () => {
+    if (!tempDir) {
+      throw new Error('tempDir not initialized');
+    }
+
+    const cleanProjectDir = await createProjectViaCli('clean-app');
+
+    // Verify no template-specific files (REQ-INIT-GIT-CLEAN)
+    await expect(fs.access(path.join(cleanProjectDir, 'src/initializer.ts'))).rejects.toThrow();
+    await expect(fs.access(path.join(cleanProjectDir, 'src/cli.ts'))).rejects.toThrow();
+    await expect(fs.access(path.join(cleanProjectDir, 'src/template-files'))).rejects.toThrow();
+    await expect(fs.access(path.join(cleanProjectDir, 'scripts'))).rejects.toThrow();
+
+    // Note: Generated projects DO get a fresh .git init, which is intentional
+  }, 60_000);
+});
+
+describe('npm init @voder-ai/fastify-ts (build & start behavior)', () => {
   it('[REQ-INIT-E2E-INTEGRATION] generated project can install dependencies and build', async () => {
     const { tempDir: buildTempDir, projectDir: buildProjectDir } = await initializeGeneratedProject(
       {
@@ -85,7 +140,7 @@ describe('npm init @voder-ai/fastify-ts (E2E integration)', () => {
     } finally {
       await cleanupGeneratedProject(buildTempDir);
     }
-  }, 120000);
+  }, 120_000);
 
   it('[REQ-INIT-E2E-INTEGRATION] generated project can start server', async () => {
     const { tempDir: serverTempDir, projectDir: serverProjectDir } =
@@ -105,44 +160,5 @@ describe('npm init @voder-ai/fastify-ts (E2E integration)', () => {
     } finally {
       await cleanupGeneratedProject(serverTempDir);
     }
-  }, 120000); // Allow 120s for install + test
-
-  it('[REQ-INIT-E2E-INTEGRATION] creates project with correct directory name', async () => {
-    if (!tempDir) {
-      throw new Error('tempDir not initialized');
-    }
-
-    const result = await runCommandInProject(tempDir, 'node', [cliPath, 'my-custom-name']);
-    expect(result.exitCode).toBe(0);
-
-    const customProjectDir = path.join(tempDir, 'my-custom-name');
-
-    // Verify directory was created with correct name (REQ-INIT-DIRECTORY)
-    await expect(fs.access(customProjectDir)).resolves.toBeUndefined();
-
-    // Verify package.json has matching name
-    const packageJson = JSON.parse(
-      await fs.readFile(path.join(customProjectDir, 'package.json'), 'utf-8'),
-    );
-    expect(packageJson.name).toBe('my-custom-name');
-  }, 60000);
-
-  it('[REQ-INIT-E2E-INTEGRATION] does not include template-specific files in generated project', async () => {
-    if (!tempDir) {
-      throw new Error('tempDir not initialized');
-    }
-
-    const result = await runCommandInProject(tempDir, 'node', [cliPath, 'clean-app']);
-    expect(result.exitCode).toBe(0);
-
-    const cleanProjectDir = path.join(tempDir, 'clean-app');
-
-    // Verify no template-specific files (REQ-INIT-GIT-CLEAN)
-    await expect(fs.access(path.join(cleanProjectDir, 'src/initializer.ts'))).rejects.toThrow();
-    await expect(fs.access(path.join(cleanProjectDir, 'src/cli.ts'))).rejects.toThrow();
-    await expect(fs.access(path.join(cleanProjectDir, 'src/template-files'))).rejects.toThrow();
-    await expect(fs.access(path.join(cleanProjectDir, 'scripts'))).rejects.toThrow();
-
-    // Note: Generated projects DO get a fresh .git init, which is intentional
-  }, 60000);
+  }, 120_000); // Allow 120s for install + test
 });

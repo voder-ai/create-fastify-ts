@@ -1,15 +1,15 @@
 ## NOW
 
-- [ ] Make the `[REQ-INIT-E2E-INTEGRATION] generated project can install dependencies and build` integration test in src/npm-init-e2e.test.ts pass reliably by updating it to use the same shared generated-project helpers and node_modules reuse strategy as the other E2E tests, so that a project created via the initializer can successfully run dependency installation and a full build end to end.
+- [ ] Refactor the npm init smoke test file so that all test functions are split into small, focused helpers and no longer rely on a file-wide or function-level lint rule suppression for maximum function length, while keeping the existing smoke test behavior and assertions unchanged.
 
 ## NEXT
 
-- [ ] Ensure all other tests in src/npm-init-e2e.test.ts still pass and explicitly assert that both the dependency installation and build steps complete with successful exit codes for the generated project.
-- [ ] Confirm that the initializer’s scaffolding logic and template files used by the npm init flow still match the expectations encoded in the integration tests (required files, scripts, and minimal Fastify server behavior).
-- [ ] Update the Story 001.0-DEVELOPER-TEMPLATE-INIT.story.md file to reflect that REQ-INIT-E2E-INTEGRATION is now fully satisfied by the passing integration tests, keeping traceability annotations aligned with the test names and requirements.
+- [ ] Unify any remaining repeated logic in the npm init smoke tests by extracting shared operations (such as running the initializer, locating the generated project, and checking key files) into reusable helper functions to reduce duplication and improve readability.
+- [ ] Remove any remaining broad ESLint suppressions related to function length or file length in other long-running integration or E2E tests by introducing small helper functions and restructuring tests so they comply with the configured limits without changing observable behavior.
+- [ ] Reduce duplicated code across generated-project E2E tests by consolidating common patterns (like starting compiled servers, polling health endpoints, or constructing environment variables) into existing shared helper modules, keeping each test file focused on the unique behavior it validates.
 
 ## LATER
 
-- [ ] Strengthen the post-release smoke tests to mirror the updated integration test shape, ensuring that projects generated from the published npm package also verify dependency installation and build in the same way.
-- [ ] Add targeted diagnostics or clearer failure messages in the integration tests when npm install or build fails inside the generated project, to make future regressions easier to debug.
-- [ ] Consider adding a lightweight health-check test that runs `npm init` with a minimal, offline-capable registry configuration to reduce flakiness from external npm registry issues while still validating the initializer workflow.
+- [ ] Introduce one additional targeted ESLint rule that meaningfully improves code quality for this project, enable it with the minimal configuration, and add localized suppressions where necessary to keep linting green while planning future cleanup of those suppressions.
+- [ ] Gradually remove any temporary ESLint suppressions by updating the affected code to meet the rule requirements, starting with the most frequently executed or most complex test files to maximize impact on maintainability.
+- [ ] Use the duplication-report tooling to identify the highest-impact remaining code clones and refactor those areas into shared helpers or simpler structures, ensuring each change is covered by existing or updated tests so behavior remains stable.
