@@ -38,6 +38,35 @@ export interface GeneratedProjectSetupResult {
 }
 
 /**
+ * Link the root repository's node_modules directory into an existing
+ * generated project via a junction/symlink so tests can reuse shared
+ * devDependencies without running `npm install` per project.
+ *
+ * @supports docs/stories/001.0-DEVELOPER-TEMPLATE-INIT.story.md REQ-INIT-E2E-INTEGRATION
+ */
+export interface LinkNodeModulesOptions {
+  /** Optional prefix for console.log diagnostics from helpers. */
+  logPrefix?: string;
+}
+
+export async function linkRootNodeModulesToProject(
+  projectDir: string,
+  { logPrefix = '[generated-project]' }: LinkNodeModulesOptions = {},
+): Promise<void> {
+  const rootNodeModules = path.join(repoRootDir, 'node_modules');
+  const projectNodeModules = path.join(projectDir, 'node_modules');
+
+  await fs.symlink(rootNodeModules, projectNodeModules, 'junction');
+  console.log(
+    logPrefix,
+    'linked node_modules from root',
+    rootNodeModules,
+    'to project',
+    projectNodeModules,
+  );
+}
+
+/**
  * Initialize a new generated project in an OS temporary directory and link
  * the root repository's node_modules via a junction/symlink so we can reuse
  * devDependencies without running `npm install` per test project.
@@ -55,11 +84,7 @@ export async function initializeGeneratedProject({
     const projectDir = await initializeTemplateProject(projectName);
     console.log(logPrefix, 'initialized project at', projectDir);
 
-    const rootNodeModules = path.join(repoRootDir, 'node_modules');
-    const projectNodeModules = path.join(projectDir, 'node_modules');
-
-    await fs.symlink(rootNodeModules, projectNodeModules, 'junction');
-    console.log(logPrefix, 'linked node_modules from', rootNodeModules);
+    await linkRootNodeModulesToProject(projectDir, { logPrefix });
 
     return { tempDir, projectDir };
   } finally {

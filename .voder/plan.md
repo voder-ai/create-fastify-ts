@@ -1,16 +1,15 @@
 ## NOW
 
-- [ ] Ensure newly generated projects include a minimal but fully working TypeScript test setup by updating the project template so that a fresh project has a Vitest-powered test script and at least one passing `.test.ts` file exercising the generated Fastify server, such that running the test command in that new project immediately executes and passes real tests.
+- [ ] Make the `[REQ-INIT-E2E-INTEGRATION] generated project can install dependencies and build` integration test in src/npm-init-e2e.test.ts pass reliably by updating it to use the same shared generated-project helpers and node_modules reuse strategy as the other E2E tests, so that a project created via the initializer can successfully run dependency installation and a full build end to end.
 
 ## NEXT
 
-- [ ] Add JavaScript and type-level example tests to the generated project template by creating a small `.test.js` file and a `.test.d.ts` file that both run successfully in a fresh project, satisfying the multiple test format requirements of the story.
-- [ ] Introduce coverage configuration for generated projects by adding an appropriate Vitest configuration file or inline options so that the default test workflow in a new project produces coverage reports and enforces documented coverage thresholds.
-- [ ] Update the generated project’s README template to describe the available test commands, how to run tests in watch mode and with coverage, and what the included example tests demonstrate, so the documentation acceptance criteria for the story are met.
-- [ ] Extend or add end-to-end initializer tests in this repository to scaffold a new project and verify that its test command runs successfully, its example tests are present, and a coverage report is generated, confirming end-to-end compliance with the story for generated projects.
+- [ ] Ensure all other tests in src/npm-init-e2e.test.ts still pass and explicitly assert that both the dependency installation and build steps complete with successful exit codes for the generated project.
+- [ ] Confirm that the initializer’s scaffolding logic and template files used by the npm init flow still match the expectations encoded in the integration tests (required files, scripts, and minimal Fastify server behavior).
+- [ ] Update the Story 001.0-DEVELOPER-TEMPLATE-INIT.story.md file to reflect that REQ-INIT-E2E-INTEGRATION is now fully satisfied by the passing integration tests, keeping traceability annotations aligned with the test names and requirements.
 
 ## LATER
 
-- [ ] Enhance the example tests shipped in generated projects to cover additional behaviors such as error handling, logging, or small utility functions while keeping them fast and easy to understand.
-- [ ] Consider adding an optional `test:watch` or `test:coverage` script to the generated project template for improved developer ergonomics once the basic test workflow is in place and validated.
-- [ ] Refine coverage thresholds or exclude patterns for generated projects based on real-world feedback, ensuring they remain achievable while still catching meaningful gaps in test coverage.
+- [ ] Strengthen the post-release smoke tests to mirror the updated integration test shape, ensuring that projects generated from the published npm package also verify dependency installation and build in the same way.
+- [ ] Add targeted diagnostics or clearer failure messages in the integration tests when npm install or build fails inside the generated project, to make future regressions easier to debug.
+- [ ] Consider adding a lightweight health-check test that runs `npm init` with a minimal, offline-capable registry configuration to reduce flakiness from external npm registry issues while still validating the initializer workflow.
