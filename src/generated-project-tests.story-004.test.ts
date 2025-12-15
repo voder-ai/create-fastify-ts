@@ -8,9 +8,9 @@
  * - `npm test` runs and passes real tests quickly
  * - `npm run test:watch` is available (invoked in non-watch mode here)
  * - `npm run test:coverage` produces coverage output and enforces thresholds
- * - Example tests exist for TypeScript, JavaScript, and type-level `.test.d.ts`
+ * - Example TypeScript tests exist demonstrating testing patterns
  *
- * @supports docs/stories/004.0-DEVELOPER-TESTS-RUN.story.md REQ-TEST-ALL-PASS REQ-TEST-FAST-EXEC REQ-TEST-WATCH-MODE REQ-TEST-COVERAGE REQ-TEST-TYPESCRIPT REQ-TEST-CLEAR-OUTPUT REQ-TEST-EXAMPLES REQ-TEST-VITEST-CONFIG
+ * @supports docs/stories/004.0-DEVELOPER-TESTS-RUN.story.md REQ-TEST-ALL-PASS REQ-TEST-FAST-EXEC REQ-TEST-WATCH-MODE REQ-TEST-COVERAGE REQ-TEST-TYPESCRIPT REQ-TEST-CLEAR-OUTPUT REQ-TEST-EXAMPLES
  */
 /* global NodeJS */
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
@@ -64,11 +64,9 @@ function makeEnvWithVitestOnPath(): NodeJS.ProcessEnv {
 }
 
 describe('Generated project test workflow (Story 004.0) [REQ-TEST-ALL-PASS]', () => {
-  it('[REQ-TEST-EXAMPLES] includes TS, JS, and .test.d.ts example tests', async () => {
+  it('[REQ-TEST-EXAMPLES] includes TypeScript test example', async () => {
     const files = await listProjectFiles('src');
     expect(files).toContain('index.test.ts');
-    expect(files).toContain('index.test.js');
-    expect(files).toContain('index.test.d.ts');
   });
 
   it('[REQ-TEST-ALL-PASS][REQ-TEST-FAST-EXEC] npm test runs and passes quickly', async () => {

@@ -1,434 +1,106 @@
-Here’s a concise, history-only summary of what’s been done, in addition to the earlier work you listed.
+Here’s a history-only summary of what was done in this batch of work:
 
 ---
 
-## Dev Server Tests and Helpers: Lint Compliance and Traceability
+## Dev server implementation: use local `tsc` CLI for initial compilation
 
-- Refactored `src/dev-server.test.ts` to satisfy `max-lines-per-function` and `max-lines` without changing test behavior:
-  - Extracted the long “initial TypeScript compilation” test body into `runInitialCompilationScenario()` and `prepareInitialCompileProject()`.
-  - `prepareInitialCompileProject()`:
-    - Uses `initializeGeneratedProject` to scaffold a temp project (`dev-initial-compile-test`).
-    - Verifies there is no pre-built `dist/` directory.
-    - Asserts that `dev-server.mjs` exists and returns `{ tempDir, projectDir, devServerPath }`.
-  - `runInitialCompilationScenario()`:
-    - Calls `prepareInitialCompileProject()`.
-    - Spawns the dev server via `createDevServerProcess` with `NODE_ENV=production` and a fixed `PORT`.
-    - Waits for:
-      - `dev-server: initial TypeScript compilation complete.`
-      - `dev-server: launching Fastify server from dist/src/index.js...`
-      - `Server listening at`
-    - Uses a small local helper and an array of expected messages to assert all three strings appear in stdout.
-    - Sends SIGINT via `sendSigintAndWait`, asserts clean shutdown, and kills the child if still alive.
-    - Cleans up the temp directory with `rm(..., { recursive: true, force: true })`.
-  - Updated the test to simply call `runInitialCompilationScenario()` with the existing 60s timeout.
-  - Removed all `// eslint-disable-next-line max-lines-per-function` comments.
-  - Compressed some comments and cleanup lines to keep the file under the configured `max-lines` limit while preserving behavior.
+- Updated the dev-server template (`src/template-files/dev-server.mjs`) so the TypeScript watcher no longer uses `npx tsc`.
+- Implemented `startTypeScriptWatch` to:
+  - Resolve the project-local TypeScript CLI at `node_modules/typescript/bin/tsc` via `path.join(projectRoot, 'node_modules', 'typescript', 'bin', 'tsc')`.
+  - Spawn the watcher using `process.execPath` (Node) with arguments `[tscCliPath, '--watch', '--preserveWatchOutput']`.
+  - Keep existing logic to:
+    - Track `initialCompilationComplete`.
+    - Detect successful initial compilation via the `Found X errors. Watching for file changes.` output.
+    - Resolve with the watcher process once initial compilation succeeds.
+    - Reject if the watcher errors or exits before initial compilation completes.
+    - Log watcher errors if they occur after initial compilation.
+- This change fixed the prior `npx`/`MODULE_NOT_FOUND` issues by ensuring the dev server always uses the generated project’s local TypeScript installation.
 
-- Added `@supports` JSDoc traceability to all helpers in `src/dev-server.test-helpers.ts`:
-  - `createServerOnRandomPort` linked to dev-server strict-port tests (`REQ-DEV-PORT-STRICT`).
-  - `getDevServerPath` linked to port and watch/hot-reload requirements.
-  - `createDevServerProcess` linked to TypeScript watch, hot-reload, and graceful stop requirements.
-  - `waitForDevServerMessage` linked to hot-reload, TypeScript watch, and initial-compile requirements.
-  - `sendSigintAndWait` linked to graceful shutdown.
-  - `createMinimalProjectDir` linked to watch, hot-reload, and graceful stop scenarios.
-  - `createFakeProjectForHotReload` linked specifically to hot-reload behavior.
-
-All dev-server helpers and the initial compilation test now have explicit story/requirement traceability and comply with lint limits.
+- Verification performed:
+  - Ran targeted dev-server tests:
+    - `npm test -- src/dev-server.test.ts --reporter=verbose`
+  - Ran the local quality suite multiple times:
+    - `npm run lint`
+    - `npm run type-check`
+    - `npm test`
+    - `npm run build`
+    - `npm run format:check`
+  - Committed and pushed:
+    - `fix: ensure dev server initial TypeScript compilation uses local tsc cli`
+  - Confirmed the GitHub Actions **CI/CD Pipeline** on `main` completed successfully.
 
 ---
 
-## Generated-Project Helpers: Traceability and HTTP Extraction
+## Dev-server tests: dedicated initial-compile + /health coverage
 
-- Expanded per-function JSDoc `@supports` annotations in `src/generated-project.test-helpers.ts` so each type and helper is tied to specific stories/requirements:
-  - `GeneratedProjectSetupOptions` and `GeneratedProjectSetupResult` linked to initializer integration tests (`REQ-INIT-E2E-INTEGRATION`).
-  - `initializeGeneratedProject` documented as:
-    - Calling `initializeTemplateProject`.
-    - Linking the root repo’s `node_modules` into the new project.
-    - Returning temp/project paths and cleanup info.
-    - Linked to initializer and production-build requirements (`REQ-INIT-E2E-INTEGRATION`, `REQ-BUILD-TSC`, `REQ-START-PRODUCTION`).
-  - `TscBuildResult` and `runTscBuildForProject` linked to TypeScript build output and `dist/` expectations.
-  - `cleanupGeneratedProject` linked to initializer E2E integration.
-  - `StartCompiledServerResult`, `assertNoSourceReferencesInLogs`, `assertHasJsonLogLine`, and `assertNoInfoLevelRequestLogs` linked to production-build and logging-monitoring stories.
-  - `startCompiledServerViaNode` documented as starting `dist/src/index.js`, waiting for the server URL, and returning the child process, health URL, and stdout; linked to both production-start and logging requirements.
+- Extended and reorganized the tests for the initial TypeScript compilation path so they assert both compilation and runtime health behavior, while keeping files under the ESLint `max-lines` limit.
 
-- Split out HTTP/health helpers into a new module to satisfy `max-lines` and centralize HTTP behavior:
-  - Created `src/generated-project-http-helpers.ts`:
-    - Imports `http` from `node:http`.
-    - Implements `fetchHealthOnce(url: URL)`:
-      - Performs a single `http.get` to the health endpoint.
-      - Collects and returns `{ statusCode, body }`.
-      - Annotated with `@supports` for production-start behavior.
-    - Implements `waitForHealth(url, timeoutMs, intervalMs?)`:
-      - Polls `fetchHealthOnce` until any status code is received or a timeout elapses.
-      - Retries on errors and throws a timeout error if no response is obtained.
-      - Annotated for production-start and port requirements.
-    - Adds a top-level JSDoc tying the file to Story 006.0 (production build/start, port).
-  - Updated `src/generated-project.test-helpers.ts`:
-    - Removed the local `http` import and the previous `fetchHealthOnce`/`waitForHealth` implementations.
-    - Re-exported `waitForHealth` from `./generated-project-http-helpers.js` so existing tests continue to import it from `generated-project.test-helpers` unchanged.
-    - Kept all other helpers and behavior intact.
+### New file: `src/dev-server.initial-compile.test.ts`
 
-This refactor preserved existing test behavior while bringing `generated-project.test-helpers.ts` under the `max-lines` threshold and improving separation between project-setup logic and HTTP polling.
+- Added a dedicated test file focused on the initial compilation scenario, with JSDoc tying it to Story 003.0 and the relevant requirement IDs.
+- Imported:
+  - `describe`, `it`, `expect` from `vitest`.
+  - `createDevServerProcess`, `waitForDevServerMessage`, `sendSigintAndWait` from `./dev-server.test-helpers.js`.
+  - `waitForHealth` from `./generated-project-http-helpers.js`.
 
----
+#### `prepareInitialCompileProject`
 
-## ESLint Tightening with TypeScript Plugin
+- Implemented `prepareInitialCompileProject` to:
+  - Dynamically import `initializeGeneratedProject` from `./generated-project.test-helpers.js`.
+  - Initialize a fresh generated project:
+    - `projectName: 'dev-initial-compile-test'`
+    - `tempDirPrefix: 'dev-initial-compile-'`
+    - `logPrefix: '[dev-initial-compile-test]'`
+  - Use `node:path` and `node:fs/promises` to:
+    - Assert that `dist/` does *not* exist in the project directory.
+    - Assert that `dev-server.mjs` *does* exist in the project directory.
+  - Return `{ tempDir, projectDir, devServerPath }`.
 
-- Updated `package.json` devDependencies:
-  - Added `@typescript-eslint/eslint-plugin@8.49.0` alongside the existing `@typescript-eslint/parser`.
-  - Ensured devDependencies remain alphabetically sorted.
+#### `runInitialCompilationScenario`
 
-- Updated `eslint.config.js` to integrate the TypeScript-specific plugin and rule:
-  - Added:
-    ```ts
-    import tseslintPlugin from '@typescript-eslint/eslint-plugin';
-    ```
-  - In the TypeScript config block (`files: ['**/*.ts']`):
-    - Registered the plugin:
-      ```ts
-      plugins: {
-        '@typescript-eslint': tseslintPlugin,
-      },
-      ```
-    - Enabled a single stricter rule:
-      ```ts
-      '@typescript-eslint/no-unused-vars': 'error',
-      ```
-    - Left existing rules (`complexity`, `max-lines-per-function`, `max-lines`) unchanged.
-  - Verified the effective configuration via `npx eslint --print-config src/index.ts` and confirmed the new rule is active.
+- Implemented `runInitialCompilationScenario` to execute the full end-to-end initial compile scenario:
+  - Call `prepareInitialCompileProject()` to get `tempDir`, `projectDir`, `devServerPath`.
+  - Define `waitForInitialCompilationComplete` using `waitForDevServerMessage` to wait for:
+    - `dev-server: initial TypeScript compilation complete.` (timeout: 30s).
+  - Start the dev server with:
+    - Environment containing:
+      - `...process.env`
+      - `NODE_ENV: 'production'`
+      - `PORT: '41238'`
+    - `createDevServerProcess(env, { cwd: projectDir, devServerPath })`.
+  - Wait for the following log messages:
+    - `dev-server: initial TypeScript compilation complete.`
+    - `dev-server: launching Fastify server from dist/src/index.js...`
+    - `Server listening at`
+  - After `Server listening at` appears:
+    - Capture `stdout` from the dev-server process.
+    - Extract the server URL from stdout via:
+      - `stdout.match(/Server listening at (http:\/\/[^"\s]+)/)`
+      - Assert that the match is not null.
+    - Construct a health URL:
+      - `const healthUrl = new URL('/health', listeningMatch![1]);`
+    - Call `waitForHealth(healthUrl, 10_000)`:
+      - Assert `health.statusCode === 200`.
+      - Assert that `JSON.parse(health.body)` does not throw.
+      - Assert the parsed body equals `{ status: 'ok' }`.
+  - Confirm that stdout contains all expected messages:
+    - `dev-server: initial TypeScript compilation complete.`
+    - `dev-server: launching Fastify server from dist/src/index.js...`
+    - `Server listening at`
+  - Perform graceful shutdown:
+    - Use `sendSigintAndWait(child, 10_000)`.
+    - Assert that either:
+      - `signal === 'SIGINT'` or
+      - `code === 0`.
+    - In a `finally` block, if `child` is not yet killed, call `child.kill('SIGINT')` defensively.
+  - Cleanup:
+    - In an outer `finally`, import `rm` from `node:fs/promises` and remove `tempDir` with `{ recursive: true, force: true }`, ignoring errors.
 
-- Installed the new dev dependency (`npm install`) and re-ran `npm run lint`.
-  - No violations of `@typescript-eslint/no-unused-vars` were found, so no suppressions or code changes were needed.
+#### Test block
 
-- Resolved a CI formatting failure:
-  - CI flagged Prettier differences in `eslint.config.js` and `package.json`.
-  - Ran `npx prettier --write eslint.config.js package.json`.
-  - Re-ran `npm run format:check` locally.
-  - Committed the formatting-only fix and pushed.
-
----
-
-## Quality Gates and CI Runs for This Batch
-
-- For this round of changes (dev-server refactor, helper traceability, HTTP helper split, ESLint plugin integration), ran locally:
-  - `npm run lint`
-  - `npm run type-check`
-  - `npm run build`
-  - `npm test`
-  - `npm run format`
-  - `npm run format:check`
-
-- Committed and pushed changes in several steps:
-  - `test: refactor dev server and generated-project helpers for lint and traceability`
-  - `chore: enable @typescript-eslint/no-unused-vars with plugin integration`
-  - `style: align eslint and package.json formatting after CI failure`
-
-- Confirmed the GitHub Actions **CI/CD Pipeline** workflow completed successfully after the final push:
-  - All configured gates (build, test, lint, type-check, format:check, audit, smoke tests, etc.) passed.
-
-**Most recently we've executed the following action:**
-
----
-Used tool: list_directory with input: {"dirPath":"."}
-Used tool: read_file with input: {"filePath":"src/template-files/dev-server.mjs"}
-Used tool: read_file with input: {"filePath":"src/dev-server.test.ts"}
-Used tool: read_file with input: {"filePath":"src/dev-server.test-helpers.ts"}
-Used tool: read_file with input: {"filePath":"src/template-files/src/index.ts.template"}
-Used tool: read_file with input: {"filePath":"src/template-files/package.json.template"}
-Used tool: run_command with input: {"command":"ls","args":["-R","node_modules/typescript/bin"]}
-Used tool: read_file with input: {"filePath":"src/generated-project.test-helpers.ts"}
-Used tool: read_file with input: {"filePath":"src/generated-project-http-helpers.ts"}
-Used tool: search_file_content with input: {"filePath":"src","pattern":"waitForHealth","isRegex":false}
-Used tool: find_files with input: {"pattern":"*.test.ts","directory":"src"}
-Used tool: search_file_content with input: {"filePath":"src/generated-project-production.test.ts","pattern":"waitForHealth","isRegex":false}
-Used tool: read_file with input: {"filePath":"src/generated-project-production.test.ts"}
-Used tool: read_file with input: {"filePath":"src/template-files/tsconfig.json.template"}
-Used tool: read_file with input: {"filePath":"docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md"}
-Used tool: get_git_status with input: {}
-Used tool: modify_file with input: {"filePath":"src/template-files/dev-server.mjs","instruction":"In the startTypeScriptWatch function, replace the use of `spawn('npx', ['tsc', '--watch', '--preserveWatchOutput'], ...)` with a call that uses the generated project's local TypeScript CLI directly. Specifically:\n- Compute the path to the local TypeScript CLI as `const tscCliPath = path.join(projectRoot, 'node_modules', 'typescript', 'bin', 'tsc');`.\n- Spawn the watcher using the current Node executable (`process.execPath`) and the CLI path: `spawn(process.execPath, [tscCliPath, '--watch', '--preserveWatchOutput'], { cwd: projectRoot, stdio: ['inherit', 'pipe', 'pipe'] })`.\n- Keep the rest of the logic in startTypeScriptWatch (initialCompilationComplete flag, handleOutput, error and exit handlers) the same.\nMake no other changes to this file."}
-Used tool: run_command with input: {"command":"npm","args":["test","--","src/dev-server.test.ts","--reporter=verbose"]}
-Used tool: modify_file with input: {"filePath":"docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md","instruction":"In the Acceptance Criteria section, change the checkbox for \"Server Starts Without Pre-Built Dist\" from unchecked ([ ]) to checked ([x]).\nIn the Definition of Done section, change the checkboxes for:\n- \"npm run dev starts server successfully without pre-built dist/ folder (initial compilation scenario)\"\n- \"All acceptance criteria met\"\n- \"Test coverage includes initial compilation scenario without DEV_SERVER_SKIP_TSC_WATCH\"\nfrom unchecked ([ ]) to checked ([x]).\nMake no other edits."}
-Used tool: run_command with input: {"command":"npm","args":["run","lint"]}
-Used tool: run_command with input: {"command":"npm","args":["run","type-check"]}
-Used tool: run_command with input: {"command":"npm","args":["test"]}
-Used tool: run_command with input: {"command":"npm","args":["run","build"]}
-Used tool: run_command with input: {"command":"npm","args":["run","format:check"]}
-Used tool: run_command with input: {"command":"npm","args":["run","format"]}
-Used tool: run_command with input: {"command":"npm","args":["run","format:check"]}
-Used tool: git_add_all with input: {}
-Used tool: git_commit with input: {"message":"fix: ensure dev server initial TypeScript compilation uses local tsc cli"}
-Used tool: run_command with input: {"command":"npm","args":["run","build"]}
-Used tool: run_command with input: {"command":"npm","args":["test"]}
-Used tool: run_command with input: {"command":"npm","args":["run","lint"]}
-Used tool: run_command with input: {"command":"npm","args":["run","type-check"]}
-Used tool: git_push with input: {}
-Used tool: get_github_pipeline_status with input: {}
-Used tool: wait_for_github_workflow with input: {"workflowName":"CI/CD Pipeline","timeout":600000}
-Used tool: get_git_status with input: {}
-Used tool: modify_file with input: {"filePath":"src/dev-server.test.ts","instruction":"Update this test file to also verify that the dev server responds on its /health endpoint after the initial TypeScript compilation completes.\n\n1. Add an import for the waitForHealth helper at the top of the file:\n\nimport { waitForHealth } from './generated-project-http-helpers.js';\n\nPlace it after the existing imports from './dev-server.test-helpers.js'.\n\n2. In the runInitialCompilationScenario function, after the existing waits for log messages (including 'Server listening at'), but before computing expectedMessages and asserting that stdout contains them, add logic to:\n   - Parse the listening URL from stdout using the same pattern used elsewhere in the project: /Server listening at (http:\\/\\/[^\"\\s]+)/.\n   - Assert that the match is not null.\n   - Construct a health URL using new URL('/health', match[1]).\n   - Call waitForHealth(healthUrl, 10_000) and assert that:\n     - health.statusCode is 200\n     - JSON.parse(health.body) does not throw\n     - JSON.parse(health.body) equals { status: 'ok' }.\n\nDo not change anything else in this file."}
-Used tool: run_command with input: {"command":"npm","args":["run","lint"]}
-Used tool: read_file with input: {"filePath":"src/dev-server.test.ts"}
-Used tool: modify_file with input: {"filePath":"src/dev-server.test.ts","instruction":"Split the contents of this test file into two files to stay under the max-lines limit:\n\n1. Create a new test file src/dev-server.initial-compile.test.ts that contains:\n   - The existing file-level JSDoc comment from this file.\n   - The imports from vitest, ./dev-server.test-helpers.js (only the functions actually used by the initial compilation scenario), and ./generated-project-http-helpers.js.\n   - The helper functions prepareInitialCompileProject and runInitialCompilationScenario (unchanged).\n   - The describe block \"Dev server initial compilation (Story 003.0)\" with its single test.\n\n2. In the existing src/dev-server.test.ts file, remove:\n   - The import of waitForHealth.\n   - The definitions of prepareInitialCompileProject and runInitialCompilationScenario.\n   - The final describe block \"Dev server initial compilation (Story 003.0)\".\n\nEnsure that src/dev-server.initial-compile.test.ts still references the same story and REQ ID in its JSDoc and describe/it names. Do not change any behavior of the tests themselves beyond this file split."}
-Used tool: generate_file with input: {"filePath":"src/dev-server.initial-compile.test.ts","content":"/**\n * Tests for the dev server launcher in initialized projects.\n *\n * These tests cover port resolution (auto-discovery and strict PORT semantics)\n * and dev-server runtime behavior (test-mode TypeScript watcher skip and hot\n * reload of the compiled server).\n *\n * @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-PORT-AUTO REQ-DEV-PORT-STRICT REQ-DEV-CLEAN-LOGS REQ-DEV-HOT-RELOAD REQ-DEV-GRACEFUL-STOP REQ-DEV-TYPESCRIPT-WATCH REQ-LOG-DEV-PRETTY\n */\nimport { describe, it, expect } from 'vitest';\nimport { createDevServerProcess, waitForDevServerMessage } from './dev-server.test-helpers.js';\nimport { waitForHealth } from './generated-project-http-helpers.js';\n\n/**\n * Prepare a fresh generated project and verify dist/ and dev-server.mjs state.\n *\n * @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-INITIAL-COMPILE\n */\nasync function prepareInitialCompileProject() {\n  const { initializeGeneratedProject } = await import('./generated-project.test-helpers.js');\n\n  const { tempDir, projectDir } = await initializeGeneratedProject({\n    projectName: 'dev-initial-compile-test',\n    tempDirPrefix: 'dev-initial-compile-',\n    logPrefix: '[dev-initial-compile-test]',\n  });\n\n  const path = await import('node:path');\n  const fs = await import('node:fs/promises');\n  const distPath = path.join(projectDir, 'dist');\n  const distExists = await fs\n    .access(distPath)\n    .then(() => true)\n    .catch(() => false);\n  expect(distExists).toBe(false);\n\n  const devServerPath = path.join(projectDir, 'dev-server.mjs');\n  const devServerExists = await fs\n    .access(devServerPath)\n    .then(() => true)\n    .catch(() => false);\n  expect(devServerExists).toBe(true);\n\n  return { tempDir, projectDir, devServerPath };\n}\n\n/**\n * Runs the end-to-end scenario for initial TypeScript compilation.\n *\n * @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-INITIAL-COMPILE\n */\nasync function runInitialCompilationScenario(): Promise<void> {\n  const { tempDir, projectDir, devServerPath } = await prepareInitialCompileProject();\n\n  const waitForInitialCompilationComplete = async (\n    child: ReturnType<typeof createDevServerProcess>['child'],\n    getStdout: () => string,\n    getStderr: () => string,\n  ) =>\n    waitForDevServerMessage(\n      child,\n      getStdout,\n      getStderr,\n      'dev-server: initial TypeScript compilation complete.',\n      30_000,\n    );\n\n  try {\n    const env: Record<string, string | undefined> = {\n      ...process.env,\n      NODE_ENV: 'production',\n      PORT: '41238',\n    };\n\n    const { child, getStdout, getStderr } = createDevServerProcess(env, {\n      cwd: projectDir,\n      devServerPath,\n    });\n\n    try {\n      await waitForInitialCompilationComplete(child, getStdout, getStderr);\n\n      await waitForDevServerMessage(\n        child,\n        getStdout,\n        getStderr,\n        'dev-server: launching Fastify server from dist/src/index.js...',\n        10_000,\n      );\n\n      await waitForDevServerMessage(child, getStdout, getStderr, 'Server listening at', 10_000);\n\n      const stdout = getStdout();\n      const listeningMatch = stdout.match(/Server listening at (http:\\/\\/[^\"\\s]+)/);\n      expect(listeningMatch).not.toBeNull();\n\n      const healthUrl = new URL('/health', listeningMatch![1]);\n      const health = await waitForHealth(healthUrl, 10_000);\n\n      expect(health.statusCode).toBe(200);\n      let parsedBody: unknown;\n      expect(() => {\n        parsedBody = JSON.parse(health.body);\n      }).not.toThrow();\n      expect(parsedBody).toEqual({ status: 'ok' });\n\n      const expectedMessages = [\n        'dev-server: initial TypeScript compilation complete.',\n        'dev-server: launching Fastify server from dist/src/index.js...',\n        'Server listening at',\n      ];\n      for (const message of expectedMessages) {\n        expect(stdout).toContain(message);\n      }\n\n      const { code, signal } = await sendSigintAndWait(child, 10_000);\n      expect(signal === 'SIGINT' || code === 0).toBe(true);\n    } finally {\n      if (!child.killed) {\n        child.kill('SIGINT');\n      }\n    }\n  } finally {\n    const { rm } = await import('node:fs/promises');\n    await rm(tempDir, { recursive: true, force: true }).catch(() => {});\n  }\n}\n\ndescribe('Dev server initial compilation (Story 003.0)', () => {\n  it('waits for initial TypeScript compilation before starting server (no pre-built dist/) [REQ-DEV-INITIAL-COMPILE]', async () => {\n    await runInitialCompilationScenario();\n  }, 60_000);\n});\n"}
-Used tool: run_command with input: {"command":"npm","args":["run","lint"]}
-Used tool: modify_file with input: {"filePath":"src/dev-server.initial-compile.test.ts","instruction":"Update the imports at the top of this file so that sendSigintAndWait is imported from './dev-server.test-helpers.js' alongside createDevServerProcess and waitForDevServerMessage. For example, change the import to:\n\nimport {\n  createDevServerProcess,\n  waitForDevServerMessage,\n  sendSigintAndWait,\n} from './dev-server.test-helpers.js';\n\nDo not change anything else in this file."}
-Used tool: run_command with input: {"command":"npm","args":["run","lint"]}
-Used tool: run_command with input: {"command":"npm","args":["test"]}
-Used tool: run_command with input: {"command":"npm","args":["run","build"]}
-Used tool: run_command with input: {"command":"npm","args":["run","format:check"]}
-Used tool: run_command with input: {"command":"npm","args":["run","format"]}
-Used tool: run_command with input: {"command":"npm","args":["run","format:check"]}
-Used tool: git_add_all with input: {}
-Used tool: git_commit with input: {"message":"test: cover dev-server initial compilation /health behavior"}
-Used tool: run_command with input: {"command":"npm","args":["run","build"]}
-Used tool: run_command with input: {"command":"npm","args":["test"]}
-Used tool: run_command with input: {"command":"npm","args":["run","lint"]}
-Used tool: run_command with input: {"command":"npm","args":["run","type-check"]}
-Used tool: git_push with input: {}
-Used tool: get_github_pipeline_status with input: {}
-Used tool: wait_for_github_workflow with input: {"workflowName":"CI/CD Pipeline","timeout":600000}
----
-
-**This was the result:**
----
-Here’s what I implemented and verified.
-
-## Changes made
-
-### 1. Dev server uses local TypeScript CLI for initial compile (##NOW)
-
-**What I changed**
-
-- Updated the dev-server template so it no longer relies on `npx` for the TypeScript watcher:
-
-File: `src/template-files/dev-server.mjs`
-
-```js
-function startTypeScriptWatch(projectRoot, onOutput) {
-  return new Promise((resolve, reject) => {
-    const tscCliPath = path.join(projectRoot, 'node_modules', 'typescript', 'bin', 'tsc');
-    const tsc = spawn(process.execPath, [tscCliPath, '--watch', '--preserveWatchOutput'], {
-      cwd: projectRoot,
-      stdio: ['inherit', 'pipe', 'pipe'],
-    });
-
-    let initialCompilationComplete = false;
-
-    const handleOutput = data => {
-      const text = data.toString();
-      onOutput(text);
-
-      // Detect initial compilation completion
-      // TypeScript outputs "Found X errors. Watching for file changes." after compilation
-      if (
-        !initialCompilationComplete &&
-        /Found \d+ errors?\. Watching for file changes\./.test(text)
-      ) {
-        initialCompilationComplete = true;
-        resolve(tsc);
-      }
-    };
-
-    tsc.stdout?.on('data', handleOutput);
-    tsc.stderr?.on('data', handleOutput);
-
-    tsc.on('error', error => {
-      if (!initialCompilationComplete) {
-        reject(error);
-      } else {
-        console.error('dev-server: TypeScript watcher error:', error);
-      }
-    });
-
-    tsc.on('exit', (code, signal) => {
-      if (!initialCompilationComplete) {
-        reject(
-          new Error(
-            `TypeScript watcher exited before initial compilation completed (code: ${code}, signal: ${signal})`,
-          ),
-        );
-      }
-    });
-  });
-}
-```
-
-- Previously this used `spawn('npx', ['tsc', '--watch', ...])`, which was failing with a `MODULE_NOT_FOUND` error in some environments. It now uses the generated project’s *local* `typescript` binary via `node_modules/typescript/bin/tsc`, invoked by `process.execPath`.
-
-**Verification**
-
-- Ran targeted dev-server tests:
-
-  ```bash
-  npm test -- src/dev-server.test.ts --reporter=verbose
-  ```
-
-  All tests, including the initial compilation scenario, passed.
-
-- Ran full local quality suite (multiple times through the workflow):
-
-  ```bash
-  npm run lint
-  npm run type-check
-  npm test
-  npm run build
-  npm run format:check
-  ```
-
-  All passed.
-
-- Pushed changes and verified CI:
-
-  - CI/CD workflow `CI/CD Pipeline` on `main` completed with `success`.
-
-**Task status**
-
-- [x] Change the dev server implementation in the template so that the initial TypeScript compilation is started using the generated project’s local TypeScript compiler directly (without relying on npx) …
-
-
----
-
-### 2. Tests updated for REQ-DEV-INITIAL-COMPILE and /health behavior (##NEXT)
-
-**What I changed**
-
-1. **Extended the initial compilation scenario to assert /health behavior**, and then **split it into its own test file** to satisfy `max-lines`:
-
-New file: `src/dev-server.initial-compile.test.ts`
-
-- JSDoc + imports:
+- Added:
 
   ```ts
-  /**
-   * Tests for the dev server launcher in initialized projects.
-   *
-   * These tests cover port resolution (auto-discovery and strict PORT semantics)
-   * and dev-server runtime behavior (test-mode TypeScript watcher skip and hot
-   * reload of the compiled server).
-   *
-   * @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-PORT-AUTO REQ-DEV-PORT-STRICT REQ-DEV-CLEAN-LOGS REQ-DEV-HOT-RELOAD REQ-DEV-GRACEFUL-STOP REQ-DEV-TYPESCRIPT-WATCH REQ-LOG-DEV-PRETTY
-   */
-  import { describe, it, expect } from 'vitest';
-  import {
-    createDevServerProcess,
-    waitForDevServerMessage,
-    sendSigintAndWait,
-  } from './dev-server.test-helpers.js';
-  import { waitForHealth } from './generated-project-http-helpers.js';
-  ```
-
-- Helper to prepare a fresh generated project with no `dist/` yet but with `dev-server.mjs`:
-
-  ```ts
-  async function prepareInitialCompileProject() {
-    const { initializeGeneratedProject } = await import('./generated-project.test-helpers.js');
-
-    const { tempDir, projectDir } = await initializeGeneratedProject({
-      projectName: 'dev-initial-compile-test',
-      tempDirPrefix: 'dev-initial-compile-',
-      logPrefix: '[dev-initial-compile-test]',
-    });
-
-    const path = await import('node:path');
-    const fs = await import('node:fs/promises');
-    const distPath = path.join(projectDir, 'dist');
-    const distExists = await fs
-      .access(distPath)
-      .then(() => true)
-      .catch(() => false);
-    expect(distExists).toBe(false);
-
-    const devServerPath = path.join(projectDir, 'dev-server.mjs');
-    const devServerExists = await fs
-      .access(devServerPath)
-      .then(() => true)
-      .catch(() => false);
-    expect(devServerExists).toBe(true);
-
-    return { tempDir, projectDir, devServerPath };
-  }
-  ```
-
-- Full end-to-end initial compilation scenario:
-
-  ```ts
-  async function runInitialCompilationScenario(): Promise<void> {
-    const { tempDir, projectDir, devServerPath } = await prepareInitialCompileProject();
-
-    const waitForInitialCompilationComplete = async (
-      child: ReturnType<typeof createDevServerProcess>['child'],
-      getStdout: () => string,
-      getStderr: () => string,
-    ) =>
-      waitForDevServerMessage(
-        child,
-        getStdout,
-        getStderr,
-        'dev-server: initial TypeScript compilation complete.',
-        30_000,
-      );
-
-    try {
-      const env: Record<string, string | undefined> = {
-        ...process.env,
-        NODE_ENV: 'production',
-        PORT: '41238',
-      };
-
-      const { child, getStdout, getStderr } = createDevServerProcess(env, {
-        cwd: projectDir,
-        devServerPath,
-      });
-
-      try {
-        await waitForInitialCompilationComplete(child, getStdout, getStderr);
-
-        await waitForDevServerMessage(
-          child,
-          getStdout,
-          getStderr,
-          'dev-server: launching Fastify server from dist/src/index.js...',
-          10_000,
-        );
-
-        await waitForDevServerMessage(child, getStdout, getStderr, 'Server listening at', 10_000);
-
-        const stdout = getStdout();
-        const listeningMatch = stdout.match(/Server listening at (http:\/\/[^"\s]+)/);
-        expect(listeningMatch).not.toBeNull();
-
-        const healthUrl = new URL('/health', listeningMatch![1]);
-        const health = await waitForHealth(healthUrl, 10_000);
-
-        expect(health.statusCode).toBe(200);
-        let parsedBody: unknown;
-        expect(() => {
-          parsedBody = JSON.parse(health.body);
-        }).not.toThrow();
-        expect(parsedBody).toEqual({ status: 'ok' });
-
-        const expectedMessages = [
-          'dev-server: initial TypeScript compilation complete.',
-          'dev-server: launching Fastify server from dist/src/index.js...',
-          'Server listening at',
-        ];
-        for (const message of expectedMessages) {
-          expect(stdout).toContain(message);
-        }
-
-        const { code, signal } = await sendSigintAndWait(child, 10_000);
-        expect(signal === 'SIGINT' || code === 0).toBe(true);
-      } finally {
-        if (!child.killed) {
-          child.kill('SIGINT');
-        }
-      }
-    } finally {
-      const { rm } = await import('node:fs/promises');
-      await rm(tempDir, { recursive: true, force: true }).catch(() => {});
-    }
-  }
-
   describe('Dev server initial compilation (Story 003.0)', () => {
     it(
       'waits for initial TypeScript compilation before starting server (no pre-built dist/) [REQ-DEV-INITIAL-COMPILE]',
@@ -440,123 +112,362 @@ New file: `src/dev-server.initial-compile.test.ts`
   });
   ```
 
-2. **Kept the main dev-server tests focused and under the `max-lines` rule**
+  This test:
+  - Starts from a project with no `dist/`.
+  - Exercises the new local-`tsc`-based initial compilation path.
+  - Confirms that the compiled Fastify server starts and serves `/health` with `{ status: 'ok' }`.
+  - Verifies clean logs and graceful shutdown for this scenario.
 
-File: `src/dev-server.test.ts`
+### Updates to `src/dev-server.test.ts`
 
-- Left port resolution, skip-watch, hot-reload, and pino-pretty behavior tests unchanged.
-- Removed the initial compile helper functions and the `describe('Dev server initial compilation ...')` block (now in the dedicated `.initial-compile` test).
-- The file now passes the `max-lines` ESLint rule.
+- Removed from `src/dev-server.test.ts`:
+  - The import of `waitForHealth`.
+  - The definitions of `prepareInitialCompileProject` and `runInitialCompilationScenario`.
+  - The `describe('Dev server initial compilation (Story 003.0)')` block.
+- Left all other dev-server tests intact, so `src/dev-server.test.ts` continues to cover:
+  - Port auto-discovery and strict `PORT` handling.
+  - Skipping the TypeScript watcher in test mode.
+  - Hot reload behavior.
+  - Dev log cleanliness and pretty-printing.
+- These changes brought `src/dev-server.test.ts` back under the `max-lines` ESLint limit without altering the behavior of the remaining tests.
 
-**Verification (tests)**
+### Verification and CI
 
-- Ran the full test suite multiple times:
-
-  ```bash
-  npm test
-  ```
-
-  - `src/dev-server.test.ts`: 7 tests passed (port resolution, skip watch, hot reload, pino-pretty).
-  - `src/dev-server.initial-compile.test.ts`: 1 test passed, exercising:
-    - No `dist/` exists at start.
-    - Dev server runs `tsc --watch` via the local CLI.
-    - Logs “initial TypeScript compilation complete”.
-    - Launches compiled server from `dist/src/index.js`.
-    - Logs `Server listening at ...`.
-    - `/health` responds with `200` and `{"status":"ok"}`.
-    - Graceful SIGINT shutdown.
-
-- Confirmed generated-project tests still pass (production build, logging, security headers, npm-init E2E) as part of `npm test`.
-
-**Task status**
-
-- [x] Update the dev server tests that cover REQ-DEV-INITIAL-COMPILE so they assert the new, robust initial-compilation behavior from a fresh project with no dist directory …
-- [x] Verify that all other dev-server behaviors required by the story … still pass their existing tests …
-
+- After adding and wiring up `src/dev-server.initial-compile.test.ts` and trimming `src/dev-server.test.ts`, repeatedly ran:
+  - `npm run lint`
+  - `npm test`
+  - `npm run build`
+  - `npm run type-check`
+  - `npm run format`
+  - `npm run format:check`
+- Staged and committed:
+  - `test: cover dev-server initial compilation /health behavior`
+- Pushed the branch and confirmed:
+  - The **CI/CD Pipeline** workflow on GitHub Actions for `main` completed successfully, with all gates (build, test, lint, type-check, format:check, etc.) passing.
 
 ---
 
-### 3. Story documentation updated to reflect behavior (##NEXT)
+## Dev-server story documentation updates
 
-**What I changed**
+- Edited `docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md` to reflect that the initial compilation path is now implemented and verified.
 
-File: `docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md`
+### Acceptance Criteria
 
-- **Acceptance Criteria**:
+- Updated the “Server Starts Without Pre-Built Dist” item from unchecked to checked:
 
   ```md
-  - [x] **Server Starts Successfully**: ...
   - [x] **Server Starts Without Pre-Built Dist**: Running `npm run dev` immediately after `npm install` ... successfully compiles TypeScript and starts the server
-  ...
-  - [x] **Graceful Shutdown**: ...
   ```
 
-  The “Server Starts Without Pre-Built Dist” item was previously unchecked and is now `[x]`.
+### Definition of Done
 
-- **Definition of Done**:
+- Marked previously unchecked dev-server items as complete:
 
   ```md
-  - [x] npm run dev starts server successfully in initialized project (when dist/ folder exists)
   - [x] npm run dev starts server successfully without pre-built dist/ folder (initial compilation scenario)
   - [x] All acceptance criteria met
-  ...
   - [x] Test coverage includes initial compilation scenario without DEV_SERVER_SKIP_TSC_WATCH
   ```
 
-  The three previously unchecked items are now `[x]`.
+- Left the rest of the story content unchanged, ensuring it aligns with the implemented behavior and tests.
 
-These reflect the now-working initial compilation path and the new dedicated test suite.
+---
 
-**Task status**
+## Tool usage and local workflow
 
-- [x] Update the developer documentation in the dev-server story and any related docs to reflect the finalized initial-compilation behavior … and mark the corresponding acceptance criteria as satisfied.
+During this work, the following actions were taken (purely historical):
+
+- Inspected repo structure and relevant files:
+  - `list_directory` on `.`.
+  - `read_file` on:
+    - `src/template-files/dev-server.mjs`
+    - `src/dev-server.test.ts`
+    - `src/dev-server.test-helpers.ts`
+    - `src/template-files/src/index.ts.template`
+    - `src/template-files/package.json.template`
+    - `src/generated-project.test-helpers.ts`
+    - `src/generated-project-http-helpers.ts`
+    - `src/generated-project-production.test.ts`
+    - `src/template-files/tsconfig.json.template`
+    - `docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md`
+- Searched and enumerated test files:
+  - `find_files` for `*.test.ts` in `src`.
+  - `search_file_content` for `waitForHealth` in relevant files.
+- Verified TypeScript binary location:
+  - `run_command ls -R node_modules/typescript/bin`.
+- Updated files via scripted edits:
+  - `modify_file` on:
+    - `src/template-files/dev-server.mjs` (switch to local `tsc` via `process.execPath`).
+    - `docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md` (checkbox updates).
+    - `src/dev-server.test.ts` (add `/health` checks, then later remove initial-compile logic).
+    - `src/dev-server.initial-compile.test.ts` (import adjustments).
+- Created the new initial-compile test file:
+  - `generate_file` for `src/dev-server.initial-compile.test.ts`.
+- Ran local commands repeatedly for validation:
+  - `npm run lint`
+  - `npm run type-check`
+  - `npm test` (entire suite and targeted dev-server tests)
+  - `npm run build`
+  - `npm run format`
+  - `npm run format:check`
+- Git operations:
+  - `git_add_all`
+  - `git_commit` with:
+    - `fix: ensure dev server initial TypeScript compilation uses local tsc cli`
+    - `test: cover dev-server initial compilation /health behavior`
+  - `git_push`
+  - Checked status with `get_git_status`.
+- CI monitoring:
+  - `get_github_pipeline_status`
+  - `wait_for_github_workflow` for the **CI/CD Pipeline** workflow on `main` until it completed successfully.
+
+This captures only what has been done so far, with no future plans included.
+
+**Most recently we've executed the following action:**
+
+---
+Used tool: get_git_status with input: {}
+Used tool: list_directory with input: {"dirPath":"."}
+Used tool: read_file with input: {"filePath":"src/dev-server.initial-compile.test.ts"}
+Used tool: read_file with input: {"filePath":"src/npm-init.smoke.test.ts"}
+Used tool: find_files with input: {"pattern":"*dev-server*.test*.ts","directory":"src"}
+Used tool: find_files with input: {"pattern":"*generated-project*.test*.ts","directory":"src"}
+Used tool: find_files with input: {"pattern":"*development*.md","directory":"docs"}
+Used tool: read_file with input: {"filePath":"src/dev-server.test.ts"}
+Used tool: read_file with input: {"filePath":"src/dev-server.test-helpers.ts"}
+Used tool: read_file with input: {"filePath":"docs/development-setup.md"}
+Used tool: read_file with input: {"filePath":"src/template-files/dev-server.mjs","startLine":1,"endLine":260}
+Used tool: read_file with input: {"filePath":"src/template-files/dev-server.mjs","startLine":260,"endLine":520}
+Used tool: find_files with input: {"pattern":"*index.ts.template","directory":"src"}
+Used tool: read_file with input: {"filePath":"src/template-files/src/index.ts.template","startLine":1,"endLine":260}
+Used tool: read_file with input: {"filePath":"package.json"}
+Used tool: read_file with input: {"filePath":".github/workflows/ci-cd.yml","startLine":1,"endLine":260}
+Used tool: read_file with input: {"filePath":"src/generated-project-production.test.ts"}
+Used tool: read_file with input: {"filePath":"src/generated-project-production-npm-start.test.ts"}
+Used tool: read_file with input: {"filePath":"src/generated-project-logging.test.ts"}
+Used tool: read_file with input: {"filePath":"src/generated-project-security-headers.test.ts"}
+Used tool: read_file with input: {"filePath":"src/generated-project-tests.story-004.test.ts"}
+Used tool: read_file with input: {"filePath":"src/npm-init-e2e.test.ts"}
+Used tool: run_command with input: {"command":"node","args":["-e","console.log(process.env.CI ?? \"\")"]}
+Used tool: read_file with input: {"filePath":"src/generated-project.test-helpers.ts","startLine":1,"endLine":400}
+Used tool: read_file with input: {"filePath":"vitest.config.mts","startLine":1,"endLine":260}
+Used tool: modify_file with input: {"filePath":"src/dev-server.initial-compile.test.ts","instruction":"In the runInitialCompilationScenario function, update the environment configuration so that it no longer sets a hard-coded PORT value and explicitly relies on the dev server's automatic port selection. Specifically:\n- Remove the `PORT: '41238',` property from the `env` object.\n- Add a brief comment explaining that we intentionally do not set PORT so that resolveDevServerPort() will auto-discover a free port.\n- Keep NODE_ENV set to 'production' as before.\nEnsure the rest of the test logic (waiting for initial compilation, extracting the listening URL from stdout, and hitting /health) remains unchanged."}
+Used tool: modify_file with input: {"filePath":"src/npm-init.smoke.test.ts","instruction":"Change the top-level behavior so that the test suite is skipped rather than throwing when PUBLISHED_VERSION is not set.\n\nSpecifically:\n- Replace the unconditional throw on missing PUBLISHED_VERSION with a boolean flag, e.g. `const HAS_PUBLISHED_VERSION = Boolean(PUBLISHED_VERSION);` and add a short comment explaining that in local environments we skip smoke tests when this env var is absent while CI always sets it.\n- Change the `describe` block to be conditionally skipped when HAS_PUBLISHED_VERSION is false. One straightforward pattern is:\n\n```ts\nconst describeIf = HAS_PUBLISHED_VERSION ? describe : describe.skip;\n\ndescribeIf('[REQ-INIT-E2E-SMOKE] npm init smoke tests (published package)', () => { ... });\n```\n\n- Inside the describe body, you can keep the tests unchanged; they will only run when PUBLISHED_VERSION is present.\n\nThis way, importing the file without PUBLISHED_VERSION set will not throw, and in CI (where PUBLISHED_VERSION is set), the tests still run as before."}
+Used tool: modify_file with input: {"filePath":"docs/development-setup.md","instruction":"Add a short subsection under the \"Testing Strategy and Expectations\" section that explains how to run the published-package smoke tests.\n\nInclude:\n- A heading like \"### Published Package Smoke Tests\".\n- A paragraph explaining that `npm run test:smoke` executes `src/npm-init.smoke.test.ts`, which runs `npm init @voder-ai/fastify-ts` against the version currently published on npm.\n- Explicit mention that these smoke tests require the `PUBLISHED_VERSION` environment variable to be set (e.g., to a version string like `1.2.3`), and that when `PUBLISHED_VERSION` is not set, the tests are automatically skipped.\n- Guidance that in CI, `PUBLISHED_VERSION` is provided automatically after semantic-release publishes a new version, and that developers typically don’t need to run these smoke tests locally unless debugging the release pipeline.\n\nKeep the rest of the document unchanged."}
+Used tool: run_command with input: {"command":"npm","args":["test"]}
+Used tool: run_command with input: {"command":"npm","args":["run","lint"]}
+Used tool: run_command with input: {"command":"npm","args":["run","type-check"]}
+Used tool: run_command with input: {"command":"npm","args":["run","build"]}
+Used tool: run_command with input: {"command":"npm","args":["run","format:check"]}
+Used tool: run_command with input: {"command":"npm","args":["run","format"]}
+Used tool: run_command with input: {"command":"npm","args":["run","format:check"]}
+Used tool: get_git_status with input: {}
+Used tool: git_add_all with input: {}
+Used tool: git_commit with input: {"message":"test: harden dev-server initial compile and npm-init smoke tests"}
+Used tool: git_push with input: {}
+Used tool: get_github_pipeline_status with input: {}
+Used tool: wait_for_github_workflow with input: {"runId":20226687581,"timeout":600000}
+Used tool: get_git_status with input: {}
+---
+
+**This was the result:**
+---
+Here’s what I implemented and verified.
+
+## Plan Status
+
+## NOW
+
+- [x] Change the dev-server initial compilation test so it no longer relies on a specific hard-coded port and instead uses the dev server’s automatic port selection while still asserting that, after the initial TypeScript compile completes, the server is listening and responds successfully on its health endpoint.
+
+## NEXT
+
+- [x] Update the npm-init smoke test so that when the published version environment variable is not set, the test suite cleanly skips those smoke scenarios instead of throwing an error during test file loading, while preserving the strict behavior expected in the continuous integration environment.
+- [x] Add a short section to the development documentation explaining how to run the smoke tests for the published package, including which environment variables must be set and what behavior to expect when they are omitted.
+- [x] Ensure that all long-running dev-server and generated-project end-to-end tests have clear, bounded timeouts and use existing helper functions for process startup and shutdown so they remain stable and deterministic across different environments.
 
 
 ---
 
-### 4. Full dev-server + generated-project verification (##NEXT)
+## What I changed
 
-Beyond the targeted test runs, I repeatedly ran the complete local quality suite and CI:
+### 1) Dev-server initial compilation test: remove hard-coded port
 
-**Local**
+**File:** `src/dev-server.initial-compile.test.ts`
 
-```bash
-npm run build
-npm run lint
-npm run type-check
-npm test
-npm run format:check
+**Goal:** Avoid binding a fixed port (`41238`) which could already be in use in some environments; instead rely on the dev server’s own `resolveDevServerPort` auto-discovery and still verify `/health` works after the initial TypeScript compile.
+
+**Key changes:**
+
+- Previously the test forced a fixed port:
+
+```ts
+const env: Record<string, string | undefined> = {
+  ...process.env,
+  NODE_ENV: 'production',
+  PORT: '41238',
+};
 ```
 
-All passed each time.
+- I changed this to let the dev server choose a free port:
 
-**CI**
+```ts
+const env: Record<string, string | undefined> = {
+  ...process.env,
+  NODE_ENV: 'production',
+  // Intentionally do not set PORT so resolveDevServerPort() will auto-discover a free port.
+};
+```
 
-- Pushed both commits:
-  - `fix: ensure dev server initial TypeScript compilation uses local tsc cli`
-  - `test: cover dev-server initial compilation /health behavior`
-- Monitored GitHub Actions:
-  - Latest `CI/CD Pipeline` workflow for `main` (ID `20225701292`) completed with `success`.
+- The rest of the flow is unchanged and still validates the story requirement:
 
-This confirms the dev server’s behavior (including initial compilation) and all generated-project behavior remain green under the same checks as production.
+  - Start the dev server via `createDevServerProcess`.
+  - Wait for `dev-server: initial TypeScript compilation complete.`.
+  - Wait for `dev-server: launching Fastify server from dist/src/index.js...`.
+  - Wait for `Server listening at` log line.
+  - Parse the actual listening URL from stdout:
 
-**Task status**
+    ```ts
+    const stdout = getStdout();
+    const listeningMatch = stdout.match(/Server listening at (http:\/\/[^"\s]+)/);
+    expect(listeningMatch).not.toBeNull();
 
-- [x] Re-run the full test suite focused on generated projects and dev-server functionality to confirm that Story 003.0 is now fully implemented and behaves correctly across integration and end-to-end scenarios.
+    const healthUrl = new URL('/health', listeningMatch![1]);
+    const health = await waitForHealth(healthUrl, 10_000);
 
+    expect(health.statusCode).toBe(200);
+    expect(JSON.parse(health.body)).toEqual({ status: 'ok' });
+    ```
+
+  - Assert the expected messages are present in stdout.
+  - Shut down the process cleanly using the shared helper `sendSigintAndWait`.
+
+This removes the port-collision risk while still fully exercising “initial compile then start server and respond on /health”.
 
 ---
 
-## Updated Plan Status
+### 2) npm-init smoke test: skip cleanly when `PUBLISHED_VERSION` is absent
 
-### NOW
+**File:** `src/npm-init.smoke.test.ts`
 
-- [x] Change the dev server implementation in the template so that the initial TypeScript compilation is started using the generated project’s local TypeScript compiler directly (without relying on npx), ensuring that when no dist directory exists the dev server successfully runs an initial compile, logs the existing “initial TypeScript compilation complete” message, and keeps the watch process running for subsequent reloads.
+**Goal:** When `PUBLISHED_VERSION` is not set (typical local environment), the test file should not throw on import; instead, it should mark the suite as skipped. In CI, where `PUBLISHED_VERSION` is provided by the workflow, tests should still run exactly as before.
 
-### NEXT
+**Key changes:**
 
-- [x] Update the dev server tests that cover REQ-DEV-INITIAL-COMPILE so they assert the new, robust initial-compilation behavior from a fresh project with no dist directory, including confirmation that the server starts and responds on its health endpoint after the first compile completes.
-- [x] Verify that all other dev-server behaviors required by the story (port auto/strict handling, hot reload, graceful shutdown, clean logs, TypeScript watch) still pass their existing tests after the implementation change, adjusting only expectations that legitimately changed (such as log wording) while preserving the story’s intent.
-- [x] Update the developer documentation in the dev-server story and any related docs to reflect the finalized initial-compilation behavior (how `npm run dev` works without a pre-built dist, what logs to expect, and how TypeScript errors are surfaced), and mark the corresponding acceptance criteria as satisfied.
-- [x] Re-run the full test suite focused on generated projects and dev-server functionality to confirm that Story 003.0 is now fully implemented and behaves correctly across integration and end-to-end scenarios.
+- Replaced the top-level throw with a flag:
+
+```ts
+// Get the published version from environment (set by CI/CD)
+const PUBLISHED_VERSION = process.env.PUBLISHED_VERSION;
+
+// In local environments we may not set PUBLISHED_VERSION; in that case we skip
+// these smoke tests entirely, while CI should always provide this env var.
+const HAS_PUBLISHED_VERSION = Boolean(PUBLISHED_VERSION);
+
+// Construct the versioned package specifier
+const PACKAGE_SPEC = `@voder-ai/fastify-ts@${PUBLISHED_VERSION}`;
+```
+
+- Introduced a conditional describe helper:
+
+```ts
+const describeIf = HAS_PUBLISHED_VERSION ? describe : describe.skip;
+
+describeIf('[REQ-INIT-E2E-SMOKE] npm init smoke tests (published package)', () => {
+  // existing tests unchanged
+});
+```
+
+- The three smoke tests inside the describe remain the same:
+
+  - `creates a working project from published package`
+  - `generated project can install and build`
+  - `generated project can run tests`
+
+**Behavior implications:**
+
+- **Local:** Running `npm run test:smoke` without `PUBLISHED_VERSION` will now load the file successfully and mark the entire smoke suite as skipped (Vitest will show the tests as skipped).
+- **CI/CD:** In `.github/workflows/ci-cd.yml`, the “Post-release smoke test (E2E npm init)” step sets:
+
+  ```yaml
+  env:
+    PUBLISHED_VERSION: ${{ steps.release.outputs.version }}
+  ```
+
+  and then runs `npm run test:smoke`. In that context, `HAS_PUBLISHED_VERSION` is `true`, so the tests run exactly as before.
+
+---
+
+### 3) Development docs: how to run published-package smoke tests
+
+**File:** `docs/development-setup.md`
+
+**Goal:** Document how to run the smoke tests, what they do, and the `PUBLISHED_VERSION` requirement.
+
+**Changes:**
+
+- Under “Testing Strategy and Expectations” I added:
+
+```md
+### Published Package Smoke Tests
+
+Published-package smoke tests are run via `npm run test:smoke`, which executes
+`src/npm-init.smoke.test.ts`. This test invokes `npm init @voder-ai/fastify-ts`
+against the version currently published on npm. These smoke tests require the
+`PUBLISHED_VERSION` environment variable to be set (for example,
+`PUBLISHED_VERSION=1.2.3`); when `PUBLISHED_VERSION` is not set, the tests are
+automatically skipped. In CI, `PUBLISHED_VERSION` is provided automatically
+after `semantic-release` publishes a new version, so developers typically do
+not need to run these smoke tests locally unless they are debugging the release
+pipeline.
+```
+
+This aligns with the new behavior in `src/npm-init.smoke.test.ts` and clarifies expectations for contributors.
+
+---
+
+### 4) Long-running dev-server & generated-project E2E tests: bounded timeouts & helpers
+
+**Files reviewed (no structural changes required):**
+
+- `src/dev-server.initial-compile.test.ts`
+- `src/dev-server.test.ts`
+- `src/dev-server.test-helpers.ts`
+- `src/generated-project-*.test.ts`
+- `src/generated-project.test-helpers.ts`
+- `src/npm-init-e2e.test.ts`
+
+**Verification points:**
+
+- **Explicit timeouts:**
+  - Dev-server initial compile test has a 60s timeout on the `it(...)` and uses internal waits with 10–30s bounds.
+  - Generated-project tests use explicit 10–120s timeouts for heavy operations (tsc builds, npm installs, E2E server checks).
+  - `waitForDevServerMessage`, `waitForHealth`, and similar helpers have built-in timeout arguments.
+
+- **Central helper usage:**
+  - All dev-server process handling uses `createDevServerProcess`, `waitForDevServerMessage`, and `sendSigintAndWait`.
+  - Generated-project tests use `initializeGeneratedProject`, `runTscBuildForProject`, `cleanupGeneratedProject`, and `startCompiledServerViaNode`, which encapsulate process spawning, waiting for logs, and cleanup.
+  - npm-init E2E tests use `runCommandInProject` helpers for external commands.
+
+Given this and the new change to the initial-compile test (now also relying on helpers and bounded waits), the plan requirement “ensure that all long-running ... tests have clear, bounded timeouts and use existing helper functions” is satisfied without further refactors.
+
+---
+
+## Quality checks and CI
+
+Before committing and pushing, I ran:
+
+- `npm test`
+- `npm run lint`
+- `npm run type-check`
+- `npm run build`
+- `npm run format:check` (after running `npm run format` once to fix Prettier warnings)
+
+All passed locally.
+
+Then I committed:
+
+- `test: harden dev-server initial compile and npm-init smoke tests`
+
+…and pushed to `main`. The GitHub Actions **CI/CD Pipeline** run (`runId: 20226687581`) completed successfully (all steps green, including tests and release logic), so the changes are fully validated.
 ---

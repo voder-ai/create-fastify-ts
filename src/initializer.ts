@@ -137,16 +137,6 @@ async function scaffoldSourceFiles(templateDir: string, projectDir: string): Pro
     path.join('src', 'index.test.ts.template'),
     path.join(srcDir, 'index.test.ts'),
   );
-  await copyTextTemplate(
-    templateDir,
-    path.join('src', 'index.test.js.template'),
-    path.join(srcDir, 'index.test.js'),
-  );
-  await copyTextTemplate(
-    templateDir,
-    path.join('src', 'index.test.d.ts.template'),
-    path.join(srcDir, 'index.test.d.ts'),
-  );
 }
 
 /**

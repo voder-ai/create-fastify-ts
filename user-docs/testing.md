@@ -8,7 +8,7 @@ The template uses **Vitest** for fast, modern testing with native TypeScript and
 
 From the root of this template repository (not a generated project):
 
-Generated projects now include a **minimal, ready-to-use Vitest setup**: a basic Vitest configuration file, example tests in TypeScript, JavaScript, and `.test.d.ts` formats, and npm scripts for `test`, `test:watch`, and `test:coverage`. The rest of this guide focuses on how the **template repository itself** is tested and can serve as a reference if you want to extend or customize the testing setup in projects you generate with it.
+Generated projects now include a **minimal, ready-to-use Vitest setup**: a basic Vitest configuration file, example TypeScript tests, and npm scripts for `test`, `test:watch`, and `test:coverage`. The rest of this guide focuses on how the **template repository itself** is tested and can serve as a reference if you want to extend or customize the testing setup in projects you generate with it.
 
 For information about how generated projects configure structured logging and how to change log levels in development and production, see the **Logging and Log Levels** section in the [API Reference](api.md#logging-and-log-levels).
 
@@ -50,20 +50,20 @@ npm run type-check
 
 ## Test file formats
 
-The template includes examples of three complementary test file formats:
+The template repository includes two complementary test file formats:
 
 - **Behavior tests in TypeScript (`.test.ts`)**
-  - Example: `src/initializer.test.ts`, `src/cli.test.ts`.
-  - Use Vitest to exercise runtime behavior: CLI flows, project initialization, and dev server behavior.
-
-- **Behavior tests in JavaScript (`.test.js`)**
-  - Example: `src/index.test.js`, `src/check-node-version.test.js`.
-  - Demonstrate how to write tests in plain JavaScript while still using Vitest and ESM.
+  - Example: `src/initializer.test.ts`, `src/cli.test.ts`, `src/generated-project-tests.story-004.test.ts`.
+  - Use Vitest to exercise runtime behavior: CLI flows, project initialization, dev server behavior, and generated project validation.
+  - This is the primary testing pattern for both the template repository and generated projects.
 
 - **Type-level tests (`.test.d.ts`)**
   - Example: `src/index.test.d.ts`.
   - Contain only type-level declarations and assertions, validated by the TypeScript compiler.
   - These files do **not** run at runtime; instead, `npm run type-check` ensures that their compile-time expectations hold.
+  - Used in the template repository to validate public API type safety.
+
+**Note**: While the template repository includes some `.test.js` files (e.g., `src/check-node-version.test.js`) for testing JavaScript-only utilities, generated projects are TypeScript-first and include only `.test.ts` examples.
 
 ### How type-level tests work
 
