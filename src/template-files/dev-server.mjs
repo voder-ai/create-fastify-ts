@@ -15,7 +15,7 @@
  * @supports docs/stories/008.0-DEVELOPER-LOGS-MONITOR.story.md REQ-LOG-DEV-PRETTY REQ-LOG-LEVEL-CONFIG
  */
 import { spawn } from 'node:child_process';
-import { watch } from 'node:fs';
+import { watch, accessSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import net from 'node:net';
 import path from 'node:path';
@@ -244,9 +244,21 @@ function startCompiledServer(projectRoot, env, port, mode) {
   const distEntry = path.join(projectRoot, 'dist', 'src', 'index.js');
 
   const isDev = env.NODE_ENV !== 'production';
-  const args = isDev
-    ? ['-r', 'pino-pretty', path.relative(projectRoot, distEntry)]
-    : [path.relative(projectRoot, distEntry)];
+  const args = [distEntry];
+
+  // In development, try to use pino-pretty for human-readable logs
+  // If pino-pretty is not available, Node will fall back to standard logging
+  if (isDev) {
+    const pinoPrettyPath = path.join(projectRoot, 'node_modules', 'pino-pretty', 'index.js');
+    try {
+      // Synchronous check to avoid async complexity in spawn path
+      accessSync(pinoPrettyPath);
+      args.unshift('-r', 'pino-pretty');
+    } catch {
+      // pino-pretty not found; continue without it (logs will be JSON)
+      console.log('dev-server: pino-pretty not found, using JSON log output');
+    }
+  }
 
   const modeLabel =
     mode === 'auto' ? '(auto-discovered from DEFAULT_PORT)' : '(from PORT environment variable)';
