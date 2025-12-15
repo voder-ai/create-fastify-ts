@@ -271,6 +271,10 @@ Contributor expectations for tests:
 - Assertions should focus on observable behavior and contract (inputs/outputs, HTTP responses) rather than internal implementation details (private helpers, specific log messages, or internal data structures), unless those internals are themselves part of an explicit contract.
 - Where practical, tests should include lightweight traceability annotations (for example, comments or descriptions) that reference the user stories or ADRs they validate. This helps maintain a clear link between requirements, design decisions, and verification.
 
+### Published Package Smoke Tests
+
+Published-package smoke tests are run via `npm run test:smoke`, which executes `src/npm-init.smoke.test.ts`. This test invokes `npm init @voder-ai/fastify-ts` against the version currently published on npm. These smoke tests require the `PUBLISHED_VERSION` environment variable to be set (for example, `PUBLISHED_VERSION=1.2.3`); when `PUBLISHED_VERSION` is not set, the tests are automatically skipped. In CI, `PUBLISHED_VERSION` is provided automatically after `semantic-release` publishes a new version, so developers typically do not need to run these smoke tests locally unless they are debugging the release pipeline.
+
 ## Generated Projects and Repository Hygiene
 
 ADR `docs/decisions/0014-generated-test-projects-not-committed.accepted.md` defines strict rules for keeping this repository free of sample or initializer-generated projects:

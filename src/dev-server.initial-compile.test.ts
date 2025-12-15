@@ -73,7 +73,7 @@ async function runInitialCompilationScenario(): Promise<void> {
     const env: Record<string, string | undefined> = {
       ...process.env,
       NODE_ENV: 'production',
-      PORT: '41238',
+      // Intentionally do not set PORT so resolveDevServerPort() will auto-discover a free port.
     };
 
     const { child, getStdout, getStderr } = createDevServerProcess(env, {
