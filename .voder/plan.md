@@ -1,26 +1,16 @@
 ## NOW
 
-- [ ] Implement ADR 0016: Migrate smoke tests to `.smoke.test.ts` naming convention
-  - Rename `src/npm-init-smoke.test.ts` → `src/npm-init.smoke.test.ts`
-  - Remove `describeOrSkip` conditional logic and environment variable checks from smoke test file
-  - Update `package.json` test script to exclude `**/*.smoke.test.ts` pattern
-  - Update `package.json` test:smoke script to run `**/*.smoke.test.ts` files
-  - Update `.github/workflows/ci-cd.yml` to remove `SMOKE_TEST=true` environment variable (if present)
-  - Update `docs/testing-strategy.md` to document the `.smoke.test.ts` convention and rationale
-  - Verify `npm test` excludes smoke tests completely (no "skipped" output)
-  - Verify `npm run test:smoke` runs only smoke tests
+- [ ] Ensure newly generated projects include a minimal but fully working TypeScript test setup by updating the project template so that a fresh project has a Vitest-powered test script and at least one passing `.test.ts` file exercising the generated Fastify server, such that running the test command in that new project immediately executes and passes real tests.
 
 ## NEXT
 
-- [ ] Run full quality gates (lint, format, type-check, test, build) to validate ADR 0016 implementation
-- [ ] Commit changes with message following conventional commits (e.g., `test: migrate smoke tests to .smoke.test.ts convention per ADR 0016`)
-- [ ] Update history.md with summary of ADR 0016 implementation and smoke test isolation
-- [ ] Consider promoting ADR 0016 from proposed to accepted after successful production validation
-- [ ] Review existing CLI and initializer tests for any remaining duplication with npm init E2E tests
+- [ ] Add JavaScript and type-level example tests to the generated project template by creating a small `.test.js` file and a `.test.d.ts` file that both run successfully in a fresh project, satisfying the multiple test format requirements of the story.
+- [ ] Introduce coverage configuration for generated projects by adding an appropriate Vitest configuration file or inline options so that the default test workflow in a new project produces coverage reports and enforces documented coverage thresholds.
+- [ ] Update the generated project’s README template to describe the available test commands, how to run tests in watch mode and with coverage, and what the included example tests demonstrate, so the documentation acceptance criteria for the story are met.
+- [ ] Extend or add end-to-end initializer tests in this repository to scaffold a new project and verify that its test command runs successfully, its example tests are present, and a coverage report is generated, confirming end-to-end compliance with the story for generated projects.
 
 ## LATER
 
-- [ ] Consider adding additional npm init E2E test scenarios (invalid project names, error handling edge cases)
-- [ ] Add metrics/reporting for npm init test execution times to catch performance regressions
-- [ ] Explore testing npm init with different Node.js versions to validate cross-version compatibility
-- [ ] Consider whether other test types (performance, security) would benefit from similar naming conventions (e.g., `.perf.test.ts`, `.security.test.ts`)
+- [ ] Enhance the example tests shipped in generated projects to cover additional behaviors such as error handling, logging, or small utility functions while keeping them fast and easy to understand.
+- [ ] Consider adding an optional `test:watch` or `test:coverage` script to the generated project template for improved developer ergonomics once the basic test workflow is in place and validated.
+- [ ] Refine coverage thresholds or exclude patterns for generated projects based on real-world feedback, ensuring they remain achievable while still catching meaningful gaps in test coverage.

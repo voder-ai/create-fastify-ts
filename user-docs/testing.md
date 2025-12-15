@@ -8,7 +8,7 @@ The template uses **Vitest** for fast, modern testing with native TypeScript and
 
 From the root of this template repository (not a generated project):
 
-Generated projects currently do **not** include Vitest configuration, test files, or `test` / `type-check` npm scripts by default. This guide describes how the template itself is tested and can serve as a reference if you want to add similar testing to projects you generate with it.
+Generated projects now include a **minimal, ready-to-use Vitest setup**: a basic Vitest configuration file, example tests in TypeScript, JavaScript, and `.test.d.ts` formats, and npm scripts for `test`, `test:watch`, and `test:coverage`. The rest of this guide focuses on how the **template repository itself** is tested and can serve as a reference if you want to extend or customize the testing setup in projects you generate with it.
 
 For information about how generated projects configure structured logging and how to change log levels in development and production, see the **Logging and Log Levels** section in the [API Reference](api.md#logging-and-log-levels).
 

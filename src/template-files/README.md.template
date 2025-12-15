@@ -74,6 +74,38 @@ npm start
 
 This runs the JavaScript build from `dist` without watch or automatic reload. The server listens on the port specified by the `PORT` environment variable, defaulting to `3000` if `PORT` is not set.
 
+## Testing
+
+Generated projects use [Vitest](https://vitest.dev) for testing.
+
+- To run the fast test suite once:
+
+  ```bash
+  npm test
+  ```
+
+- To run tests in watch mode during development:
+
+  ```bash
+  npm run test:watch
+  ```
+
+- To run tests with coverage reporting and enforced thresholds (80% statements, branches, functions, and lines):
+
+  ```bash
+  npm run test:coverage
+  ```
+
+An example test file is included at:
+
+```text
+src/index.test.ts
+```
+
+This example exercises the `/health` route of the generated Fastify server so you can see how to spin up the app, send requests, and make assertions.
+
+Tests are written in TypeScript by default, but JavaScript test files are also supported. If you want to add type-level tests, you can include `.test.d.ts` files and run them as part of your Vitest suite to validate types at compile time.
+
 ## Security and Logging
 
 This project uses Fastify's integrated logging and `@fastify/helmet` for basic HTTP security headers:

@@ -13,23 +13,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFile as execFileCallback } from 'node:child_process';
 import { promisify } from 'node:util';
+import { createTemplatePackageJson, type TemplatePackageJson } from './template-package-json.js';
 
 const execFile = promisify(execFileCallback);
-
-const NODE_TYPES_VERSION = '^24.10.2';
-
-/**
- * Shape of the generated package.json file for a new project.
- */
-interface TemplatePackageJson {
-  name: string;
-  version: string;
-  private: boolean;
-  type: 'module';
-  scripts: Record<string, string>;
-  dependencies: Record<string, string>;
-  devDependencies: Record<string, string>;
-}
 
 /**
  * Result of attempting to initialize a Git repository for a project.
@@ -57,50 +43,6 @@ export interface GitInitResult {
    * If Git initialization failed, a short reason or error message.
    */
   errorMessage?: string;
-}
-
-/**
- * Create the in-memory representation of package.json for a new project.
- *
- * This shape mirrors the on-disk package.json.template used for scaffolding and
- * acts as a fallback when direct template copying is not available.
- *
- * @supports docs/stories/001.0-DEVELOPER-TEMPLATE-INIT.story.md REQ-INIT-FILES-MINIMAL REQ-INIT-ESMODULES REQ-INIT-TYPESCRIPT
- * @supports docs/stories/005.0-DEVELOPER-SECURITY-HEADERS.story.md REQ-SEC-HELMET-DEFAULT
- * @supports docs/stories/006.0-DEVELOPER-PRODUCTION-BUILD.story.md REQ-BUILD-TSC REQ-START-PRODUCTION REQ-START-NO-WATCH REQ-START-PORT REQ-START-LOGS
- * @param projectName - The npm package name for the new project.
- * @returns A plain object ready to be stringified to package.json.
- */
-function createTemplatePackageJson(projectName: string): TemplatePackageJson {
-  const normalizedName = projectName.trim();
-
-  return {
-    name: normalizedName,
-    version: '0.0.0',
-    private: true,
-    type: 'module',
-    scripts: {
-      dev: 'node dev-server.mjs',
-      clean:
-        "node -e \"const fs=require('fs'); fs.rmSync('dist', { recursive: true, force: true });\"",
-      build: 'npm run clean && tsc -p tsconfig.json',
-      start: 'node dist/src/index.js',
-      test: 'vitest run',
-    },
-    // Minimal runtime dependency required by the template-init story.
-    dependencies: {
-      fastify: '^5.6.2',
-      '@fastify/helmet': '^13.0.2',
-      pino: '^9.0.0',
-    },
-    // TypeScript is required for the initialized project.
-    devDependencies: {
-      typescript: '^5.9.3',
-      '@types/node': NODE_TYPES_VERSION,
-      'pino-pretty': '^11.0.0',
-      vitest: '^2.1.8',
-    },
-  };
 }
 
 /**
@@ -134,13 +76,112 @@ async function copyTextTemplate(
 ): Promise<void> {
   const templatePath = path.join(templateDir, templateRelativePath);
   const raw = await fs.readFile(templatePath, 'utf8');
-
   const processed =
     replacements && Object.keys(replacements).length > 0
       ? Object.entries(replacements).reduce((acc, [key, value]) => acc.replaceAll(key, value), raw)
       : raw;
-
   await fs.writeFile(targetFilePath, processed, 'utf8');
+}
+
+/**
+ * Write the package.json file for a new project.
+ *
+ * Attempts to read package.json.template from the template directory and apply
+ * the project name substitution. If the template is unavailable or invalid,
+ * falls back to createTemplatePackageJson.
+ *
+ * @supports docs/stories/001.0-DEVELOPER-TEMPLATE-INIT.story.md REQ-INIT-FILES-MINIMAL REQ-INIT-ESMODULES REQ-INIT-TYPESCRIPT
+ * @param templateDir - Absolute path to the directory containing template assets.
+ * @param projectDir - Absolute path to the project directory.
+ * @param trimmedName - Validated, trimmed project name.
+ */
+async function writePackageJson(
+  templateDir: string,
+  projectDir: string,
+  trimmedName: string,
+): Promise<void> {
+  const packageJsonTemplatePath = path.join(templateDir, 'package.json.template');
+  let pkgJson: TemplatePackageJson;
+  try {
+    const templateContents = await fs.readFile(packageJsonTemplatePath, 'utf8');
+    const replaced = templateContents.replaceAll('{{PROJECT_NAME}}', trimmedName);
+    pkgJson = JSON.parse(replaced) as TemplatePackageJson;
+  } catch {
+    pkgJson = createTemplatePackageJson(trimmedName);
+  }
+  const pkgJsonPath = path.join(projectDir, 'package.json');
+  const fileContents = `${JSON.stringify(pkgJson, null, 2)}\n`;
+  await fs.writeFile(pkgJsonPath, fileContents, 'utf8');
+}
+
+/**
+ * Scaffold the source files for a new project.
+ *
+ * Ensures the src directory exists and copies the main index and test files
+ * from templates.
+ *
+ * @supports docs/stories/001.0-DEVELOPER-TEMPLATE-INIT.story.md REQ-INIT-FILES-MINIMAL REQ-INIT-TYPESCRIPT
+ * @param templateDir - Absolute path to the directory containing template assets.
+ * @param projectDir - Absolute path to the project directory.
+ */
+async function scaffoldSourceFiles(templateDir: string, projectDir: string): Promise<void> {
+  const srcDir = path.join(projectDir, 'src');
+  await fs.mkdir(srcDir, { recursive: true });
+  await copyTextTemplate(
+    templateDir,
+    path.join('src', 'index.ts.template'),
+    path.join(srcDir, 'index.ts'),
+  );
+  await copyTextTemplate(
+    templateDir,
+    path.join('src', 'index.test.ts.template'),
+    path.join(srcDir, 'index.test.ts'),
+  );
+  await copyTextTemplate(
+    templateDir,
+    path.join('src', 'index.test.js.template'),
+    path.join(srcDir, 'index.test.js'),
+  );
+  await copyTextTemplate(
+    templateDir,
+    path.join('src', 'index.test.d.ts.template'),
+    path.join(srcDir, 'index.test.d.ts'),
+  );
+}
+
+/**
+ * Scaffold configuration and supporting files for a new project.
+ *
+ * Copies TypeScript configuration, README, gitignore, dev server script, and
+ * Vitest configuration from templates, including project name substitution
+ * where applicable.
+ *
+ * @supports docs/stories/001.0-DEVELOPER-TEMPLATE-INIT.story.md REQ-INIT-FILES-MINIMAL REQ-INIT-ESMODULES REQ-INIT-TYPESCRIPT
+ * @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-START-FAST
+ * @param templateDir - Absolute path to the directory containing template assets.
+ * @param projectDir - Absolute path to the project directory.
+ * @param trimmedName - Validated, trimmed project name.
+ */
+async function scaffoldConfigFiles(
+  templateDir: string,
+  projectDir: string,
+  trimmedName: string,
+): Promise<void> {
+  await copyTextTemplate(
+    templateDir,
+    'tsconfig.json.template',
+    path.join(projectDir, 'tsconfig.json'),
+  );
+  await copyTextTemplate(templateDir, 'README.md.template', path.join(projectDir, 'README.md'), {
+    '{{PROJECT_NAME}}': trimmedName,
+  });
+  await copyTextTemplate(templateDir, '.gitignore.template', path.join(projectDir, '.gitignore'));
+  await copyTextTemplate(templateDir, 'dev-server.mjs', path.join(projectDir, 'dev-server.mjs'));
+  await copyTextTemplate(
+    templateDir,
+    'vitest.config.mts.template',
+    path.join(projectDir, 'vitest.config.mts'),
+  );
 }
 
 /**
@@ -155,61 +196,11 @@ async function copyTextTemplate(
  */
 async function scaffoldProject(trimmedName: string): Promise<string> {
   const projectDir = path.resolve(process.cwd(), trimmedName);
-
-  // Ensure the target directory exists. Using recursive: true keeps behavior
-  // simple for the initial implementation; more nuanced handling of existing
-  // directories will be added in later stories.
   await fs.mkdir(projectDir, { recursive: true });
-
   const templateDir = getTemplateFilesDir();
-
-  const packageJsonTemplatePath = path.join(templateDir, 'package.json.template');
-  let pkgJson: TemplatePackageJson;
-  try {
-    const templateContents = await fs.readFile(packageJsonTemplatePath, 'utf8');
-    const replaced = templateContents.replaceAll('{{PROJECT_NAME}}', trimmedName);
-    pkgJson = JSON.parse(replaced) as TemplatePackageJson;
-  } catch {
-    pkgJson = createTemplatePackageJson(trimmedName);
-  }
-
-  const pkgJsonPath = path.join(projectDir, 'package.json');
-
-  // Write package.json with a trailing newline for POSIX friendliness.
-  const fileContents = `${JSON.stringify(pkgJson, null, 2)}\n`;
-  await fs.writeFile(pkgJsonPath, fileContents, 'utf8');
-
-  // Copy additional minimal project files from template assets.
-
-  // Ensure src directory exists before writing src/index.ts.
-  const srcDir = path.join(projectDir, 'src');
-  await fs.mkdir(srcDir, { recursive: true });
-
-  // src/index.ts
-  await copyTextTemplate(
-    templateDir,
-    path.join('src', 'index.ts.template'),
-    path.join(srcDir, 'index.ts'),
-  );
-
-  // tsconfig.json
-  await copyTextTemplate(
-    templateDir,
-    'tsconfig.json.template',
-    path.join(projectDir, 'tsconfig.json'),
-  );
-
-  // README.md with project name substitution.
-  await copyTextTemplate(templateDir, 'README.md.template', path.join(projectDir, 'README.md'), {
-    '{{PROJECT_NAME}}': trimmedName,
-  });
-
-  // .gitignore
-  await copyTextTemplate(templateDir, '.gitignore.template', path.join(projectDir, '.gitignore'));
-
-  // dev-server.mjs @supports docs/stories/003.0-DEVELOPER-DEV-SERVER.story.md REQ-DEV-START-FAST
-  await copyTextTemplate(templateDir, 'dev-server.mjs', path.join(projectDir, 'dev-server.mjs'));
-
+  await writePackageJson(templateDir, projectDir, trimmedName);
+  await scaffoldSourceFiles(templateDir, projectDir);
+  await scaffoldConfigFiles(templateDir, projectDir, trimmedName);
   return projectDir;
 }
 
@@ -228,7 +219,6 @@ export async function initializeGitRepository(projectDir: string): Promise<GitIn
     const { stdout, stderr } = await execFile('git', ['init'], {
       cwd: projectDir,
     });
-
     return {
       projectDir,
       initialized: true,
@@ -237,7 +227,6 @@ export async function initializeGitRepository(projectDir: string): Promise<GitIn
     };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error while running git init';
-
     return {
       projectDir,
       initialized: false,
@@ -265,7 +254,6 @@ export async function initializeTemplateProject(projectName: string): Promise<st
   if (!trimmedName) {
     throw new Error('Project name must be a non-empty string');
   }
-
   return scaffoldProject(trimmedName);
 }
 
@@ -289,9 +277,7 @@ export async function initializeTemplateProjectWithGit(
   if (!trimmedName) {
     throw new Error('Project name must be a non-empty string');
   }
-
   const projectDir = await scaffoldProject(trimmedName);
   const git = await initializeGitRepository(projectDir);
-
   return { projectDir, git };
 }
