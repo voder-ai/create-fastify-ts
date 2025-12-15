@@ -55,11 +55,24 @@ These behaviors are implemented in `src/template-files/dev-server.mjs` and apply
 
 ## LOG_LEVEL and NODE_ENV
 
-The generated project server (`src/index.ts`) uses the following algorithm to determine the log level for Fastify's integrated Pino logger.
+### Current behavior in generated projects
 
-### Log level selection
+In the current generated project server (`src/index.ts`), Fastify is configured with logging enabled but **does not read** `LOG_LEVEL` or `NODE_ENV`:
 
-The log level is chosen based on `NODE_ENV` and `LOG_LEVEL`:
+```ts
+const app = Fastify({
+  logger: true,
+});
+```
+
+This means:
+
+- The log level and log behavior are controlled by Fastify/Pino defaults.
+- Changing `LOG_LEVEL` or `NODE_ENV` in the environment **does not** affect the logger configuration in the generated project unless you modify `src/index.ts` yourself.
+
+### Planned / example environment-driven configuration
+
+If you want log levels to depend on `NODE_ENV` and to be overridable by `LOG_LEVEL`, you can adapt `src/index.ts` to use an algorithm like the following:
 
 1. Compute the current environment:
 
@@ -89,16 +102,16 @@ The log level is chosen based on `NODE_ENV` and `LOG_LEVEL`:
    });
    ```
 
-### Practical behavior
+If you choose to implement this pattern in your own project:
 
 - If `NODE_ENV` is **not** `"production"` and `LOG_LEVEL` is **unset**:
-  - Default level is **`debug`**.
+  - Default level would be **`debug`**.
 - If `NODE_ENV=production` and `LOG_LEVEL` is **unset**:
-  - Default level is **`info`**.
+  - Default level would be **`info`**.
 - If `LOG_LEVEL` is set to any supported Pino level (`trace`, `debug`, `info`, `warn`, `error`, `fatal`):
-  - That value is used regardless of `NODE_ENV`.
+  - That value would be used regardless of `NODE_ENV`.
 
-Example configurations:
+Example configurations (assuming you’ve implemented the algorithm above):
 
 ```bash
 # Local development with verbose logs
@@ -113,8 +126,6 @@ NODE_ENV=production npm start
 # Temporary deep troubleshooting in production (use sparingly)
 NODE_ENV=production LOG_LEVEL=trace npm start
 ```
-
-The generated-project logging tests (`src/generated-project-logging.test.ts`) verify that these environment settings affect the behavior of request logs as expected.
 
 ---
 
@@ -148,7 +159,7 @@ For normal day‑to‑day development, you can ignore this variable and rely on 
 
 ## Future / example configuration variables
 
-Some of the security documentation (for example, in `user-docs/SECURITY.md`) shows **example** environment variables such as `CORS_ALLOWED_ORIGINS` and `CORS_ALLOW_CREDENTIALS` in the context of **custom CORS configuration**. Those examples are provided as guidance for how you might configure your own application when you deliberately add `@fastify/cors`.
+Some of the security documentation (for example, in the [Security Overview](./SECURITY.md)) shows **example** environment variables such as `CORS_ALLOWED_ORIGINS` and `CORS_ALLOW_CREDENTIALS` in the context of **custom CORS configuration**. Those examples are provided as guidance for how you might configure your own application when you deliberately add `@fastify/cors`.
 
 Important:
 

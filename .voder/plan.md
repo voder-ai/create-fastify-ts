@@ -1,15 +1,15 @@
 ## NOW
 
-- [ ] Create or update an internal development guide that clearly documents the trunk-based workflow and release process, including that all changes go directly to the main branch using Conventional Commits, the single CI/CD pipeline runs on every push to main, and semantic-release automatically publishes new versions without manual tags or approvals.
+- [ ] Update the configuration guide so that the section describing LOG_LEVEL and NODE_ENV in the generated server, along with any references to the security overview file, precisely matches the actual logging behavior and uses proper Markdown links instead of code-formatted file paths.
 
 ## NEXT
 
-- [ ] Add a contributor-focused section to the main project documentation that summarizes the expected Git usage (no long-lived feature branches, no manual release tags) and points to the detailed development guide for full workflow details.
-- [ ] Document the behavior and purpose of the pre-commit and pre-push hooks so contributors understand which checks run automatically before commits and pushes and how this aligns with the CI/CD pipeline.
-- [ ] Explicitly state in the contributor documentation that generated sample projects, build artifacts, and temporary test outputs must never be committed, reinforcing the existing tests and ignore rules that enforce this policy.
+- [ ] Adjust the Security Overview and any related README sections so that all descriptions of default Helmet usage and logging behavior in generated projects are strictly aligned with what the template server currently does, neither under- nor over-stating features.
+- [ ] Scan all user-facing documentation files for remaining plain-text or code-formatted references to other docs and convert them into proper Markdown links where appropriate to improve navigability and consistency.
+- [ ] Create a concise contributor checklist document that summarizes, in one place, the expectations for adding new features or stories, including required commit conventions, traceability annotations, and test coverage obligations, and link to it from the existing contributing guidance.
 
 ## LATER
 
-- [ ] Introduce a lightweight checklist for adding new features or stories that combines version-control expectations (commit format, branch usage), traceability requirements, and testing expectations into a single reference for contributors.
-- [ ] Optionally enhance the main README with a brief CI/CD overview and a link to the detailed development and release workflow documentation, making the automated release model more visible to new users.
-- [ ] If additional workflows are ever added (for example, for documentation-only checks), keep them documented in the same development guide and ensure they complement, rather than duplicate, the primary CI/CD pipeline.
+- [ ] Add a brief CI/CD overview subsection to the main README that explains, at a high level, how the single pipeline runs on each push to main and triggers semantic-release, and link from there to the internal development guide for deeper details.
+- [ ] Review a small set of key exported functions for missing or file-level-only @supports annotations and add per-function traceability comments where absent, starting with modules that are most relevant to users (like the public initializer API).
+- [ ] Extend the internal development guide with a short catalog of existing GitHub workflows (and any future ones) describing their purpose and how they relate to the primary CI/CD Pipeline, ensuring that any additions remain complementary instead of duplicating checks.

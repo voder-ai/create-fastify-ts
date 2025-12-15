@@ -19,7 +19,7 @@ There are currently **no** authenticated endpoints, no image-upload functionalit
 - The service does **not** perform user authentication or authorization.
 - The service does **not** provide rate-limiting or abuse protection on public endpoints yet.
 - The service does **not** configure CORS (no custom CORS policy is in place).
-- The service **does** apply additional security headers via `@fastify/helmet`, using the plugin's default configuration in generated projects. Helmet is registered once at application bootstrap so that all HTTP responses benefit from the same baseline headers. You can customize or harden this configuration further in your own application code.
+- The template does **not** yet register `@fastify/helmet` in `src/index.ts` out of the box. Enabling Helmet (or similar HTTP security header configuration) is a **recommended next step** after project generation so that all HTTP responses benefit from a common baseline of security headers. You can add and customize this configuration in your own application code.
 - The service does **not** perform validation or strict checking of environment variables at startup.
 
 These limitations are expected for an early bootstrap; future versions will introduce additional endpoints and stronger security features.
@@ -64,9 +64,11 @@ Until these features are implemented and documented, you should treat the servic
 
 ## HTTP Security Headers (REQ-SEC-HEADER-DOCS, REQ-SEC-HELMET-DEFAULT, REQ-SEC-OWASP)
 
-This template uses `@fastify/helmet` by default in the Fastify server that is generated into `src/index.ts` for new projects. This is the recommended way to configure common HTTP security headers in line with [OWASP Secure Headers Best Practices](https://owasp.org/www-project-secure-headers/).
+This template is designed to work well with `@fastify/helmet` as the recommended way to configure common HTTP security headers in line with [OWASP Secure Headers Best Practices](https://owasp.org/www-project-secure-headers/). A freshly generated project **does not** register Helmet by default in `src/index.ts`; instead, you are expected to add and configure Helmet yourself if you want these headers to be applied.
 
-> Important: A freshly generated project registers `@fastify/helmet` with its default settings. You are expected to review and, if needed, **customize** this configuration (for example, CSP directives) in your application bootstrap (for example, in `app.ts` or `server.ts`).
+The examples and descriptions in this section show **recommended patterns** for using `@fastify/helmet` and explain the kinds of headers it can configure for you in alignment with OWASP guidance.
+
+> Important: After generating a new project, you should **explicitly register** `@fastify/helmet` (for example, in `src/index.ts`, `app.ts`, or `server.ts`) and review/customize its configuration (for example, CSP directives) for your application’s needs.
 
 ### Typical `@fastify/helmet` setup
 
@@ -391,7 +393,7 @@ To align with OWASP recommendations:
 ## Summary and Acceptance Criteria Mapping
 
 - **REQ-SEC-HEADER-DOCS / REQ-SEC-HELMET-DEFAULT**:  
-  This document explains the typical default headers configured by `@fastify/helmet`, what they do, and which attacks they help mitigate. It also notes that Helmet is registered by default in freshly generated projects.
+  This document explains the typical default headers that `@fastify/helmet` can configure, what they do, and which attacks they help mitigate. It presents Helmet usage as a recommended pattern and makes clear that you must explicitly register and configure Helmet in your generated project if you want these headers applied.
 - **REQ-SEC-CSP-CUSTOM**:  
   CSP is described with concrete customization examples, including restrictive and environment-specific policies.
 - **REQ-SEC-CORS-DOCS / REQ-SEC-CORS-OPTOUT**:  

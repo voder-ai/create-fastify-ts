@@ -35,8 +35,8 @@ Requires Node.js 22 or newer (LTS recommended); attempting to install dependenci
 - **Hello World endpoint**: `GET /` returns a simple JSON payload in the generated project
 - **Dev server**: `npm run dev` starts a TypeScript-aware dev server with hot reload
 - **Production build & start**: `npm run build` + `npm start` run the compiled server from `dist/`
-- **Security Headers**: `@fastify/helmet` registered by default in the Fastify server generated into `src/index.ts` for new projects.
-- **Structured Logging**: Fastify's integrated Pino logger with environment-driven log levels implemented in the generated project's `src/index.ts`; the dev server (`npm run dev`) pipes logs through `pino-pretty` for human-readable local output while production (`npm start`) keeps JSON log lines.
+- **Security Headers**: The template includes `@fastify/helmet` as a dependency and provides documentation and example usage for enabling security headers in generated projects, but it is not yet registered by default in `src/index.ts`.
+- **Structured Logging**: Generated projects use Fastify's default logger via `Fastify({ logger: true })` in `src/index.ts`. The dev server (`npm run dev`) pipes these logs through `pino-pretty` for human-readable local output, while the compiled server (`npm start`) emits JSON log lines. More advanced NODE_ENV/LOG_LEVEL–driven behavior is a planned enhancement.
 
 ### Planned Enhancements
 
@@ -111,14 +111,15 @@ For details on the programmatic API (including `initializeTemplateProject` and `
 
 Currently implemented:
 
-- Security headers via `@fastify/helmet` in the Fastify server generated into `src/index.ts` for new projects.
-- Structured logging using Fastify's default Pino integration in generated projects (`src/index.ts`), with JSON logs when you run the compiled server directly or with `npm start`; `npm run dev` uses the same structured logs but formats them via `pino-pretty` for easier local reading.
+- Security headers via `@fastify/helmet` are supported by including the dependency in the template and documenting how to enable and configure it in generated projects, but the plugin is not yet registered by default in `src/index.ts`.
+- Structured logging using Fastify's default Pino integration in generated projects (`Fastify({ logger: true })` in `src/index.ts`), with JSON logs when you run the compiled server directly or with `npm start`; `npm run dev` uses the same structured logs but formats them via `pino-pretty` for easier local reading.
 
 Planned security-related enhancements (not yet implemented):
 
 - Environment variable validation
 - CORS configuration
 - Optional additional hardening of security headers (e.g., custom CSP, stricter policies)
+- Environment-driven logging configuration (e.g., NODE_ENV/LOG_LEVEL–based log levels and output behavior)
 
 See [Security Overview](user-docs/SECURITY.md) for detailed security guidance and planned practices.
 
